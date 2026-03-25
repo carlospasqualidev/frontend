@@ -2,51 +2,43 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  redirect,
   Outlet,
 } from '@tanstack/react-router';
 
-import { Sidebar } from '@/components/ui/sidebar';
-import { homeRoute } from '@/screens/home/routes';
+import Layout from '@/components/global/layout';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
+import { homeRoute } from '@/screens/home/routes';
 import { loginRoute } from '@/screens/login/routes';
 
 export const rootRoute = createRootRoute({
   component: () => <Outlet />,
 });
 
-const protectedLayout = createRoute({
-  id: 'protected',
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  beforeLoad: () => {
+    throw redirect({ to: '/app' });
+  },
+});
+
+export const protectedLayoutRoute = createRoute({
+  path: '/app',
   getParentRoute: () => rootRoute,
   component: () => (
     <AuthProvider>
-      <Sidebar />
-      <Outlet />
+      <Layout>
+        <Outlet />
+      </Layout>
     </AuthProvider>
   ),
 });
 
 export const router = createRouter({
   routeTree: rootRoute.addChildren([
+    indexRoute,
     loginRoute,
-    protectedLayout.addChildren([
-      homeRoute,
-      // debtsRoute.addChildren([
-      //   debtsIndex,
-      //   createDebt,
-      //   createDebtWithDebtor,
-      //   updateDebt,
-      //   debtTabs.addChildren([
-      //     debtsSummary,
-      //     debtsList,
-      //     debtDetails,
-      //     paymentsRoute.addChildren([
-      //       paymentsIndex,
-      //       paymentDetails,
-      //       totalPayment,
-      //       partialPayment,
-      //     ]),
-      //   ]),
-      // ]),
-    ]),
+    protectedLayoutRoute.addChildren([homeRoute]),
   ]),
 });

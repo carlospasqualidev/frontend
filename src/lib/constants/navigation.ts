@@ -7,7 +7,7 @@ import {
 export type AuthenticatedNavigationItem = {
   title: string;
   description: string;
-  to: '/app' | '/app/settings';
+  to: '/' | '/settings';
   icon: LucideIcon;
 };
 
@@ -15,13 +15,13 @@ export const authenticatedNavigation: AuthenticatedNavigationItem[] = [
   {
     title: 'Dashboard',
     description: 'Visao inicial do workspace autenticado.',
-    to: '/app',
+    to: '/',
     icon: LayoutDashboardIcon,
   },
   {
     title: 'Settings',
     description: 'Configuracoes de sessao, layout e expansao futura.',
-    to: '/app/settings',
+    to: '/settings',
     icon: Settings2Icon,
   },
 ];

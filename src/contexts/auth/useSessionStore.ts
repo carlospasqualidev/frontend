@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
-import type { AuthState } from '@/types/auth/sessionStoreTypes';
+import type { ISessionStore } from '@/types/auth/sessionStoreTypes';
 
-export const useSessionStore = create<AuthState>((set) => ({
+export const useSessionStore = create<ISessionStore>((set) => ({
   user: null,
   setUser: (user) => set({ user }),
   signIn: (token) => {

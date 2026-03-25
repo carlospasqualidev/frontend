@@ -1,6 +1,6 @@
 import type { IUser } from '../user/userTypes';
 
-export interface AuthState {
+export interface ISessionStore {
   user: IUser | null;
   setUser: (user: IUser | null) => void;
   signIn: (token: string) => void;

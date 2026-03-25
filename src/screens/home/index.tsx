@@ -99,7 +99,7 @@ export function DashboardPage() {
               publica ou protegida pode continuar.
             </li>
             <li>
-              3. Se autenticado, o usuario entra no shell `/app`; caso
+              3. Se autenticado, o usuario entra no shell `/`; caso
               contrario, e redirecionado para `/login`.
             </li>
           </ol>
