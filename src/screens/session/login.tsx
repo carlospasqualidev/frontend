@@ -25,16 +25,23 @@ export function LoginScreen({
       <div className={cn('flex flex-col gap-6', className)} {...props}>
         <Card className="overflow-hidden p-0">
           <CardContent className="grid p-0 md:grid-cols-2">
+            <div className="relative hidden bg-muted md:block">
+              <img
+                src="/placeholder.svg"
+                alt="Image"
+                className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              />
+            </div>
             <form className="p-6 md:p-8">
               <FieldGroup>
                 <div className="flex flex-col items-center gap-2 text-center">
-                  <h1 className="text-2xl font-bold">Welcome back</h1>
+                  <h1 className="text-2xl font-bold">Bem-vindo de volta</h1>
                   <p className="text-balance text-muted-foreground">
-                    Login to your Acme Inc account
+                    Faça login na sua conta
                   </p>
                 </div>
                 <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <FieldLabel htmlFor="email">E-mail</FieldLabel>
                   <Input
                     id="email"
                     type="email"
@@ -44,12 +51,12 @@ export function LoginScreen({
                 </Field>
                 <Field>
                   <div className="flex items-center">
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <FieldLabel htmlFor="password">Senha</FieldLabel>
                     <a
                       href="#"
                       className="ml-auto text-sm underline-offset-2 hover:underline"
                     >
-                      Forgot your password?
+                      Esqueceu sua senha?
                     </a>
                   </div>
                   <Input id="password" type="password" required />
@@ -59,11 +66,11 @@ export function LoginScreen({
                     type="submit"
                     onClick={() => navigate({ to: '/app' })}
                   >
-                    Login
+                    Entrar
                   </Button>
                 </Field>
                 <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                  Or continue with
+                  Ou continue com
                 </FieldSeparator>
 
                 <Field className="grid grid-cols-3 gap-4">
@@ -74,7 +81,7 @@ export function LoginScreen({
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="sr-only">Login with Apple</span>
+                    <span className="sr-only">Entrar com Apple</span>
                   </Button>
                   <Button variant="outline" type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -83,7 +90,7 @@ export function LoginScreen({
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="sr-only">Login with Google</span>
+                    <span className="sr-only">Entrar com Google</span>
                   </Button>
                   <Button variant="outline" type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -92,26 +99,20 @@ export function LoginScreen({
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="sr-only">Login with Meta</span>
+                    <span className="sr-only">Entrar com Meta</span>
                   </Button>
                 </Field>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="/signup">Sign up</a>
+                  Não tem uma conta? <a href="/signup">Criar conta</a>
                 </FieldDescription>
               </FieldGroup>
             </form>
-            <div className="relative hidden bg-muted md:block">
-              <img
-                src="/placeholder.svg"
-                alt="Image"
-                className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-              />
-            </div>
           </CardContent>
         </Card>
         <FieldDescription className="px-6 text-center">
-          By clicking continue, you agree to our{' '}
-          <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          Ao continuar, você concorda com nossos{' '}
+          <a href="#">Termos de Serviço</a> e{' '}
+          <a href="#">Política de Privacidade</a>.
         </FieldDescription>
       </div>
     </SessionTemplate>

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
-import { ModeToggle } from './mode-toggle';
+import { ToggleTheme } from './toggle-theme';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -76,7 +76,7 @@ export function NavUser({
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
-                <ModeToggle />
+                <ToggleTheme />
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
