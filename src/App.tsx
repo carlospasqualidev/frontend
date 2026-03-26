@@ -1,18 +1,20 @@
 import { ErrorBoundary } from 'react-error-boundary';
 import { RouterProvider } from '@tanstack/react-router';
 
+import { Toaster } from '@/components/ui/sonner';
 import { ErrorFallback } from '@/components/global/errorFallback';
-import { errorHandler } from '@/lib/utils';
 import { router } from '@/routes';
+import { sendErrorMessage } from '@/services/api/errorHandlers';
 
 export function App() {
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onError={(error: any) => {
-        errorHandler({ error });
+        sendErrorMessage({ error });
       }}
     >
+      <Toaster />
       <RouterProvider router={router} />
     </ErrorBoundary>
   );

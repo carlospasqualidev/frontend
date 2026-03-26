@@ -9,7 +9,7 @@ import {
 import { Layout } from '@/components/global/layout';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { homeRoute } from '@/screens/home/routes';
-import { loginRoute } from '@/screens/session/routes';
+import { loginRoute, signupRoute } from '@/screens/session/routes';
 
 export const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -39,6 +39,7 @@ export const router = createRouter({
   routeTree: rootRoute.addChildren([
     indexRoute,
     loginRoute,
+    signupRoute,
     protectedLayoutRoute.addChildren([homeRoute]),
   ]),
 });
