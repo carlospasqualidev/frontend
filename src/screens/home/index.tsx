@@ -99,12 +99,115 @@ export function DashboardPage() {
               publica ou protegida pode continuar.
             </li>
             <li>
-              3. Se autenticado, o usuario entra no shell `/`; caso
-              contrario, e redirecionado para `/login`.
+              3. Se autenticado, o usuario entra no shell `/`; caso contrario, e
+              redirecionado para `/login`.
             </li>
           </ol>
         </article>
-
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Estrategia para novos modulos
+          </p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Para adicionar um modulo futuro, crie <code>pages</code>,{' '}
+            <code>components</code>, <code>services</code>, <code>schemas</code>{' '}
+            e <code>types</code> dentro de <code>modules/&lt;nome&gt;</code>{' '}
+            apenas se fizer sentido para aquela feature. Depois componha as
+            rotas no <code>route-tree</code> sem mexer na estrutura dos modulos
+            existentes.
+          </p>
+        </article>{' '}
         <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
           <p className="text-sm font-semibold text-foreground">
             Estrategia para novos modulos

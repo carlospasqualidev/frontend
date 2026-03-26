@@ -6,6 +6,9 @@ import {
   BellIcon,
   LogOutIcon,
 } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+
+import { ModeToggle } from './mode-toggle';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -34,6 +37,8 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+
+  const navigate = useNavigate();
 
   return (
     <SidebarMenu>
@@ -71,6 +76,7 @@ export function NavUser({
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
+                <ModeToggle />
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -95,8 +101,12 @@ export function NavUser({
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() => {
+                navigate({ to: '/login' });
+              }}
+            >
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

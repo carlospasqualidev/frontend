@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { ISessionStore } from '@/types/auth/sessionStoreTypes';
+import type { ISessionStore } from '@/types/session/sessionStoreTypes';
 
 export const useSessionStore = create<ISessionStore>((set) => ({
   user: null,

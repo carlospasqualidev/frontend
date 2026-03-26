@@ -6,10 +6,10 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 
-import Layout from '@/components/global/layout';
+import { Layout } from '@/components/global/layout';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { homeRoute } from '@/screens/home/routes';
-import { loginRoute } from '@/screens/login/routes';
+import { loginRoute } from '@/screens/session/routes';
 
 export const rootRoute = createRootRoute({
   component: () => <Outlet />,
