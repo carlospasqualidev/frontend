@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-import type { ICatchHandler, IThenHandler } from '@/types/api/apiTypes';
+import type { ICatchHandler, IThenHandler } from '@/types/api/types';
 
 export const sendErrorMessage = async ({ error }: { error: Error }) => {
   if (import.meta.env.PROD) {

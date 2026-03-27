@@ -1,34 +1,30 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 
-import { useSessionStore } from './useSessionStore';
+import { useSessionStore } from '../../hooks/useSessionStore';
 
-import { validateSession } from '@/services/auth/validateSession';
+import { sessionService } from '@/services/session/sessionService';
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const { setUser, signOut } = useSessionStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
 
     async function bootstrapSession() {
-      const token = localStorage.getItem('authToken');
-
-      if (!token) {
-        setUser(null);
+      try {
+        const user = await sessionService.validate();
 
         if (isMounted) {
-          setIsReady(true);
+          setUser(user);
         }
-
-        return;
-      }
-
-      try {
-        const user = await validateSession();
-        setUser(user);
       } catch {
-        signOut();
+        if (isMounted) {
+          signOut();
+          navigate({ to: '/login' });
+        }
       } finally {
         if (isMounted) {
           setIsReady(true);
@@ -41,7 +37,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => {
       isMounted = false;
     };
-  }, [setUser, signOut]);
+  }, [navigate, setUser, signOut]);
 
   if (!isReady) {
     return null;
