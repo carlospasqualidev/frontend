@@ -3,6 +3,8 @@ import { useNavigate } from '@tanstack/react-router';
 
 import { useSessionStore } from '../../hooks/useSessionStore';
 
+import { SessionValidationScreen } from './SessionValidationScreen';
+
 import { sessionService } from '@/services/session/sessionService';
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -15,19 +17,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     async function bootstrapSession() {
       try {
-        const user = await sessionService.validate();
+        const { user } = await sessionService.validate();
 
         if (isMounted) {
           setUser(user);
+          setIsReady(true);
         }
       } catch {
         if (isMounted) {
-          signOut();
-          navigate({ to: '/login' });
-        }
-      } finally {
-        if (isMounted) {
-          setIsReady(true);
+          setUser(null);
+          await signOut().catch(() => undefined);
+          await navigate({ to: '/login', replace: true });
         }
       }
     }
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [navigate, setUser, signOut]);
 
   if (!isReady) {
-    return null;
+    return <SessionValidationScreen />;
   }
 
   return children;

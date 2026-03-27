@@ -10,6 +10,10 @@ async function signIn(data: ISignInService) {
   return api.post<ISignInServiceResponse>('/auth/login', data);
 }
 
+async function signOut() {
+  return api.post<ISignInServiceResponse>('/auth/logout');
+}
+
 async function validate() {
   return api.get<IValidateResponse>('/users/validate-token');
 }
@@ -17,4 +21,5 @@ async function validate() {
 export const sessionService = {
   signIn,
   validate,
+  signOut,
 };

@@ -2,7 +2,7 @@ import axios, { type AxiosRequestConfig } from 'axios';
 
 import { thenHandler, catchHandler } from './errorHandlers';
 
-//#PRIVATE API
+//#region CONFIG
 const axiosApi = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL}`,
   withCredentials: true,
@@ -18,15 +18,7 @@ axiosApi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem('authToken');
-//   const customConfig = config;
-
-//   if (token) customConfig.headers.Authorization = `Bearer ${token}`;
-
-//   return customConfig;
-// });
+//#endregion
 
 export const api = {
   get: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
@@ -57,5 +49,3 @@ export const api = {
     return response.data;
   },
 };
-
-//#endregion

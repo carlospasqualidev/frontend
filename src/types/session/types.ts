@@ -9,11 +9,12 @@ export interface ISignInServiceResponse {
   success: boolean;
 }
 
-export type IValidateResponse = IUser;
+export interface IValidateResponse {
+  user: IUser;
+}
 
 export interface ISessionStore {
   user: IUser | null;
   setUser: (user: IUser | null) => void;
-  signIn: (token: string) => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
