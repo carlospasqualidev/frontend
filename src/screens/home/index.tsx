@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { FieldDemo } from '@/components/global/form/field2';
+import { FieldGroup } from '@/components/global/form/fieldGroup';
+import { Field } from '@/components/global/form/field';
+import { FieldSeparator } from '@/components/ui/field';
+import { Select } from '@/components/global/form/select';
+import { Checkbox } from '@/components/global/form/checkbox';
+import { TextArea } from '@/components/global/form/textArea';
 
 type PageHeaderProps = {
   title: string;
@@ -72,6 +79,109 @@ const DASHBOARD_METRICS = [
 export function DashboardPage() {
   return (
     <div className="space-y-6">
+      <div className="flex gap-60">
+        <FieldDemo />
+        <div className="w-[30%]">
+          <FieldGroup
+            title="Payment Method"
+            description="All transactions are secure and encrypted"
+          >
+            <Field
+              label="Name on Card"
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              autoComplete="email"
+              aria-invalid={Boolean(true)}
+              disabled={true}
+            />
+
+            <Field
+              label="Card Number"
+              placeholder="m@example.com"
+              autoComplete="email"
+              description="Enter your 16-digit card number"
+            />
+
+            <Field
+              label="Card Number"
+              placeholder="m@example.com"
+              type="date"
+              autoComplete="email"
+              description="Enter your 16-digit card number"
+            />
+            <div className="grid grid-cols-3 gap-4">
+              <Select
+                label="Year"
+                defaultValue="2024"
+                options={[
+                  {
+                    label: '2025',
+                    value: '2025',
+                  },
+                  {
+                    label: '2024',
+                    value: '2024',
+                  },
+                  {
+                    label: '2023',
+                    value: '2023',
+                  },
+                ]}
+              />
+              <Select
+                label="Year"
+                defaultValue="2023"
+                options={[
+                  {
+                    label: '2025',
+                    value: '2025',
+                  },
+                  {
+                    label: '2024',
+                    value: '2024',
+                  },
+                  {
+                    label: '2023',
+                    value: '2023',
+                  },
+                ]}
+              />
+              <Select
+                label="Year"
+                defaultValue="2025"
+                options={[
+                  {
+                    label: '2025',
+                    value: '2025',
+                  },
+                  {
+                    label: '2024',
+                    value: '2024',
+                  },
+                  {
+                    label: '2023',
+                    value: '2023',
+                  },
+                ]}
+              />
+            </div>
+            <FieldSeparator />
+            <FieldGroup
+              title="Billing Address"
+              description="The billing address associated with your payment method"
+            >
+              <Checkbox label="Same as shipping address" />
+
+              <TextArea
+                label="Comments"
+                description="The billing address associated with your payment method"
+              />
+            </FieldGroup>
+          </FieldGroup>
+        </div>
+      </div>
+
       <PageHeader
         title="Dashboard"
         description="Esta pagina representa a home autenticada do sistema. Ela ja nasce dentro do shell principal com Sidebar, pronta para crescer com novos modulos sem duplicar estrutura."

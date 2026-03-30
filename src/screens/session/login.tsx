@@ -17,14 +17,16 @@ import { Input } from '@/components/ui/input';
 import { useZodForm } from '@/lib/forms/useZodForm';
 import { cn } from '@/lib/utils';
 import { sessionService } from '@/services/session/sessionService';
+import { useSessionStore } from '@/hooks/useSessionStore';
 
 const loginSchema = z.object({
-  username: z.string().trim().min(1, 'Informe seu usuário.'),
+  email: z.email().trim().min(1, 'Informe seu e-mail.'),
   password: z.string().min(8, 'Informe sua senha.'),
 });
 
 export function LoginScreen() {
   const navigate = useNavigate();
+  const { setUser } = useSessionStore();
 
   const {
     register,
@@ -34,14 +36,15 @@ export function LoginScreen() {
   } = useZodForm({
     schema: loginSchema,
     defaultValues: {
-      username: '',
+      email: '',
       password: '',
     },
   });
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await sessionService.signIn(values);
+      const { user } = await sessionService.signIn(values);
+      setUser(user);
 
       await navigate({ to: '/app' });
     } catch {
@@ -79,11 +82,11 @@ export function LoginScreen() {
                     type="email"
                     placeholder="m@example.com"
                     autoComplete="email"
-                    aria-invalid={Boolean(errors.userName)}
+                    aria-invalid={Boolean(errors.email)}
                     disabled={isSubmitting}
-                    {...register('username')}
+                    {...register('email')}
                   />
-                  <FieldError errors={[errors.userName]} />
+                  <FieldError errors={[errors.email]} />
                 </Field>
                 <Field data-invalid={Boolean(errors.password)}>
                   <div className="flex items-center">

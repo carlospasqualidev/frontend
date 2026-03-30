@@ -1,12 +1,13 @@
 import type { IUser } from '../user/types';
 
 export interface ISignInService {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface ISignInServiceResponse {
   success: boolean;
+  user: IUser;
 }
 
 export interface IValidateResponse {

@@ -9,7 +9,7 @@ import { sessionService } from '@/services/session/sessionService';
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
-  const { setUser, signOut } = useSessionStore();
+  const { setUser, signOut, user } = useSessionStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,10 +17,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     async function bootstrapSession() {
       try {
-        const { user } = await sessionService.validate();
+        if (user) {
+          setIsReady(true);
+          return;
+        }
+
+        const data = await sessionService.validate();
 
         if (isMounted) {
-          setUser(user);
+          setUser(data.user);
           setIsReady(true);
         }
       } catch {

@@ -7,15 +7,15 @@ import type {
 } from '@/types/session/types';
 
 async function signIn(data: ISignInService) {
-  return api.post<ISignInServiceResponse>('/auth/login', data);
+  return api.post<ISignInServiceResponse>('/session/login', data);
 }
 
 async function signOut() {
-  return api.post<ISignInServiceResponse>('/auth/logout');
+  return api.post<ISignInServiceResponse>('/session/logout');
 }
 
 async function validate() {
-  return api.get<IValidateResponse>('/users/validate-token');
+  return api.get<IValidateResponse>('/users/me');
 }
 
 export const sessionService = {
