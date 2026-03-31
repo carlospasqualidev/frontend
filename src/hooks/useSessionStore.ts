@@ -11,5 +11,3 @@ export const useSessionStore = create<ISessionStore>((set) => ({
     set({ user: null });
   },
 }));
-
-export const useAuthStore = useSessionStore;

@@ -42,6 +42,7 @@ export function LoginScreen() {
 
   const onSubmit = handleSubmit(async (values) => {
     await sessionService.signIn(values).then(({ user }) => {
+      console.log(user);
       setUser(user);
       navigate({ to: '/' });
     });

@@ -9,7 +9,7 @@ import { NotFoundRedirect } from './components/global/layout/notFound';
 import { playgroundRouteTree } from './screens/playground/routes';
 
 import { Layout } from '@/components/global/layout/layout';
-import { AuthProvider } from '@/contexts/auth/AuthProvider';
+import { SessionValidation } from '@/components/global/layout/sessionValidation';
 import { homeRoute } from '@/screens/home/routes';
 import { loginRoute, signupRoute } from '@/screens/session/routes';
 
@@ -22,11 +22,11 @@ export const protectedLayoutRoute = createRoute({
   id: 'protected-layout',
   getParentRoute: () => rootRoute,
   component: () => (
-    <AuthProvider>
+    <SessionValidation>
       <Layout>
         <Outlet />
       </Layout>
-    </AuthProvider>
+    </SessionValidation>
   ),
 });
 
