@@ -8,7 +8,10 @@ import {
   BreadcrumbPage,
   Breadcrumb as BaseBreadCrumb,
 } from '@/components/ui/breadcrumb';
-import { getRouteTitle } from '@/lib/constants/route-metadata';
+import {
+  getRouteTitle,
+  normalizeRoutePath,
+} from '@/lib/constants/route-metadata';
 
 export function Breadcrumb() {
   const matches = useMatches();
@@ -17,7 +20,7 @@ export function Breadcrumb() {
     Array<{ routeId: string; pathname: string; title: string }>
   >((acc, match) => {
     const routeId = String(match.routeId);
-    const pathname = match.pathname;
+    const pathname = normalizeRoutePath(match.pathname);
 
     if (routeId === '__root__' || routeId === 'protected-layout') {
       return acc;
