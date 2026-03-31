@@ -42,7 +42,7 @@ export function transformIntoInputDate({ date, hasTimeStamp }: IDateValueWithTim
     return `${year}-${month}-${day}T${hour}:${minute}`;
   }
 
-  const datePart = date.substring(0, 10);
+  const [datePart = ''] = date.split('T');
 
   return datePart;
 }

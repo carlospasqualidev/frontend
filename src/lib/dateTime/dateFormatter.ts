@@ -1,4 +1,4 @@
-import type { IDateValueWithTimeStamp } from './types';
+import type { IDateFormatterValue } from './types';
 
 /**
  * Formata datas para exibição considerando diferenças de timezone entre frontend e backend.
@@ -10,6 +10,7 @@ import type { IDateValueWithTimeStamp } from './types';
  *
  * @param params.date Data a ser formatada
  * @param params.hasTimeStamp Indica se a data possui hora relevante
+ * @param params.showHours Quando `hasTimeStamp` for `true`, define se as horas devem ser exibidas
  *
  * @returns Data formatada ou '-' se não informada
  *
@@ -27,8 +28,18 @@ import type { IDateValueWithTimeStamp } from './types';
  * dateFormatter({
  *   date: '2026-03-31T14:35:20Z',
  *   hasTimeStamp: true,
+ *   showHours: true,
  * });
  * // → "31/03/2026 11:35" (exemplo em UTC-3)
+
+ * @example
+ * // Data com hora relevante, mas sem exibir a hora
+ * dateFormatter({
+ *   date: '2026-03-31T14:35:20Z',
+ *   hasTimeStamp: true,
+ *   showHours: false,
+ * });
+ * // → "31/03/2026"
  *
  * @example
  * // Data simples sem timezone explícito
@@ -46,14 +57,34 @@ import type { IDateValueWithTimeStamp } from './types';
  * });
  * // → "-"
  */
-export function dateFormatter({ date, hasTimeStamp }: IDateValueWithTimeStamp) {
+export function dateFormatter({ date, hasTimeStamp, showHours }: IDateFormatterValue) {
   if (!date) return '-';
 
+  const d = new Date(date);
+
+  // feito separado pra garantir que o navegador exiba corretamente
   if (hasTimeStamp) {
-    return new Date(date).toLocaleString().substring(0, 17);
+    if (!showHours) {
+      return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    }
+
+    return d.toLocaleString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
-  return new Date(date)
-    .toLocaleString(undefined, { timeZone: 'UTC' })
-    .substring(0, 17);
+  return d.toLocaleDateString(undefined, {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
 }
