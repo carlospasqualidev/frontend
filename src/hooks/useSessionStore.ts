@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 
-import type { ISessionStore } from '@/types/session/types';
 import { sessionService } from '@/services/session/sessionService';
+import type { IUser } from '@/types/user/types';
+
+export interface ISessionStore {
+  user: IUser | null;
+  setUser: (user: IUser | null) => void;
+  signOut: () => Promise<void>;
+}
 
 export const useSessionStore = create<ISessionStore>((set) => ({
   user: null,

@@ -1,4 +1,5 @@
 import { PlaygroundHeader, PlaygroundLinkCard } from './components';
+import { PlaygroundModal } from './modal/playgroundModal';
 
 const links = [
   {
@@ -27,6 +28,10 @@ export function PlaygroundPage() {
         {links.map((link) => (
           <PlaygroundLinkCard key={link.to} {...link} />
         ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PlaygroundModal />
       </div>
     </div>
   );

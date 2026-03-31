@@ -1,4 +1,4 @@
-import type { IUser } from '../user/types';
+import type { IUser } from '../../types/user/types';
 
 export interface ISignInService {
   email: string;
@@ -12,10 +12,4 @@ export interface ISignInServiceResponse {
 
 export interface IValidateResponse {
   user: IUser;
-}
-
-export interface ISessionStore {
-  user: IUser | null;
-  setUser: (user: IUser | null) => void;
-  signOut: () => Promise<void>;
 }

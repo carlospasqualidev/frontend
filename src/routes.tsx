@@ -13,6 +13,16 @@ import { SessionValidation } from '@/components/global/layout/sessionValidation'
 import { homeRoute } from '@/screens/home/routes';
 import { loginRoute, signupRoute } from '@/screens/session/routes';
 
+declare module '@tanstack/react-router' {
+  interface StaticDataRouteOption {
+    breadcrumb?: string;
+  }
+
+  interface Register {
+    router: typeof router;
+  }
+}
+
 export const rootRoute = createRootRoute({
   component: () => <Outlet />,
   notFoundComponent: NotFoundRedirect,

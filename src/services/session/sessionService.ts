@@ -4,7 +4,7 @@ import type {
   ISignInService,
   ISignInServiceResponse,
   IValidateResponse,
-} from '@/types/session/types';
+} from '@/services/session/types';
 
 async function signIn(data: ISignInService) {
   return api.post<ISignInServiceResponse>('/session/login', data);

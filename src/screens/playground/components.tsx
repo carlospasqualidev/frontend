@@ -15,6 +15,12 @@ type PlaygroundLinkCardProps = {
   to: string;
 };
 
+type PlaygroundPreviewCardProps = {
+  title: string;
+  description: string;
+  children: ReactNode;
+};
+
 export function PlaygroundHeader({
   title,
   description,
@@ -47,6 +53,22 @@ export function PlaygroundLinkCard({
       <Button asChild className="mt-5">
         <Link to={to}>Abrir página</Link>
       </Button>
+    </article>
+  );
+}
+
+export function PlaygroundPreviewCard({
+  title,
+  description,
+  children,
+}: PlaygroundPreviewCardProps) {
+  return (
+    <article className="rounded-3xl border border-border/70 bg-background p-5 shadow-sm">
+      <p className="text-lg font-semibold text-foreground">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        {description}
+      </p>
+      <div className="mt-5">{children}</div>
     </article>
   );
 }
