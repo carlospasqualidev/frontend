@@ -5,8 +5,8 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 
-import { formRouter } from './screens/playground/form/routes';
 import { NotFoundRedirect } from './components/global/layout/notFound';
+import { playgroundRouteTree } from './screens/playground/routes';
 
 import { Layout } from '@/components/global/layout/layout';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
@@ -35,6 +35,6 @@ export const router = createRouter({
   routeTree: rootRoute.addChildren([
     loginRoute,
     signupRoute,
-    protectedLayoutRoute.addChildren([homeRoute, formRouter]),
+    protectedLayoutRoute.addChildren([homeRoute, playgroundRouteTree]),
   ]),
 });

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
-import { ToggleTheme } from './toggle-theme';
+import { ToggleTheme } from '../layout/toggle-theme';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {

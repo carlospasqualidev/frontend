@@ -3,6 +3,10 @@ import { sidebarData } from '@/lib/constants/sidebar';
 const routeTitlesByPath = new Map(
   [
     ...sidebarData.nav.map((item) => [item.url, item.title] as const),
+    ['/playground/form', 'Form Playground'] as const,
+    ['/playground/navigation', 'Navigation Tests'] as const,
+    ['/playground/navigation/details', 'Details'] as const,
+    ['/playground/navigation/details/history', 'History'] as const,
     ['/login', 'Login'] as const,
     ['/signup', 'Criar conta'] as const,
   ]

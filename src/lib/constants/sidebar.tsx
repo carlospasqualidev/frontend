@@ -13,8 +13,8 @@ export const sidebarData = {
       icon: <Home />,
     },
     {
-      title: 'Form Playground',
-      url: '/form-playground',
+      title: 'Playground',
+      url: '/playground',
       icon: <RollerCoaster />,
     },
   ],

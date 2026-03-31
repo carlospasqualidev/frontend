@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { ToggleTheme } from '@/components/global/siderbar/toggle-theme';
+import { ToggleTheme } from '@/components/global/layout/toggle-theme';
 
 export function SessionTemplate({ children }: { children: ReactNode }) {
   return (
