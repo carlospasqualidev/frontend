@@ -3,6 +3,7 @@ import {
   FieldDescription,
   FieldLabel,
 } from '@/components/ui/field';
+import { DateInput } from '@/components/ui/date-input';
 import { Input } from '@/components/ui/input';
 
 interface IField extends React.ComponentProps<'input'> {
@@ -11,10 +12,16 @@ interface IField extends React.ComponentProps<'input'> {
 }
 
 export function Field({ label, description, ...props }: IField) {
+  const { type, ...inputProps } = props;
+
   return (
     <BaseField>
       {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
-      <Input {...props} />
+      {type === 'date' ? (
+        <DateInput {...inputProps} />
+      ) : (
+        <Input type={type} {...inputProps} />
+      )}
       {description && <FieldDescription>{description}</FieldDescription>}
     </BaseField>
   );

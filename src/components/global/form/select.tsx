@@ -18,6 +18,7 @@ interface ISelect extends React.ComponentProps<typeof SelectPrimitive.Root> {
   id?: string;
   label: string;
   description?: string;
+  placeholder?: string;
   options: { value: string; label: string }[];
 }
 
@@ -25,8 +26,8 @@ export function Select({
   id,
   label,
   description,
+  placeholder,
   options,
-  value,
   ...props
 }: ISelect) {
   return (
@@ -35,12 +36,14 @@ export function Select({
 
       <BaseSelect {...props}>
         <SelectTrigger id={id}>
-          <SelectValue placeholder={value} />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {options.map(({ label, value }) => (
-              <SelectItem value={value}>{label}</SelectItem>
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
             ))}
           </SelectGroup>
         </SelectContent>
