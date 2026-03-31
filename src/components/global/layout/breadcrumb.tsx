@@ -8,10 +8,14 @@ import {
   BreadcrumbPage,
   Breadcrumb as BaseBreadCrumb,
 } from '@/components/ui/breadcrumb';
-import {
-  getRouteTitle,
-  normalizeRoutePath,
-} from '@/lib/constants/route-metadata';
+
+function normalizeRoutePath(pathname: string) {
+  if (!pathname || pathname === '/') {
+    return '/';
+  }
+
+  return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+}
 
 export function Breadcrumb() {
   const matches = useMatches();
@@ -21,12 +25,14 @@ export function Breadcrumb() {
   >((acc, match) => {
     const routeId = String(match.routeId);
     const pathname = normalizeRoutePath(match.pathname);
+    const title =
+      typeof match.staticData?.breadcrumb === 'string'
+        ? match.staticData.breadcrumb
+        : undefined;
 
     if (routeId === '__root__' || routeId === 'protected-layout') {
       return acc;
     }
-
-    const title = getRouteTitle(pathname);
 
     if (!title) {
       return acc;

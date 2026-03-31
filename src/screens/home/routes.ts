@@ -7,5 +7,8 @@ import { protectedLayoutRoute } from '@/routes';
 export const homeRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
   path: '/',
+  staticData: {
+    breadcrumb: 'Home',
+  },
   component: DashboardPage,
 });

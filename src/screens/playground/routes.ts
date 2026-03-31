@@ -12,6 +12,9 @@ import { protectedLayoutRoute } from '@/routes';
 export const playgroundRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
   path: '/playground',
+  staticData: {
+    breadcrumb: 'Playground',
+  },
   component: Outlet,
 });
 
@@ -24,24 +27,36 @@ export const playgroundIndexRoute = createRoute({
 export const playgroundFormRoute = createRoute({
   getParentRoute: () => playgroundRoute,
   path: '/form',
+  staticData: {
+    breadcrumb: 'Form Playground',
+  },
   component: PlaygroundFormPage,
 });
 
 export const playgroundNavigationRoute = createRoute({
   getParentRoute: () => playgroundRoute,
   path: '/navigation',
+  staticData: {
+    breadcrumb: 'Teste de navegação',
+  },
   component: PlaygroundNavigationPage,
 });
 
 export const playgroundNavigationDetailsRoute = createRoute({
   getParentRoute: () => playgroundNavigationRoute,
   path: '/details',
+  staticData: {
+    breadcrumb: 'Detalhes',
+  },
   component: PlaygroundNavigationDetailsPage,
 });
 
 export const playgroundNavigationHistoryRoute = createRoute({
   getParentRoute: () => playgroundNavigationDetailsRoute,
   path: '/history',
+  staticData: {
+    breadcrumb: 'Histórico',
+  },
   component: PlaygroundNavigationHistoryPage,
 });
 

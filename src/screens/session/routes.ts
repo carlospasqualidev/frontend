@@ -7,11 +7,17 @@ import { rootRoute } from '@/routes';
 export const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
+  staticData: {
+    breadcrumb: 'Login',
+  },
   component: LoginScreen,
 });
 
 export const signupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/signup',
+  staticData: {
+    breadcrumb: 'Criar conta',
+  },
   component: SignupScreen,
 });
