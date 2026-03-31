@@ -46,7 +46,7 @@ export function LoginScreen() {
       const { user } = await sessionService.signIn(values);
       setUser(user);
 
-      await navigate({ to: '/app' });
+      await navigate({ to: '/' });
     } catch {
       setError('root', {
         type: 'manual',

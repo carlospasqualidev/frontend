@@ -2,7 +2,6 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
   Outlet,
 } from '@tanstack/react-router';
 
@@ -17,16 +16,8 @@ export const rootRoute = createRootRoute({
   component: () => <Outlet />,
 });
 
-const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/app' });
-  },
-});
-
 export const protectedLayoutRoute = createRoute({
-  path: '/app',
+  id: 'protected-layout',
   getParentRoute: () => rootRoute,
   component: () => (
     <AuthProvider>
@@ -39,7 +30,6 @@ export const protectedLayoutRoute = createRoute({
 
 export const router = createRouter({
   routeTree: rootRoute.addChildren([
-    indexRoute,
     loginRoute,
     signupRoute,
     protectedLayoutRoute.addChildren([homeRoute, formRouter]),

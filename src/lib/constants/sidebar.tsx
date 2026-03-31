@@ -9,7 +9,7 @@ export const sidebarData = {
   nav: [
     {
       title: 'Home',
-      url: '/home',
+      url: '/',
       icon: <Home />,
     },
     {
