@@ -83,22 +83,22 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <SparklesIcon />
-                Upgrade to Pro
+                Upgrade para Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheckIcon />
-                Account
+                Conta
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCardIcon />
-                Billing
+                Pagamento
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <BellIcon />
-                Notifications
+                Notificações
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
@@ -108,7 +108,7 @@ export function NavUser() {
               }}
             >
               <LogOutIcon />
-              Log out
+              Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
