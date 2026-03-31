@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { FormPlaygroundCard } from '@/screens/home/FormPlaygroundCard';
 
 type PageHeaderProps = {
   title: string;
@@ -73,8 +72,6 @@ const DASHBOARD_METRICS = [
 export function DashboardPage() {
   return (
     <div className="space-y-6">
-      <FormPlaygroundCard />
-
       <PageHeader
         title="Dashboard"
         description="Esta pagina representa a home autenticada do sistema. Ela ja nasce dentro do shell principal com Sidebar, pronta para crescer com novos modulos sem duplicar estrutura."

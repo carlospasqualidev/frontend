@@ -6,6 +6,8 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 
+import { formRouter } from './screens/playground/form/routes';
+
 import { Layout } from '@/components/global/layout';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { homeRoute } from '@/screens/home/routes';
@@ -40,6 +42,6 @@ export const router = createRouter({
     indexRoute,
     loginRoute,
     signupRoute,
-    protectedLayoutRoute.addChildren([homeRoute]),
+    protectedLayoutRoute.addChildren([homeRoute, formRouter]),
   ]),
 });
