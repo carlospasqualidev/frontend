@@ -23,7 +23,7 @@ export function SessionValidation({ children }: PropsWithChildren) {
         const data = await sessionService.validate();
 
         setUser(data.user);
-        // setIsReady(true);
+        setIsReady(true);
       } catch {
         setUser(null);
         await signOut().catch(() => undefined);
