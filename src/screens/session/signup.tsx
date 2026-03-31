@@ -1,6 +1,5 @@
 import { SessionTemplate } from './sessionTemplate';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -11,6 +10,7 @@ import {
   FieldSeparator,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 export function SignupScreen({
   className,
@@ -112,7 +112,7 @@ export function SignupScreen({
                 </Field>
 
                 <FieldDescription className="text-center">
-                  Já tem uma conta? <a href="#">Entrar</a>
+                  Já tem uma conta? <a href="/login">Entrar</a>
                 </FieldDescription>
               </FieldGroup>
             </form>

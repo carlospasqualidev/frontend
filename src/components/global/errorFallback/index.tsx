@@ -7,7 +7,7 @@ import { Typography } from '@/components/ui/typography';
 export function ErrorFallback() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-muted/40 px-6 py-10">
-      <div className="bg-[radial-gradient(circle_at_top,var(--color-primary),transparent_45%)]/8 absolute inset-0" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--color-primary),transparent_45%)]/8" />
 
       <div className="relative w-full max-w-xl rounded-3xl border border-border/60 bg-background/95 p-8 shadow-lg shadow-foreground/5 backdrop-blur sm:p-10">
         <div className="mx-auto flex max-w-md flex-col items-center gap-5 text-center">
@@ -30,7 +30,7 @@ export function ErrorFallback() {
 
             <Typography variant="muted" align="center">
               Atualize a página para tentar restabelecer a sessão e continuar de
-              onde voce parou.
+              onde você parou.
             </Typography>
           </div>
 

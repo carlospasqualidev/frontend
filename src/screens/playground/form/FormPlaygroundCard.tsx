@@ -12,14 +12,14 @@ import { useZodForm } from '@/lib/forms/useZodForm';
 
 const departmentOptions = [
   { label: 'Financeiro', value: 'financeiro' },
-  { label: 'Operacoes', value: 'operacoes' },
+  { label: 'Operações', value: 'operacoes' },
   { label: 'Recursos Humanos', value: 'rh' },
   { label: 'Tecnologia', value: 'tecnologia' },
 ] as const;
 
 const employeeStatusOptions = [
   { label: 'Ativo', value: 'ativo' },
-  { label: 'Ferias', value: 'ferias' },
+  { label: 'Férias', value: 'ferias' },
   { label: 'Desligado', value: 'desligado' },
 ] as const;
 
@@ -41,31 +41,31 @@ const formSchema = z.object({
     .string()
     .trim()
     .min(1, 'Informe o e-mail corporativo.')
-    .email('Informe um e-mail valido.'),
+    .email('Informe um e-mail válido.'),
   role: z.string().trim().min(2, 'Informe o cargo.'),
   admissionDate: z
     .string()
-    .min(1, 'Informe a data de admissao.')
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use uma data valida.'),
+    .min(1, 'Informe a data de admissão.')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use uma data válida.'),
   department: z
     .string()
     .min(1, 'Selecione um departamento.')
     .refine(
       (value) => departmentOptions.some((option) => option.value === value),
-      'Selecione um departamento valido.'
+      'Selecione um departamento válido.'
     ),
   status: z
     .string()
     .refine(
       (value) => employeeStatusOptions.some((option) => option.value === value),
-      'Selecione um status valido.'
+      'Selecione um status válido.'
     ),
   observations: z
     .string()
     .trim()
-    .min(10, 'Escreva pelo menos 10 caracteres nas observacoes.'),
+    .min(10, 'Escreva pelo menos 10 caracteres nas observações.'),
   receiveReports: z.boolean(),
-  acceptTerms: z.boolean().refine(Boolean, 'Voce precisa aceitar os termos.'),
+  acceptTerms: z.boolean().refine(Boolean, 'Você precisa aceitar os termos.'),
 });
 
 type FormData = z.output<typeof formSchema>;
@@ -92,10 +92,10 @@ export function FormPlaygroundCard() {
   return (
     <Card className="border-border/70 shadow-sm">
       <CardHeader className="space-y-2">
-        <CardTitle>Formulario de teste</CardTitle>
+        <CardTitle>Formulário de teste</CardTitle>
         <FieldDescription>
-          Este formulario exercita os inputs globais com `react-hook-form` e
-          `zod`, incluindo digitacao manual no campo de data.
+          Este formulário exercita os inputs globais com `react-hook-form` e
+          `zod`, incluindo digitação manual no campo de data.
         </FieldDescription>
       </CardHeader>
       <CardContent>
@@ -133,7 +133,7 @@ export function FormPlaygroundCard() {
 
             <Field
               id="admissionDate"
-              label="Data de admissao"
+              label="Data de admissão"
               type="date"
               errors={errors.admissionDate}
               disabled={isSubmitting}
@@ -169,8 +169,8 @@ export function FormPlaygroundCard() {
 
           <TextArea
             id="observations"
-            label="Observacoes"
-            placeholder="Descreva aqui um caso de uso real para validar espacamento, foco e mensagens."
+            label="Observações"
+            placeholder="Descreva aqui um caso de uso real para validar espaçamento, foco e mensagens."
             errors={errors.observations}
             disabled={isSubmitting}
             {...register('observations')}
@@ -181,7 +181,7 @@ export function FormPlaygroundCard() {
               id="receiveReports"
               name="receiveReports"
               control={control}
-              label="Receber relatorios por e-mail"
+              label="Receber relatórios por e-mail"
               description="Bom para testar o checkbox em um estado positivo."
               disabled={isSubmitting}
             />
@@ -191,14 +191,14 @@ export function FormPlaygroundCard() {
               name="acceptTerms"
               control={control}
               label="Aceito os termos internos"
-              description="Este campo deve falhar se voce tentar enviar sem marcar."
+              description="Este campo deve falhar se você tentar enviar sem marcar."
               disabled={isSubmitting}
             />
           </div>
 
           <div className="flex flex-wrap gap-3">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Validando...' : 'Enviar formulario'}
+              {isSubmitting ? 'Validando...' : 'Enviar formulário'}
             </Button>
             <Button
               type="button"
@@ -209,13 +209,13 @@ export function FormPlaygroundCard() {
                 setLastSubmission(null);
               }}
             >
-              Limpar formulario
+              Limpar formulário
             </Button>
           </div>
 
           <div className="rounded-2xl border border-dashed border-border/70 bg-muted/30 p-4">
             <p className="text-sm font-medium text-foreground">
-              Ultimo envio valido
+              Último envio válido
             </p>
             <pre className="mt-3 overflow-x-auto text-sm leading-6 text-muted-foreground">
               {JSON.stringify(lastSubmission, null, 2)}

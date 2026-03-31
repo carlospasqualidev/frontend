@@ -2,15 +2,15 @@ import { PlaygroundHeader, PlaygroundLinkCard } from '../components';
 
 const links = [
   {
-    title: 'Details',
+    title: 'Detalhes',
     description:
-      'Primeiro nivel de aprofundamento para validar o breadcrumb com uma trilha mais longa.',
+      'Primeiro nível de aprofundamento para validar o breadcrumb com uma trilha mais longa.',
     to: '/playground/navigation/details',
   },
   {
-    title: 'History',
+    title: 'Histórico',
     description:
-      'Atalho direto para um nivel ainda mais profundo da arvore de navegacao.',
+      'Atalho direto para um nível ainda mais profundo da árvore de navegação.',
     to: '/playground/navigation/details/history',
   },
 ];
@@ -19,8 +19,8 @@ export function PlaygroundNavigationPage() {
   return (
     <div className="space-y-6">
       <PlaygroundHeader
-        title="Navigation Tests"
-        description="Colecao de paginas simples para confirmar se o breadcrumb acompanha corretamente as rotas validas do router."
+        title="Testes de Navegação"
+        description="Coleção de páginas simples para confirmar se o breadcrumb acompanha corretamente as rotas válidas do router."
       />
 
       <div className="grid gap-4 lg:grid-cols-2">

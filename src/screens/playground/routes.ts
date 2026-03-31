@@ -28,7 +28,7 @@ export const playgroundFormRoute = createRoute({
   getParentRoute: () => playgroundRoute,
   path: '/form',
   staticData: {
-    breadcrumb: 'Form Playground',
+    breadcrumb: 'Playground de Formulários',
   },
   component: PlaygroundFormPage,
 });
@@ -37,7 +37,7 @@ export const playgroundNavigationRoute = createRoute({
   getParentRoute: () => playgroundRoute,
   path: '/navigation',
   staticData: {
-    breadcrumb: 'Teste de navegação',
+    breadcrumb: 'Testes de Navegação',
   },
   component: PlaygroundNavigationPage,
 });

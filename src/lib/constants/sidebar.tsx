@@ -8,7 +8,7 @@ export const sidebarData = {
   },
   nav: [
     {
-      title: 'Home',
+      title: 'Início',
       url: '/',
       icon: <Home />,
     },

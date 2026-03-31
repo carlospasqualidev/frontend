@@ -2,15 +2,15 @@ import { PlaygroundHeader, PlaygroundLinkCard } from './components';
 
 const links = [
   {
-    title: 'Form Playground',
+    title: 'Playground de Formulários',
     description:
-      'Mantem o formulario de testes em uma rota filha para validar breadcrumb com 2 niveis.',
+      'Mantém o formulário de testes em uma rota filha para validar o breadcrumb com 2 níveis.',
     to: '/playground/form',
   },
   {
-    title: 'Navigation Tests',
+    title: 'Testes de Navegação',
     description:
-      'Abre uma area com links mais profundos para validar breadcrumb com 3 ou mais niveis.',
+      'Abre uma área com links mais profundos para validar o breadcrumb com 3 ou mais níveis.',
     to: '/playground/navigation',
   },
 ];
@@ -20,7 +20,7 @@ export function PlaygroundPage() {
     <div className="space-y-6">
       <PlaygroundHeader
         title="Playground"
-        description="Area dedicada para experimentar componentes, estados e fluxos de navegacao sem impactar as telas principais."
+        description="Área dedicada para experimentar componentes, estados e fluxos de navegação sem impactar as telas principais."
       />
 
       <div className="grid gap-4 lg:grid-cols-2">

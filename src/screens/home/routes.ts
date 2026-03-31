@@ -8,7 +8,7 @@ export const homeRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
   path: '/',
   staticData: {
-    breadcrumb: 'Home',
+    breadcrumb: 'Início',
   },
   component: DashboardPage,
 });

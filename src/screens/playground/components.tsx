@@ -45,7 +45,7 @@ export function PlaygroundLinkCard({
         {description}
       </p>
       <Button asChild className="mt-5">
-        <Link to={to}>Abrir pagina</Link>
+        <Link to={to}>Abrir página</Link>
       </Button>
     </article>
   );
