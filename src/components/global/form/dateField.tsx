@@ -188,6 +188,15 @@ function parseDisplayValueToFormValue(value: string) {
   return formatDateForForm(parsedDate);
 }
 
+function resolveDateInMonth(monthDate: Date, preferredDay: number) {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const maxDay = new Date(year, month + 1, 0).getDate();
+  const safeDay = Math.min(Math.max(preferredDay, 1), maxDay);
+
+  return new Date(year, month, safeDay);
+}
+
 function DateFieldBase({
   id,
   name,
@@ -266,6 +275,18 @@ function DateFieldBase({
     [commitValue, onBlur]
   );
 
+  const handleCalendarMonthChange = React.useCallback(
+    (nextMonth: Date) => {
+      const preferredDay = selectedDate?.getDate() ?? 1;
+      const nextDate = resolveDateInMonth(nextMonth, preferredDay);
+
+      setDisplayValue(formatDateForDisplay(nextDate));
+      commitValue(formatDateForForm(nextDate));
+      calendarProps?.onMonthChange?.(nextMonth);
+    },
+    [calendarProps, commitValue, selectedDate]
+  );
+
   const handleInputBlur = React.useCallback(() => {
     const nextFormValue = parseDisplayValueToFormValue(displayValue);
 
@@ -321,6 +342,7 @@ function DateFieldBase({
             selected={selectedDate}
             defaultMonth={selectedDate}
             onSelect={handleCalendarSelect}
+            onMonthChange={handleCalendarMonthChange}
             captionLayout="dropdown"
             {...calendarProps}
           />
