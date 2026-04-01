@@ -165,6 +165,38 @@ function maskDisplayValue(value: string) {
     return `${clampDateSegment(day, 31)}/${clampDateSegment(month, 12)}/${year}`;
   }
 
+  const sanitizedWithSeparators = value.replace(/[^\d/]/g, '');
+  const hasSeparators = sanitizedWithSeparators.includes('/');
+
+  if (hasSeparators) {
+    const segments = sanitizedWithSeparators.split('/').slice(0, 3);
+    const [rawDay = '', rawMonth = '', rawYear = ''] = segments;
+
+    const day = clampDateSegment(rawDay.slice(0, 2), 31);
+    const month = clampDateSegment(rawMonth.slice(0, 2), 12);
+    const year = rawYear.slice(0, 4);
+
+    let nextValue = day;
+    const hasMonthPart =
+      segments.length > 1 || sanitizedWithSeparators.endsWith('/');
+    const shouldStartYearPart =
+      day.length === 2 &&
+      month.length === 2 &&
+      rawYear.length === 0 &&
+      !sanitizedWithSeparators.endsWith('/');
+    const hasYearPart = rawYear.length > 0 || shouldStartYearPart;
+
+    if (hasMonthPart) {
+      nextValue = `${nextValue}/${month}`;
+    }
+
+    if (hasYearPart) {
+      nextValue = `${nextValue}/${year}`;
+    }
+
+    return nextValue;
+  }
+
   const digits = value.replace(/\D/g, '').slice(0, 8);
 
   if (!digits) {
