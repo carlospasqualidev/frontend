@@ -463,6 +463,32 @@ function getTimePartValue(parts: TimeParts, part: keyof TimeParts) {
   return parts.minute;
 }
 
+function getSegmentDigitCount(value: string, segmentIndex: number) {
+  const segments = value.split(/[/: ]/);
+
+  if (segmentIndex === 0) {
+    return segments[0]?.replace(/\D/g, '').length ?? 0;
+  }
+
+  if (segmentIndex === 1) {
+    return segments[1]?.replace(/\D/g, '').length ?? 0;
+  }
+
+  if (segmentIndex === 2) {
+    return segments[2]?.replace(/\D/g, '').length ?? 0;
+  }
+
+  if (segmentIndex === 3) {
+    return segments[3]?.replace(/\D/g, '').length ?? 0;
+  }
+
+  if (segmentIndex === 4) {
+    return segments[4]?.replace(/\D/g, '').length ?? 0;
+  }
+
+  return 0;
+}
+
 function DateTimeFieldBase({
   id,
   name,
@@ -549,13 +575,41 @@ function DateTimeFieldBase({
         shouldAutoStartTime: !isDeleting,
         shouldAutoStartYear: !isDeleting,
       };
+      const nextRawChar = rawValue.charAt(rawCaret);
+      const prefixMaskOptions = {
+        shouldAutoStartTime: !isDeleting && nextRawChar !== ' ',
+        shouldAutoStartYear: !isDeleting && nextRawChar !== '/',
+      };
       const nextDisplayValue = maskDisplayValue(rawValue, maskOptions);
       const maskedPrefix = maskDisplayValue(
         rawValue.slice(0, rawCaret),
-        maskOptions
+        prefixMaskOptions
       );
       const nextFormValue = parseDisplayValueToFormValue(nextDisplayValue);
-      const nextCaret = Math.min(maskedPrefix.length, nextDisplayValue.length);
+      let nextCaret = Math.min(maskedPrefix.length, nextDisplayValue.length);
+      const separatorsBeforeCaret =
+        nextDisplayValue.slice(0, nextCaret).match(/[/: ]/g)?.length ?? 0;
+      const segmentIndex = separatorsBeforeCaret;
+      const currentSegmentDigits = getSegmentDigitCount(
+        nextDisplayValue,
+        segmentIndex
+      );
+      const requiredDigits =
+        nextRawChar === ' '
+          ? 4
+          : nextRawChar === '/' || nextRawChar === ':'
+            ? 2
+            : 0;
+      const shouldAdvanceOverSeparator =
+        !isDeleting &&
+        inputEvent?.inputType === 'insertText' &&
+        ['/', ' ', ':'].includes(nextRawChar) &&
+        nextCaret === rawCaret &&
+        currentSegmentDigits >= requiredDigits;
+
+      if (shouldAdvanceOverSeparator) {
+        nextCaret = Math.min(nextCaret + 1, nextDisplayValue.length);
+      }
 
       setDisplayValue(nextDisplayValue);
       requestAnimationFrame(() => {
