@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { CalendarIcon } from 'lucide-react';
 import {
   useController,
   type Control,
@@ -24,19 +25,17 @@ import {
   FieldError,
   FieldLabel,
 } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import {
+  PopoverAnchor,
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { parseLocalDate } from '@/lib/dateTime/utils';
 import { cn } from '@/lib/utils';
 
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-});
+const FORM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DISPLAY_DATE_PATTERN = /^\d{2}\/\d{2}\/\d{4}$/;
 
 type CalendarProps = Omit<
   React.ComponentProps<typeof Calendar>,
@@ -44,14 +43,11 @@ type CalendarProps = Omit<
 >;
 
 type DateFieldBaseProps = Omit<
-  React.ComponentProps<typeof Button>,
-  'children' | 'value' | 'defaultValue' | 'onChange' | 'onBlur'
+  React.ComponentProps<'input'>,
+  'type' | 'value' | 'defaultValue' | 'onChange' | 'onBlur'
 > & {
-  id?: string;
-  name?: string;
   label: string;
   description?: string;
-  placeholder?: string;
   errors?: TFormFieldErrors;
   value?: string;
   defaultValue?: string;
@@ -63,10 +59,7 @@ type DateFieldBaseProps = Omit<
 type ControlledDateFieldProps<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, string>,
-> = Omit<
-  DateFieldBaseProps,
-  'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'name'
-> & {
+> = Omit<DateFieldBaseProps, 'value' | 'defaultValue' | 'onChange' | 'name'> & {
   control: Control<TFieldValues>;
   name: TName;
   rules?: Omit<
@@ -86,6 +79,33 @@ type DateFieldProps<
   TName extends FieldPathByValue<TFieldValues, string>,
 > = ControlledDateFieldProps<TFieldValues, TName> | UncontrolledDateFieldProps;
 
+function createDateFromParts(day: string, month: string, year: string) {
+  const parsedDay = Number(day);
+  const parsedMonth = Number(month);
+  const parsedYear = Number(year);
+
+  if (
+    !Number.isInteger(parsedDay) ||
+    !Number.isInteger(parsedMonth) ||
+    !Number.isInteger(parsedYear)
+  ) {
+    return undefined;
+  }
+
+  const date = new Date(parsedYear, parsedMonth - 1, parsedDay);
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== parsedYear ||
+    date.getMonth() !== parsedMonth - 1 ||
+    date.getDate() !== parsedDay
+  ) {
+    return undefined;
+  }
+
+  return date;
+}
+
 function formatDateForForm(date: Date) {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -94,12 +114,120 @@ function formatDateForForm(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatDateForDisplay(date: Date) {
+  const day = `${date.getDate()}`.padStart(2, '0');
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
 function parseDateValue(value: string | undefined) {
   if (!value) {
     return undefined;
   }
 
-  return parseLocalDate(value);
+  if (FORM_DATE_PATTERN.test(value)) {
+    const [year, month, day] = value.split('-');
+    return createDateFromParts(day, month, year);
+  }
+
+  if (DISPLAY_DATE_PATTERN.test(value)) {
+    const [day, month, year] = value.split('/');
+    return createDateFromParts(day, month, year);
+  }
+
+  return undefined;
+}
+
+function formatDisplayValue(value: string | undefined) {
+  const parsedDate = parseDateValue(value);
+
+  if (parsedDate) {
+    return formatDateForDisplay(parsedDate);
+  }
+
+  return value ?? '';
+}
+
+function clampDateSegment(value: string, max: number) {
+  if (value.length < 2) {
+    return value;
+  }
+
+  return `${Math.min(Number(value), max)}`.padStart(2, '0');
+}
+
+function maskDisplayValue(value: string) {
+  const isoDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (isoDateMatch) {
+    const [, year, month, day] = isoDateMatch;
+    return `${clampDateSegment(day, 31)}/${clampDateSegment(month, 12)}/${year}`;
+  }
+
+  const sanitizedWithSeparators = value.replace(/[^\d/]/g, '');
+  const hasSeparators = sanitizedWithSeparators.includes('/');
+
+  if (hasSeparators) {
+    const segments = sanitizedWithSeparators.split('/').slice(0, 3);
+    const [rawDay = '', rawMonth = '', rawYear = ''] = segments;
+
+    const day = clampDateSegment(rawDay.slice(0, 2), 31);
+    const month = clampDateSegment(rawMonth.slice(0, 2), 12);
+    const year = rawYear.slice(0, 4);
+
+    let nextValue = day;
+    const hasMonthPart =
+      segments.length > 1 || sanitizedWithSeparators.endsWith('/');
+    const shouldStartYearPart =
+      day.length === 2 &&
+      month.length === 2 &&
+      rawYear.length === 0 &&
+      !sanitizedWithSeparators.endsWith('/');
+    const hasYearPart = rawYear.length > 0 || shouldStartYearPart;
+
+    if (hasMonthPart) {
+      nextValue = `${nextValue}/${month}`;
+    }
+
+    if (hasYearPart) {
+      nextValue = `${nextValue}/${year}`;
+    }
+
+    return nextValue;
+  }
+
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+
+  if (!digits) {
+    return '';
+  }
+
+  const day = clampDateSegment(digits.slice(0, 2), 31);
+  const month = clampDateSegment(digits.slice(2, 4), 12);
+  const year = digits.slice(4, 8);
+
+  return [day, month, year].filter(Boolean).join('/');
+}
+
+function parseDisplayValueToFormValue(value: string) {
+  const parsedDate = parseDateValue(value);
+
+  if (!parsedDate) {
+    return undefined;
+  }
+
+  return formatDateForForm(parsedDate);
+}
+
+function resolveDateInMonth(monthDate: Date, preferredDay: number) {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const maxDay = new Date(year, month + 1, 0).getDate();
+  const safeDay = Math.min(Math.max(preferredDay, 1), maxDay);
+
+  return new Date(year, month, safeDay);
 }
 
 function DateFieldBase({
@@ -107,7 +235,7 @@ function DateFieldBase({
   name,
   label,
   description,
-  placeholder = 'Selecione uma data',
+  placeholder = 'dd/mm/aaaa',
   errors,
   value,
   defaultValue,
@@ -121,69 +249,133 @@ function DateFieldBase({
 }: DateFieldBaseProps) {
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState(defaultValue ?? '');
+  const isControlled = value !== undefined;
+  const resolvedValue = isControlled ? (value ?? '') : internalValue;
+  const [displayValue, setDisplayValue] = React.useState(() =>
+    formatDisplayValue(resolvedValue)
+  );
 
   const allErrors = resolveFieldErrors(errors);
   const invalid = hasFieldErrors(allErrors);
   const resolvedAriaInvalid = ariaInvalid ?? (invalid || undefined);
-  const isControlled = value !== undefined;
-  const resolvedValue = isControlled ? (value ?? '') : internalValue;
   const selectedDate = React.useMemo(
     () => parseDateValue(resolvedValue),
     [resolvedValue]
   );
 
-  const handleValueChange = React.useCallback(
-    (nextDate: Date | undefined) => {
-      const nextValue = nextDate ? formatDateForForm(nextDate) : '';
+  React.useEffect(() => {
+    setDisplayValue(formatDisplayValue(resolvedValue));
+  }, [resolvedValue]);
 
+  const commitValue = React.useCallback(
+    (nextValue: string) => {
       if (!isControlled) {
         setInternalValue(nextValue);
       }
 
       onChange?.(nextValue);
+    },
+    [isControlled, onChange]
+  );
+
+  const handleInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextDisplayValue = maskDisplayValue(event.target.value);
+      const nextFormValue = parseDisplayValueToFormValue(nextDisplayValue);
+
+      setDisplayValue(nextDisplayValue);
+
+      if (!nextDisplayValue) {
+        commitValue('');
+        return;
+      }
+
+      commitValue(nextFormValue ?? nextDisplayValue);
+    },
+    [commitValue]
+  );
+
+  const handleCalendarSelect = React.useCallback(
+    (nextDate: Date | undefined) => {
+      const nextFormValue = nextDate ? formatDateForForm(nextDate) : '';
+      const nextDisplayValue = nextDate ? formatDateForDisplay(nextDate) : '';
+
+      setDisplayValue(nextDisplayValue);
+      commitValue(nextFormValue);
       onBlur?.();
       setOpen(false);
     },
-    [isControlled, onBlur, onChange]
+    [commitValue, onBlur]
   );
+
+  const handleCalendarMonthChange = React.useCallback(
+    (nextMonth: Date) => {
+      const preferredDay = selectedDate?.getDate() ?? 1;
+      const nextDate = resolveDateInMonth(nextMonth, preferredDay);
+
+      setDisplayValue(formatDateForDisplay(nextDate));
+      commitValue(formatDateForForm(nextDate));
+      calendarProps?.onMonthChange?.(nextMonth);
+    },
+    [calendarProps, commitValue, selectedDate]
+  );
+
+  const handleInputBlur = React.useCallback(() => {
+    const nextFormValue = parseDisplayValueToFormValue(displayValue);
+
+    if (nextFormValue) {
+      setDisplayValue(formatDisplayValue(nextFormValue));
+      commitValue(nextFormValue);
+    }
+
+    onBlur?.();
+  }, [commitValue, displayValue, onBlur]);
 
   return (
     <BaseField data-invalid={invalid}>
       {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
-      <input
-        type="hidden"
-        name={name}
-        value={resolvedValue}
-        disabled={disabled}
-      />
-
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            id={id}
-            variant="outline"
-            aria-invalid={resolvedAriaInvalid}
-            disabled={disabled}
-            className={cn(
-              'w-full justify-start text-left font-normal',
-              !resolvedValue && 'text-muted-foreground',
-              className
-            )}
-            onBlur={onBlur}
-            {...props}
-          >
-            {selectedDate ? dateFormatter.format(selectedDate) : placeholder}
-          </Button>
-        </PopoverTrigger>
+        <PopoverAnchor asChild>
+          <div className="relative">
+            <Input
+              {...props}
+              id={id}
+              name={name}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder={placeholder}
+              value={displayValue}
+              disabled={disabled}
+              aria-invalid={resolvedAriaInvalid}
+              className={cn('pr-10', className)}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+            />
 
-        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled={disabled}
+                aria-label="Abrir calendário"
+                className="absolute top-1/2 right-1 -translate-y-1/2"
+              >
+                <CalendarIcon className="size-4 text-muted-foreground" />
+              </Button>
+            </PopoverTrigger>
+          </div>
+        </PopoverAnchor>
+
+        <PopoverContent className="w-auto overflow-hidden p-0" align="center">
           <Calendar
             mode="single"
             selected={selectedDate}
             defaultMonth={selectedDate}
-            onSelect={handleValueChange}
+            onSelect={handleCalendarSelect}
+            onMonthChange={handleCalendarMonthChange}
             captionLayout="dropdown"
             {...calendarProps}
           />
