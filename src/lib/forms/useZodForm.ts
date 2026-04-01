@@ -5,8 +5,7 @@ import {
   type UseFormReturn,
 } from 'react-hook-form';
 import { z } from 'zod';
-
-import { zodResolver } from './zodResolver';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type FormSchema = z.ZodObject;
 

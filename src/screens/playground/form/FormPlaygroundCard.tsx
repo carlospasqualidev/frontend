@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 
 import { Checkbox } from '@/components/global/form/checkbox';
+import { DateField } from '@/components/global/form/dateField';
 import { Field } from '@/components/global/form/field';
 import { Select } from '@/components/global/form/select';
 import { TextArea } from '@/components/global/form/textArea';
@@ -131,13 +132,13 @@ export function FormPlaygroundCard() {
               {...register('role')}
             />
 
-            <Field
+            <DateField
               id="admissionDate"
+              name="admissionDate"
+              control={control}
               label="Data de admissão"
-              type="date"
-              errors={errors.admissionDate}
               disabled={isSubmitting}
-              {...register('admissionDate')}
+              placeholder="Selecione a data de admissão"
             />
 
             <Select
