@@ -148,12 +148,20 @@ function formatDisplayValue(value: string | undefined) {
   return value ?? '';
 }
 
+function clampDateSegment(value: string, max: number) {
+  if (value.length < 2) {
+    return value;
+  }
+
+  return `${Math.min(Number(value), max)}`.padStart(2, '0');
+}
+
 function maskDisplayValue(value: string) {
   const isoDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
   if (isoDateMatch) {
     const [, year, month, day] = isoDateMatch;
-    return `${day}/${month}/${year}`;
+    return `${clampDateSegment(day, 31)}/${clampDateSegment(month, 12)}/${year}`;
   }
 
   const digits = value.replace(/\D/g, '').slice(0, 8);
@@ -162,8 +170,8 @@ function maskDisplayValue(value: string) {
     return '';
   }
 
-  const day = digits.slice(0, 2);
-  const month = digits.slice(2, 4);
+  const day = clampDateSegment(digits.slice(0, 2), 31);
+  const month = clampDateSegment(digits.slice(2, 4), 12);
   const year = digits.slice(4, 8);
 
   return [day, month, year].filter(Boolean).join('/');
