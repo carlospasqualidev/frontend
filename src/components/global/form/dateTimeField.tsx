@@ -653,6 +653,10 @@ function DateTimeFieldBase({
 
   const handleInputBlur = React.useCallback(
     (event: React.FocusEvent<HTMLInputElement>) => {
+      if (open) {
+        return;
+      }
+
       const nextFocusedElement = event.relatedTarget;
 
       if (
@@ -674,7 +678,7 @@ function DateTimeFieldBase({
 
       onBlur?.();
     },
-    [commitDateAndTime, displayValue, onBlur]
+    [commitDateAndTime, displayValue, onBlur, open]
   );
 
   const handleTimeInputChange = React.useCallback(
@@ -682,14 +686,24 @@ function DateTimeFieldBase({
       const [hour = '', minute = ''] = event.target.value.split(':');
 
       setTimeDraft({
-        hour: clampSegment(hour.slice(0, 2), 23),
-        minute: clampSegment(minute.slice(0, 2), 59),
+        hour: hour.slice(0, 2),
+        minute: minute.slice(0, 2),
       });
     },
     []
   );
 
-  const handleTimeInputBlur = React.useCallback(() => {
+  const handleTimeInputBlur = React.useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      const nextFocusedElement = event.relatedTarget;
+
+      if (
+        nextFocusedElement instanceof HTMLElement &&
+        popoverContentRef.current?.contains(nextFocusedElement)
+      ) {
+        return;
+      }
+
     const normalized = normalizeTimeParts(timeDraft);
 
     setTimeDraft(normalized);
@@ -710,7 +724,9 @@ function DateTimeFieldBase({
         }
       }
     }
-  }, [commitDateAndTime, displayValue, onBlur, selectedDate, timeDraft]);
+    },
+    [commitDateAndTime, displayValue, onBlur, selectedDate, timeDraft]
+  );
 
   const timeInputValue = React.useMemo(() => {
     const normalized = normalizeTimeParts({
