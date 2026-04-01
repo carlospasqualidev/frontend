@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CalendarIcon, Clock3Icon } from 'lucide-react';
+import { CalendarIcon, Clock2Icon } from 'lucide-react';
 import {
   useController,
   type Control,
@@ -437,32 +437,6 @@ function normalizeTimeParts(parts: TimeParts): TimeParts {
   };
 }
 
-function setTimePartValue(
-  parts: TimeParts,
-  part: keyof TimeParts,
-  value: string
-): TimeParts {
-  if (part === 'hour') {
-    return {
-      ...parts,
-      hour: value,
-    };
-  }
-
-  return {
-    ...parts,
-    minute: value,
-  };
-}
-
-function getTimePartValue(parts: TimeParts, part: keyof TimeParts) {
-  if (part === 'hour') {
-    return parts.hour;
-  }
-
-  return parts.minute;
-}
-
 function getSegmentDigitCount(value: string, segmentIndex: number) {
   const segments = value.split(/[/: ]/);
 
@@ -507,6 +481,7 @@ function DateTimeFieldBase({
   ...props
 }: DateTimeFieldBaseProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const popoverContentRef = React.useRef<HTMLDivElement>(null);
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState(defaultValue ?? '');
   const isControlled = value !== undefined;
@@ -613,7 +588,11 @@ function DateTimeFieldBase({
 
       setDisplayValue(nextDisplayValue);
       requestAnimationFrame(() => {
-        inputRef.current?.setSelectionRange(nextCaret, nextCaret);
+        const input = inputRef.current;
+
+        if (input && document.activeElement === input) {
+          input.setSelectionRange(nextCaret, nextCaret);
+        }
       });
 
       if (!nextDisplayValue) {
@@ -656,60 +635,74 @@ function DateTimeFieldBase({
     [calendarProps, commitDateAndTime, selectedDate, timeDraft]
   );
 
-  const handleInputBlur = React.useCallback(() => {
-    const nextFormValue = parseDisplayValueToFormValue(displayValue);
+  const handleInputBlur = React.useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      const nextFocusedElement = event.relatedTarget;
 
-    if (nextFormValue) {
-      const parsedNextDate = parseDateTimeValue(nextFormValue);
-
-      if (parsedNextDate) {
-        commitDateAndTime(parsedNextDate, extractTimeParts(parsedNextDate));
+      if (
+        nextFocusedElement instanceof HTMLElement &&
+        popoverContentRef.current?.contains(nextFocusedElement)
+      ) {
+        return;
       }
-    }
 
-    onBlur?.();
-  }, [commitDateAndTime, displayValue, onBlur]);
+      const nextFormValue = parseDisplayValueToFormValue(displayValue);
 
-  const handleTimePartChange = React.useCallback(
-    (part: keyof TimeParts, max: number, rawValue: string) => {
-      const digits = rawValue.replace(/\D/g, '').slice(0, 2);
-      const nextValue = clampSegment(digits, max);
+      if (nextFormValue) {
+        const parsedNextDate = parseDateTimeValue(nextFormValue);
 
-      setTimeDraft((previous) => setTimePartValue(previous, part, nextValue));
+        if (parsedNextDate) {
+          commitDateAndTime(parsedNextDate, extractTimeParts(parsedNextDate));
+        }
+      }
+
+      onBlur?.();
+    },
+    [commitDateAndTime, displayValue, onBlur]
+  );
+
+  const handleTimeInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const [hour = '', minute = ''] = event.target.value.split(':');
+
+      setTimeDraft({
+        hour: clampSegment(hour.slice(0, 2), 23),
+        minute: clampSegment(minute.slice(0, 2), 59),
+      });
     },
     []
   );
 
-  const handleTimePartBlur = React.useCallback(
-    (part: keyof TimeParts) => {
-      const normalized = normalizeTimeParts(timeDraft);
+  const handleTimeInputBlur = React.useCallback(() => {
+    const normalized = normalizeTimeParts(timeDraft);
 
-      setTimeDraft(normalized);
+    setTimeDraft(normalized);
 
-      if (selectedDate) {
-        commitDateAndTime(selectedDate, normalized);
-        onBlur?.();
-      }
+    if (selectedDate) {
+      commitDateAndTime(selectedDate, normalized);
+      onBlur?.();
+    }
 
-      if (!selectedDate && displayValue) {
-        const nextFormValue = parseDisplayValueToFormValue(displayValue);
+    if (!selectedDate && displayValue) {
+      const nextFormValue = parseDisplayValueToFormValue(displayValue);
 
-        if (nextFormValue) {
-          const parsedNextDate = parseDateTimeValue(nextFormValue);
+      if (nextFormValue) {
+        const parsedNextDate = parseDateTimeValue(nextFormValue);
 
-          if (parsedNextDate) {
-            const nextParts = setTimePartValue(
-              extractTimeParts(parsedNextDate),
-              part,
-              getTimePartValue(normalized, part)
-            );
-            commitDateAndTime(parsedNextDate, nextParts);
-          }
+        if (parsedNextDate) {
+          commitDateAndTime(parsedNextDate, normalized);
         }
       }
-    },
-    [commitDateAndTime, displayValue, onBlur, selectedDate, timeDraft]
-  );
+    }
+  }, [commitDateAndTime, displayValue, onBlur, selectedDate, timeDraft]);
+
+  const timeInputValue = React.useMemo(() => {
+    const normalized = normalizeTimeParts({
+      hour: timeDraft.hour || '00',
+      minute: timeDraft.minute || '00',
+    });
+    return `${normalized.hour}:${normalized.minute}`;
+  }, [timeDraft.hour, timeDraft.minute]);
 
   return (
     <BaseField data-invalid={invalid}>
@@ -750,7 +743,11 @@ function DateTimeFieldBase({
           </div>
         </PopoverAnchor>
 
-        <PopoverContent className="w-auto overflow-hidden p-0" align="center">
+        <PopoverContent
+          ref={popoverContentRef}
+          className="w-auto overflow-hidden p-0"
+          align="center"
+        >
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -762,38 +759,25 @@ function DateTimeFieldBase({
           />
 
           <div className="border-t border-border/60 bg-muted/20 px-2 py-1.5">
-            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-              <Clock3Icon className="size-3" />
+            <div className="mb-2 flex justify-center gap-1.5 text-[13px] font-medium text-shadow-muted-foreground">
               Horário
             </div>
-            <div className="grid grid-cols-[auto_auto_auto] items-center justify-center gap-1">
-              <Input
-                value={timeDraft.hour}
-                inputMode="numeric"
-                placeholder="hh"
-                maxLength={2}
-                className="h-7 w-12 px-1 text-center text-xs tabular-nums"
-                onChange={(event) =>
-                  handleTimePartChange('hour', 23, event.target.value)
-                }
-                onBlur={() => handleTimePartBlur('hour')}
-                disabled={disabled}
-                aria-label="Hora"
-              />
-              <span className="text-muted-foreground">:</span>
-              <Input
-                value={timeDraft.minute}
-                inputMode="numeric"
-                placeholder="mm"
-                maxLength={2}
-                className="h-7 w-12 px-1 text-center text-xs tabular-nums"
-                onChange={(event) =>
-                  handleTimePartChange('minute', 59, event.target.value)
-                }
-                onBlur={() => handleTimePartBlur('minute')}
-                disabled={disabled}
-                aria-label="Minuto"
-              />
+            <div className="mb-0.5 flex items-center justify-center">
+              <div className="relative">
+                <Clock2Icon className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="time"
+                  step={60}
+                  min="00:00"
+                  max="23:59"
+                  value={timeInputValue}
+                  className="h-8 w-[5.2rem] appearance-none pr-2 pl-7 text-xs tabular-nums [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-datetime-edit-millisecond-field]:hidden [&::-webkit-datetime-edit-second-field]:m-0 [&::-webkit-datetime-edit-second-field]:hidden [&::-webkit-datetime-edit-second-field]:p-0"
+                  onChange={handleTimeInputChange}
+                  onBlur={handleTimeInputBlur}
+                  disabled={disabled}
+                  aria-label="Horário"
+                />
+              </div>
             </div>
           </div>
         </PopoverContent>
