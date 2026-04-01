@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
+  PopoverAnchor,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -281,38 +282,40 @@ function DateFieldBase({
       {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
       <Popover open={open} onOpenChange={setOpen}>
-        <div className="relative">
-          <Input
-            {...props}
-            id={id}
-            name={name}
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            placeholder={placeholder}
-            value={displayValue}
-            disabled={disabled}
-            aria-invalid={resolvedAriaInvalid}
-            className={cn('pr-10', className)}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-          />
-
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
+        <PopoverAnchor asChild>
+          <div className="relative">
+            <Input
+              {...props}
+              id={id}
+              name={name}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder={placeholder}
+              value={displayValue}
               disabled={disabled}
-              aria-label="Abrir calendário"
-              className="absolute top-1/2 right-1 -translate-y-1/2"
-            >
-              <CalendarIcon className="size-4 text-muted-foreground" />
-            </Button>
-          </PopoverTrigger>
-        </div>
+              aria-invalid={resolvedAriaInvalid}
+              className={cn('pr-10', className)}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+            />
 
-        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled={disabled}
+                aria-label="Abrir calendário"
+                className="absolute top-1/2 right-1 -translate-y-1/2"
+              >
+                <CalendarIcon className="size-4 text-muted-foreground" />
+              </Button>
+            </PopoverTrigger>
+          </div>
+        </PopoverAnchor>
+
+        <PopoverContent className="w-auto overflow-hidden p-0" align="center">
           <Calendar
             mode="single"
             selected={selectedDate}
