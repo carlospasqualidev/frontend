@@ -44,7 +44,7 @@ type CalendarProps = Omit<
 
 type DateFieldBaseProps = Omit<
   React.ComponentProps<'input'>,
-  'type' | 'value' | 'defaultValue' | 'onChange'
+  'type' | 'value' | 'defaultValue' | 'onChange' | 'onBlur'
 > & {
   label: string;
   description?: string;
@@ -52,6 +52,7 @@ type DateFieldBaseProps = Omit<
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
+  onBlur?: () => void;
   calendarProps?: CalendarProps;
 };
 
