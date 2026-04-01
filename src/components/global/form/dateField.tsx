@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { CalendarIcon } from 'lucide-react';
 import {
   useController,
   type Control,
@@ -24,19 +25,16 @@ import {
   FieldError,
   FieldLabel,
 } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { parseLocalDate } from '@/lib/dateTime/utils';
 import { cn } from '@/lib/utils';
 
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-});
+const FORM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DISPLAY_DATE_PATTERN = /^\d{2}\/\d{2}\/\d{4}$/;
 
 type CalendarProps = Omit<
   React.ComponentProps<typeof Calendar>,
@@ -44,29 +42,22 @@ type CalendarProps = Omit<
 >;
 
 type DateFieldBaseProps = Omit<
-  React.ComponentProps<typeof Button>,
-  'children' | 'value' | 'defaultValue' | 'onChange' | 'onBlur'
+  React.ComponentProps<'input'>,
+  'type' | 'value' | 'defaultValue' | 'onChange'
 > & {
-  id?: string;
-  name?: string;
   label: string;
   description?: string;
-  placeholder?: string;
   errors?: TFormFieldErrors;
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
-  onBlur?: () => void;
   calendarProps?: CalendarProps;
 };
 
 type ControlledDateFieldProps<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, string>,
-> = Omit<
-  DateFieldBaseProps,
-  'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'name'
-> & {
+> = Omit<DateFieldBaseProps, 'value' | 'defaultValue' | 'onChange' | 'name'> & {
   control: Control<TFieldValues>;
   name: TName;
   rules?: Omit<
@@ -86,6 +77,33 @@ type DateFieldProps<
   TName extends FieldPathByValue<TFieldValues, string>,
 > = ControlledDateFieldProps<TFieldValues, TName> | UncontrolledDateFieldProps;
 
+function createDateFromParts(day: string, month: string, year: string) {
+  const parsedDay = Number(day);
+  const parsedMonth = Number(month);
+  const parsedYear = Number(year);
+
+  if (
+    !Number.isInteger(parsedDay) ||
+    !Number.isInteger(parsedMonth) ||
+    !Number.isInteger(parsedYear)
+  ) {
+    return undefined;
+  }
+
+  const date = new Date(parsedYear, parsedMonth - 1, parsedDay);
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== parsedYear ||
+    date.getMonth() !== parsedMonth - 1 ||
+    date.getDate() !== parsedDay
+  ) {
+    return undefined;
+  }
+
+  return date;
+}
+
 function formatDateForForm(date: Date) {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -94,12 +112,71 @@ function formatDateForForm(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatDateForDisplay(date: Date) {
+  const day = `${date.getDate()}`.padStart(2, '0');
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
 function parseDateValue(value: string | undefined) {
   if (!value) {
     return undefined;
   }
 
-  return parseLocalDate(value);
+  if (FORM_DATE_PATTERN.test(value)) {
+    const [year, month, day] = value.split('-');
+    return createDateFromParts(day, month, year);
+  }
+
+  if (DISPLAY_DATE_PATTERN.test(value)) {
+    const [day, month, year] = value.split('/');
+    return createDateFromParts(day, month, year);
+  }
+
+  return undefined;
+}
+
+function formatDisplayValue(value: string | undefined) {
+  const parsedDate = parseDateValue(value);
+
+  if (parsedDate) {
+    return formatDateForDisplay(parsedDate);
+  }
+
+  return value ?? '';
+}
+
+function maskDisplayValue(value: string) {
+  const isoDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (isoDateMatch) {
+    const [, year, month, day] = isoDateMatch;
+    return `${day}/${month}/${year}`;
+  }
+
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+
+  if (!digits) {
+    return '';
+  }
+
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+
+  return [day, month, year].filter(Boolean).join('/');
+}
+
+function parseDisplayValueToFormValue(value: string) {
+  const parsedDate = parseDateValue(value);
+
+  if (!parsedDate) {
+    return undefined;
+  }
+
+  return formatDateForForm(parsedDate);
 }
 
 function DateFieldBase({
@@ -107,7 +184,7 @@ function DateFieldBase({
   name,
   label,
   description,
-  placeholder = 'Selecione uma data',
+  placeholder = 'dd/mm/aaaa',
   errors,
   value,
   defaultValue,
@@ -121,69 +198,118 @@ function DateFieldBase({
 }: DateFieldBaseProps) {
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState(defaultValue ?? '');
+  const isControlled = value !== undefined;
+  const resolvedValue = isControlled ? (value ?? '') : internalValue;
+  const [displayValue, setDisplayValue] = React.useState(() =>
+    formatDisplayValue(resolvedValue)
+  );
 
   const allErrors = resolveFieldErrors(errors);
   const invalid = hasFieldErrors(allErrors);
   const resolvedAriaInvalid = ariaInvalid ?? (invalid || undefined);
-  const isControlled = value !== undefined;
-  const resolvedValue = isControlled ? (value ?? '') : internalValue;
   const selectedDate = React.useMemo(
     () => parseDateValue(resolvedValue),
     [resolvedValue]
   );
 
-  const handleValueChange = React.useCallback(
-    (nextDate: Date | undefined) => {
-      const nextValue = nextDate ? formatDateForForm(nextDate) : '';
+  React.useEffect(() => {
+    setDisplayValue(formatDisplayValue(resolvedValue));
+  }, [resolvedValue]);
 
+  const commitValue = React.useCallback(
+    (nextValue: string) => {
       if (!isControlled) {
         setInternalValue(nextValue);
       }
 
       onChange?.(nextValue);
+    },
+    [isControlled, onChange]
+  );
+
+  const handleInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextDisplayValue = maskDisplayValue(event.target.value);
+      const nextFormValue = parseDisplayValueToFormValue(nextDisplayValue);
+
+      setDisplayValue(nextDisplayValue);
+
+      if (!nextDisplayValue) {
+        commitValue('');
+        return;
+      }
+
+      commitValue(nextFormValue ?? nextDisplayValue);
+    },
+    [commitValue]
+  );
+
+  const handleCalendarSelect = React.useCallback(
+    (nextDate: Date | undefined) => {
+      const nextFormValue = nextDate ? formatDateForForm(nextDate) : '';
+      const nextDisplayValue = nextDate ? formatDateForDisplay(nextDate) : '';
+
+      setDisplayValue(nextDisplayValue);
+      commitValue(nextFormValue);
       onBlur?.();
       setOpen(false);
     },
-    [isControlled, onBlur, onChange]
+    [commitValue, onBlur]
   );
+
+  const handleInputBlur = React.useCallback(() => {
+    const nextFormValue = parseDisplayValueToFormValue(displayValue);
+
+    if (nextFormValue) {
+      setDisplayValue(formatDisplayValue(nextFormValue));
+      commitValue(nextFormValue);
+    }
+
+    onBlur?.();
+  }, [commitValue, displayValue, onBlur]);
 
   return (
     <BaseField data-invalid={invalid}>
       {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
-      <input
-        type="hidden"
-        name={name}
-        value={resolvedValue}
-        disabled={disabled}
-      />
-
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            id={id}
-            variant="outline"
-            aria-invalid={resolvedAriaInvalid}
-            disabled={disabled}
-            className={cn(
-              'w-full justify-start text-left font-normal',
-              !resolvedValue && 'text-muted-foreground',
-              className
-            )}
-            onBlur={onBlur}
+        <div className="relative">
+          <Input
             {...props}
-          >
-            {selectedDate ? dateFormatter.format(selectedDate) : placeholder}
-          </Button>
-        </PopoverTrigger>
+            id={id}
+            name={name}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder={placeholder}
+            value={displayValue}
+            disabled={disabled}
+            aria-invalid={resolvedAriaInvalid}
+            className={cn('pr-10', className)}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+          />
+
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              disabled={disabled}
+              aria-label="Abrir calendário"
+              className="absolute top-1/2 right-1 -translate-y-1/2"
+            >
+              <CalendarIcon className="size-4 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+        </div>
 
         <PopoverContent className="w-auto overflow-hidden p-0" align="start">
           <Calendar
             mode="single"
             selected={selectedDate}
             defaultMonth={selectedDate}
-            onSelect={handleValueChange}
+            onSelect={handleCalendarSelect}
             captionLayout="dropdown"
             {...calendarProps}
           />
