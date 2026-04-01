@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { Checkbox } from '@/components/global/form/checkbox';
 import { DateField } from '@/components/global/form/dateField';
+import { DateTimeField } from '@/components/global/form/dateTimeField';
 import { Field } from '@/components/global/form/field';
 import { Select } from '@/components/global/form/select';
 import { TextArea } from '@/components/global/form/textArea';
@@ -29,6 +30,7 @@ const formDefaults = {
   businessEmail: '',
   role: '',
   admissionDate: '',
+  admissionDateTime: '',
   department: '',
   status: 'ativo',
   observations: '',
@@ -48,6 +50,10 @@ const formSchema = z.object({
     .string()
     .min(1, 'Informe a data de admissão.')
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use uma data válida.'),
+  admissionDateTime: z
+    .string()
+    .min(1, 'Informe a data e hora de admissão.')
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Use uma data e hora válida.'),
   department: z
     .string()
     .min(1, 'Selecione um departamento.')
@@ -138,7 +144,14 @@ export function FormPlaygroundCard() {
               control={control}
               label="Data de admissão"
               disabled={isSubmitting}
-              placeholder="Selecione a data de admissão"
+            />
+
+            <DateTimeField
+              id="admissionDateTime"
+              name="admissionDateTime"
+              control={control}
+              label="Data e hora de admissão"
+              disabled={isSubmitting}
             />
 
             <Select
