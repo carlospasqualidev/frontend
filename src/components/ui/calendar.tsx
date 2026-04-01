@@ -22,6 +22,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+function formatMonthDropdownLabel(date: Date, localeCode?: string) {
+  const localizedShortMonth = date.toLocaleString(localeCode, {
+    month: 'short',
+  });
+  const withoutTrailingDot = localizedShortMonth.replace(/\.$/, '');
+
+  if (!withoutTrailingDot) {
+    return localizedShortMonth;
+  }
+
+  return (
+    withoutTrailingDot.charAt(0).toUpperCase() + withoutTrailingDot.slice(1)
+  );
+}
+
 function CalendarDropdown({
   options,
   className,
@@ -95,7 +110,7 @@ function Calendar({
       locale={locale}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString(locale?.code, { month: 'short' }),
+          formatMonthDropdownLabel(date, locale?.code),
         ...formatters,
       }}
       classNames={{

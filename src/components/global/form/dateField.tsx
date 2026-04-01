@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Clock2Icon, XIcon } from 'lucide-react';
 import {
   useController,
   type Control,
@@ -320,6 +320,21 @@ function DateFieldBase({
     [calendarProps, commitValue, selectedDate]
   );
 
+  const handleClearValue = React.useCallback(() => {
+    setDisplayValue('');
+    commitValue('');
+    onBlur?.();
+    setOpen(false);
+  }, [commitValue, onBlur]);
+
+  const handleSetNow = React.useCallback(() => {
+    const now = new Date();
+
+    setDisplayValue(formatDateForDisplay(now));
+    commitValue(formatDateForForm(now));
+    onBlur?.();
+  }, [commitValue, onBlur]);
+
   const handleInputBlur = React.useCallback(() => {
     const nextFormValue = parseDisplayValueToFormValue(displayValue);
 
@@ -330,6 +345,7 @@ function DateFieldBase({
 
     onBlur?.();
   }, [commitValue, displayValue, onBlur]);
+  const hasValue = displayValue.trim().length > 0;
 
   return (
     <BaseField data-invalid={invalid}>
@@ -349,10 +365,36 @@ function DateFieldBase({
               value={displayValue}
               disabled={disabled}
               aria-invalid={resolvedAriaInvalid}
-              className={cn('pr-10', className)}
+              className={cn('pr-28', className)}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
             />
+
+            {hasValue && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled={disabled}
+                aria-label="Limpar data"
+                className="absolute top-1/2 right-16 -translate-y-1/2! transition-colors active:-translate-y-1/2!"
+                onClick={handleClearValue}
+              >
+                <XIcon className="size-4 text-muted-foreground" />
+              </Button>
+            )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              disabled={disabled}
+              aria-label="Definir data atual"
+              className="absolute top-1/2 right-9 -translate-y-1/2! transition-colors active:-translate-y-1/2!"
+              onClick={handleSetNow}
+            >
+              <Clock2Icon className="size-4 text-muted-foreground" />
+            </Button>
 
             <PopoverTrigger asChild>
               <Button
@@ -361,7 +403,7 @@ function DateFieldBase({
                 size="icon-sm"
                 disabled={disabled}
                 aria-label="Abrir calendário"
-                className="absolute top-1/2 right-1 -translate-y-1/2"
+                className="absolute top-1/2 right-1 -translate-y-1/2! transition-colors active:-translate-y-1/2!"
               >
                 <CalendarIcon className="size-4 text-muted-foreground" />
               </Button>

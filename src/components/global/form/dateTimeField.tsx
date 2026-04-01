@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CalendarIcon, Clock2Icon } from 'lucide-react';
+import { CalendarIcon, Clock2Icon, XIcon } from 'lucide-react';
 import {
   useController,
   type Control,
@@ -635,6 +635,22 @@ function DateTimeFieldBase({
     [calendarProps, commitDateAndTime, selectedDate, timeDraft]
   );
 
+  const handleClearValue = React.useCallback(() => {
+    setDisplayValue('');
+    setTimeDraft(DEFAULT_TIME_PARTS);
+    commitValue('');
+    onBlur?.();
+    setOpen(false);
+  }, [commitValue, onBlur]);
+
+  const handleSetNow = React.useCallback(() => {
+    const now = new Date();
+    const nowTime = extractTimeParts(now);
+    commitDateAndTime(now, nowTime);
+
+    onBlur?.();
+  }, [commitDateAndTime, onBlur]);
+
   const handleInputBlur = React.useCallback(
     (event: React.FocusEvent<HTMLInputElement>) => {
       const nextFocusedElement = event.relatedTarget;
@@ -703,6 +719,7 @@ function DateTimeFieldBase({
     });
     return `${normalized.hour}:${normalized.minute}`;
   }, [timeDraft.hour, timeDraft.minute]);
+  const hasValue = displayValue.trim().length > 0;
 
   return (
     <BaseField data-invalid={invalid}>
@@ -723,10 +740,36 @@ function DateTimeFieldBase({
               value={displayValue}
               disabled={disabled}
               aria-invalid={resolvedAriaInvalid}
-              className={cn('pr-10', className)}
+              className={cn('pr-28', className)}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
             />
+
+            {hasValue && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled={disabled}
+                aria-label="Limpar data e horário"
+                className="absolute top-1/2 right-16 -translate-y-1/2! active:-translate-y-1/2!"
+                onClick={handleClearValue}
+              >
+                <XIcon className="size-4 text-muted-foreground" />
+              </Button>
+            )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              disabled={disabled}
+              aria-label="Definir horário atual"
+              className="absolute top-1/2 right-9 -translate-y-1/2! active:-translate-y-1/2!"
+              onClick={handleSetNow}
+            >
+              <Clock2Icon className="size-4 text-muted-foreground" />
+            </Button>
 
             <PopoverTrigger asChild>
               <Button
@@ -735,7 +778,7 @@ function DateTimeFieldBase({
                 size="icon-sm"
                 disabled={disabled}
                 aria-label="Abrir calendário e horário"
-                className="absolute top-1/2 right-1 -translate-y-1/2"
+                className="absolute top-1/2 right-1 -translate-y-1/2! active:-translate-y-1/2!"
               >
                 <CalendarIcon className="size-4 text-muted-foreground" />
               </Button>
