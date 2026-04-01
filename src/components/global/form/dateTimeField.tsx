@@ -704,26 +704,26 @@ function DateTimeFieldBase({
         return;
       }
 
-    const normalized = normalizeTimeParts(timeDraft);
+      const normalized = normalizeTimeParts(timeDraft);
 
-    setTimeDraft(normalized);
+      setTimeDraft(normalized);
 
-    if (selectedDate) {
-      commitDateAndTime(selectedDate, normalized);
-      onBlur?.();
-    }
+      if (selectedDate) {
+        commitDateAndTime(selectedDate, normalized);
+        onBlur?.();
+      }
 
-    if (!selectedDate && displayValue) {
-      const nextFormValue = parseDisplayValueToFormValue(displayValue);
+      if (!selectedDate && displayValue) {
+        const nextFormValue = parseDisplayValueToFormValue(displayValue);
 
-      if (nextFormValue) {
-        const parsedNextDate = parseDateTimeValue(nextFormValue);
+        if (nextFormValue) {
+          const parsedNextDate = parseDateTimeValue(nextFormValue);
 
-        if (parsedNextDate) {
-          commitDateAndTime(parsedNextDate, normalized);
+          if (parsedNextDate) {
+            commitDateAndTime(parsedNextDate, normalized);
+          }
         }
       }
-    }
     },
     [commitDateAndTime, displayValue, onBlur, selectedDate, timeDraft]
   );
