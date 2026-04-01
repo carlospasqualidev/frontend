@@ -10,7 +10,6 @@ import {
   FieldError,
   FieldLabel,
 } from '@/components/ui/field';
-import { DateInput } from '@/components/ui/date-input';
 import { Input } from '@/components/ui/input';
 
 interface IField extends React.ComponentProps<'input'> {
@@ -35,11 +34,8 @@ export function Field({
   return (
     <BaseField data-invalid={invalid}>
       {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
-      {type === 'date' ? (
-        <DateInput aria-invalid={resolvedAriaInvalid} {...props} />
-      ) : (
-        <Input type={type} aria-invalid={resolvedAriaInvalid} {...props} />
-      )}
+
+      <Input type={type} aria-invalid={resolvedAriaInvalid} {...props} />
       {description && <FieldDescription>{description}</FieldDescription>}
       <FieldError errors={allErrors} />
     </BaseField>

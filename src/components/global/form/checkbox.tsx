@@ -69,8 +69,16 @@ function CheckboxBase({
   return (
     <BaseField data-invalid={invalid}>
       <BaseField orientation="horizontal">
-        <BaseCheckbox aria-invalid={resolvedAriaInvalid} {...checkboxProps} />
-        {label && <FieldLabel htmlFor={props.id}>{label}</FieldLabel>}
+        <BaseCheckbox
+          aria-invalid={resolvedAriaInvalid}
+          {...checkboxProps}
+          className="cursor-pointer"
+        />
+        {label && (
+          <FieldLabel htmlFor={props.id} className="cursor-pointer">
+            {label}
+          </FieldLabel>
+        )}
       </BaseField>
       {description && <FieldDescription>{description}</FieldDescription>}
       <FieldError errors={allErrors} />
