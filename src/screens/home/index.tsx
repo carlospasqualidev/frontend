@@ -51,40 +51,30 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
 const DASHBOARD_METRICS = [
   {
     title: 'Proteção',
-    value: 'Sessão primeiro',
+    value: 'Sessão validada',
     description:
-      'As rotas protegidas aguardam a validação da sessão no backend antes de renderizar o conteúdo.',
+      'Rotas protegidas passam por SessionValidation, que confirma a sessão no backend antes de renderizar o conteúdo.',
   },
   {
     title: 'Layout',
-    value: '1 shell',
+    value: 'Shell único',
     description:
-      'Toda área autenticada compartilha o mesmo layout com Sidebar, header e outlet central.',
+      'Toda a área autenticada compartilha o mesmo Layout, com Sidebar, header, breadcrumb e um Outlet central.',
   },
   {
-    title: 'Expansão',
-    value: 'Por feature',
+    title: 'Organização',
+    value: 'Por screen',
     description:
-      'Novos módulos entram em `modules/<feature>` sem espalhar páginas, hooks e services pelo projeto.',
+      'Cada tela vive em screens/<feature> com o seu routes.ts co-localizado, montado na árvore em routes.tsx.',
   },
 ];
-
-const MODULE_STRATEGY_TEXT = (
-  <p className="mt-4 text-sm leading-6 text-muted-foreground">
-    Para adicionar um módulo futuro, crie <code>pages</code>,{' '}
-    <code>components</code>, <code>services</code>, <code>schemas</code> e{' '}
-    <code>types</code> dentro de <code>modules/&lt;nome&gt;</code> apenas se
-    fizer sentido para aquela feature. Depois componha as rotas no{' '}
-    <code>route-tree</code> sem mexer na estrutura dos módulos existentes.
-  </p>
-);
 
 export function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Painel"
-        description="Esta página representa a área inicial autenticada do sistema. Ela já nasce dentro do shell principal com Sidebar, pronta para crescer com novos módulos sem duplicar estrutura."
+        description="Área inicial autenticada do template. Já nasce dentro do shell principal com Sidebar, header e breadcrumb, pronta para crescer com novas telas sem duplicar estrutura."
         actions={<Button size="lg">Nova ação</Button>}
       />
 
@@ -94,37 +84,49 @@ export function DashboardPage() {
         ))}
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
           <p className="text-sm font-semibold text-foreground">
-            Fluxo sugerido ao iniciar a aplicação
+            Fluxo de inicialização
           </p>
           <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
             <li>
-              1. O provider de auth faz bootstrap da sessão chamando
-              `/api/auth/session` com `credentials: include`.
+              1. <code>SessionValidation</code> chama{' '}
+              <code>sessionService.validate()</code> (<code>GET /users/me</code>)
+              enviando os cookies (<code>withCredentials</code>).
             </li>
             <li>
-              2. O TanStack Router usa `beforeLoad` para decidir se a rota
-              pública ou protegida pode continuar.
+              2. Enquanto valida, exibe <code>SessionValidationScreen</code>; o
+              usuário autenticado é guardado em <code>useSessionStore</code>{' '}
+              (Zustand).
             </li>
             <li>
-              3. Se autenticado, o usuário entra no shell `/`; caso contrário,
-              é redirecionado para `/login`.
+              3. Se a validação falha, redireciona para <code>/login</code>; se
+              ok, renderiza o <code>Layout</code> protegido com o{' '}
+              <code>Outlet</code>.
             </li>
           </ol>
         </article>
-        {Array.from({ length: 9 }).map((_, index) => (
-          <article
-            key={index}
-            className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm"
-          >
-            <p className="text-sm font-semibold text-foreground">
-              Estratégia para novos módulos
-            </p>
-            {MODULE_STRATEGY_TEXT}
-          </article>
-        ))}
+
+        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">
+            Como adicionar uma tela
+          </p>
+          <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
+            <li>
+              1. Crie <code>screens/&lt;feature&gt;/index.tsx</code> exportando o
+              componente da tela.
+            </li>
+            <li>
+              2. Crie <code>screens/&lt;feature&gt;/routes.ts</code> com{' '}
+              <code>createRoute</code> + <code>lazyRouteComponent</code> para
+              herdar o code-splitting.
+            </li>
+            <li>
+              3. Registre a rota na árvore em <code>routes.tsx</code>.
+            </li>
+          </ol>
+        </article>
       </section>
     </div>
   );

@@ -1,10 +1,9 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 
-import { useSessionStore } from '../../../hooks/useSessionStore';
-
 import { SessionValidationScreen } from './sessionValidationScreen';
 
+import { useSessionStore } from '@/hooks/useSessionStore';
 import { sessionService } from '@/services/session/sessionService';
 
 export function SessionValidation({ children }: PropsWithChildren) {

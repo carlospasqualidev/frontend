@@ -1,6 +1,4 @@
-import { createRoute } from '@tanstack/react-router';
-
-import { DashboardPage } from '.';
+import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 
 import { protectedLayoutRoute } from '@/routes';
 
@@ -10,5 +8,5 @@ export const homeRoute = createRoute({
   staticData: {
     breadcrumb: 'Início',
   },
-  component: DashboardPage,
+  component: lazyRouteComponent(() => import('.'), 'DashboardPage'),
 });

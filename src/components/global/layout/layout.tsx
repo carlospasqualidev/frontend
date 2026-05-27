@@ -1,20 +1,4 @@
-// import { AppSidebar } from '../siderbar/app-sidebar';
-
-// import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-
-// export default function Layout({ children }: { children: React.ReactNode }) {
-//   return (
-//     <SidebarProvider>
-//       <AppSidebar />
-//       <main>
-//         <SidebarTrigger />
-//         {children}
-//       </main>
-//     </SidebarProvider>
-//   );
-// }
-
-import { AppSidebar } from '@/components/global/siderbar/app-sidebar';
+import { AppSidebar } from '@/components/global/sidebar/app-sidebar';
 import { Breadcrumb } from '@/components/global/layout/breadcrumb';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';

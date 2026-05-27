@@ -1,0 +1,7 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Imagem de exemplo">
+  <rect width="1200" height="900" fill="#e5e5e5" />
+  <g fill="#a3a3a3">
+    <circle cx="410" cy="290" r="92" />
+    <path d="M150 760 L470 430 L690 700 L840 540 L1060 760 Z" />
+  </g>
+</svg>

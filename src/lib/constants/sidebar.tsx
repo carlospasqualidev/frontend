@@ -2,9 +2,9 @@ import { RollerCoaster, Home } from 'lucide-react';
 
 export const sidebarData = {
   header: {
-    name: 'Ada Lovelace',
-    description: 'Software sob medida.',
-    logo: 'AL',
+    name: 'Meu Projeto',
+    description: 'Template base',
+    logo: 'MP',
   },
   nav: [
     {

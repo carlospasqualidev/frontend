@@ -1,11 +1,8 @@
-import { createRoute, Outlet } from '@tanstack/react-router';
-
-import { PlaygroundFormPage } from './form';
-import { PlaygroundNavigationPage } from './navigation';
-import { PlaygroundNavigationDetailsPage } from './navigation/details';
-import { PlaygroundNavigationHistoryPage } from './navigation/history';
-
-import { PlaygroundPage } from '.';
+import {
+  createRoute,
+  lazyRouteComponent,
+  Outlet,
+} from '@tanstack/react-router';
 
 import { protectedLayoutRoute } from '@/routes';
 
@@ -21,7 +18,7 @@ export const playgroundRoute = createRoute({
 export const playgroundIndexRoute = createRoute({
   getParentRoute: () => playgroundRoute,
   path: '/',
-  component: PlaygroundPage,
+  component: lazyRouteComponent(() => import('.'), 'PlaygroundPage'),
 });
 
 export const playgroundFormRoute = createRoute({
@@ -30,7 +27,7 @@ export const playgroundFormRoute = createRoute({
   staticData: {
     breadcrumb: 'Playground de Formulários',
   },
-  component: PlaygroundFormPage,
+  component: lazyRouteComponent(() => import('./form'), 'PlaygroundFormPage'),
 });
 
 export const playgroundNavigationRoute = createRoute({
@@ -39,7 +36,10 @@ export const playgroundNavigationRoute = createRoute({
   staticData: {
     breadcrumb: 'Testes de Navegação',
   },
-  component: PlaygroundNavigationPage,
+  component: lazyRouteComponent(
+    () => import('./navigation'),
+    'PlaygroundNavigationPage'
+  ),
 });
 
 export const playgroundNavigationDetailsRoute = createRoute({
@@ -48,7 +48,10 @@ export const playgroundNavigationDetailsRoute = createRoute({
   staticData: {
     breadcrumb: 'Detalhes',
   },
-  component: PlaygroundNavigationDetailsPage,
+  component: lazyRouteComponent(
+    () => import('./navigation/details'),
+    'PlaygroundNavigationDetailsPage'
+  ),
 });
 
 export const playgroundNavigationHistoryRoute = createRoute({
@@ -57,7 +60,10 @@ export const playgroundNavigationHistoryRoute = createRoute({
   staticData: {
     breadcrumb: 'Histórico',
   },
-  component: PlaygroundNavigationHistoryPage,
+  component: lazyRouteComponent(
+    () => import('./navigation/history'),
+    'PlaygroundNavigationHistoryPage'
+  ),
 });
 
 export const playgroundRouteTree = playgroundRoute.addChildren([

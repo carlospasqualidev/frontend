@@ -12,8 +12,7 @@ import {
   type TFormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
-} from '../../../lib/forms/errors';
-
+} from '@/lib/forms/errors';
 import {
   Field as BaseField,
   FieldDescription,

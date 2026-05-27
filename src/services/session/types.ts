@@ -1,6 +1,12 @@
-import type { IUser } from '../../types/user/types';
+import type { IUser } from '@/types/user/types';
 
 export interface ISignInService {
+  email: string;
+  password: string;
+}
+
+export interface ISignUpService {
+  name: string;
   email: string;
   password: string;
 }

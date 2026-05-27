@@ -5,7 +5,7 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 
-import { NotFoundRedirect } from './components/global/layout/notFound';
+import { NotFound } from './components/global/layout/notFound';
 import { playgroundRouteTree } from './screens/playground/routes';
 
 import { Layout } from '@/components/global/layout/layout';
@@ -25,7 +25,7 @@ declare module '@tanstack/react-router' {
 
 export const rootRoute = createRootRoute({
   component: () => <Outlet />,
-  notFoundComponent: NotFoundRedirect,
+  notFoundComponent: NotFound,
 });
 
 export const protectedLayoutRoute = createRoute({
@@ -42,6 +42,9 @@ export const protectedLayoutRoute = createRoute({
 
 export const router = createRouter({
   notFoundMode: 'root',
+  // Pré-carrega o chunk da rota ao passar o mouse/tocar no link,
+  // eliminando o atraso percebido do lazy loading sem perder o code-splitting.
+  defaultPreload: 'intent',
   routeTree: rootRoute.addChildren([
     loginRoute,
     signupRoute,

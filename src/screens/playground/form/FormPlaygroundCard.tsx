@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Checkbox } from '@/components/global/form/checkbox';
 import { DateField } from '@/components/global/form/dateField';
 import { DateTimeField } from '@/components/global/form/dateTimeField';
-import { Field } from '@/components/global/form/field';
+import { InputField } from '@/components/global/form/inputField';
 import { Select } from '@/components/global/form/select';
 import { TextArea } from '@/components/global/form/textArea';
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,7 @@ export function FormPlaygroundCard() {
       <CardContent>
         <form className="space-y-6" noValidate onSubmit={onSubmit}>
           <FieldGroup className="grid gap-4 md:grid-cols-2">
-            <Field
+            <InputField
               id="fullName"
               label="Nome completo"
               placeholder="Victor Casagrande"
@@ -118,7 +118,7 @@ export function FormPlaygroundCard() {
               {...register('fullName')}
             />
 
-            <Field
+            <InputField
               id="businessEmail"
               label="E-mail corporativo"
               type="email"
@@ -129,7 +129,7 @@ export function FormPlaygroundCard() {
               {...register('businessEmail')}
             />
 
-            <Field
+            <InputField
               id="role"
               label="Cargo"
               placeholder="Analista financeiro"

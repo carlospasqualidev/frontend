@@ -2,8 +2,7 @@ import {
   type TFormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
-} from '../../../lib/forms/errors';
-
+} from '@/lib/forms/errors';
 import {
   Field as BaseField,
   FieldDescription,
@@ -13,7 +12,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-interface IField extends React.ComponentProps<'textarea'> {
+interface ITextAreaField extends React.ComponentProps<'textarea'> {
   label: string;
   description?: string;
   errors?: TFormFieldErrors;
@@ -26,7 +25,7 @@ export function TextArea({
   className,
   'aria-invalid': ariaInvalid,
   ...props
-}: IField) {
+}: ITextAreaField) {
   const allErrors = resolveFieldErrors(errors);
   const invalid = hasFieldErrors(allErrors);
   const resolvedAriaInvalid = ariaInvalid ?? (invalid || undefined);

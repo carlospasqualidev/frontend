@@ -1,7 +1,5 @@
-import { createRoute } from '@tanstack/react-router';
+import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 
-import { LoginScreen } from '@/screens/session/login';
-import { SignupScreen } from '@/screens/session/signup';
 import { rootRoute } from '@/routes';
 
 export const loginRoute = createRoute({
@@ -10,7 +8,10 @@ export const loginRoute = createRoute({
   staticData: {
     breadcrumb: 'Login',
   },
-  component: LoginScreen,
+  component: lazyRouteComponent(
+    () => import('@/screens/session/login'),
+    'LoginScreen'
+  ),
 });
 
 export const signupRoute = createRoute({
@@ -19,5 +20,8 @@ export const signupRoute = createRoute({
   staticData: {
     breadcrumb: 'Criar conta',
   },
-  component: SignupScreen,
+  component: lazyRouteComponent(
+    () => import('@/screens/session/signup'),
+    'SignupScreen'
+  ),
 });

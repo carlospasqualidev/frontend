@@ -1,10 +1,11 @@
 import { AlertTriangle, RefreshCcw } from 'lucide-react';
+import type { FallbackProps } from 'react-error-boundary';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 
-export function ErrorFallback() {
+export function ErrorFallback({ resetErrorBoundary }: FallbackProps) {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-muted/40 px-6 py-10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--color-primary),transparent_45%)]/8" />
@@ -40,9 +41,7 @@ export function ErrorFallback() {
             type="button"
             size="lg"
             className="w-full sm:w-auto"
-            onClick={() => {
-              window.location.replace(window.location.pathname);
-            }}
+            onClick={resetErrorBoundary}
           >
             <RefreshCcw className="size-4" />
             Tentar novamente

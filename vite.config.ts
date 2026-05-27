@@ -13,4 +13,31 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Separa as libs maiores em chunks próprios para melhorar o cache
+        // (uma mudança no app não invalida o bundle do React/Radix/etc.).
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined;
+          }
+
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) {
+            return 'react-vendor';
+          }
+
+          if (id.includes('@tanstack')) {
+            return 'tanstack';
+          }
+
+          if (id.includes('radix-ui') || id.includes('@radix-ui')) {
+            return 'radix';
+          }
+
+          return 'vendor';
+        },
+      },
+    },
+  },
 });

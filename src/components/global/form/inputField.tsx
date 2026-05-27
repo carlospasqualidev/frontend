@@ -1,4 +1,3 @@
-import { Select as SelectPrimitive } from 'radix-ui';
 import {
   useController,
   type Control,
@@ -19,31 +18,20 @@ import {
   FieldError,
   FieldLabel,
 } from '@/components/ui/field';
-import {
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  Select as BaseSelect,
-} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
-type SelectBaseProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
-  id?: string;
+type InputFieldBaseProps = React.ComponentProps<'input'> & {
   label: string;
   description?: string;
-  placeholder?: string;
   errors?: TFormFieldErrors;
-  'aria-invalid'?: boolean;
-  options: { value: string; label: string }[];
 };
 
-type ControlledSelectProps<
+type ControlledInputFieldProps<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, string>,
 > = Omit<
-  SelectBaseProps,
-  'value' | 'defaultValue' | 'onValueChange' | 'name'
+  InputFieldBaseProps,
+  'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'name'
 > & {
   control: Control<TFieldValues>;
   name: TName;
@@ -54,27 +42,27 @@ type ControlledSelectProps<
   defaultValue?: FieldPathValue<TFieldValues, TName>;
 };
 
-type UncontrolledSelectProps = SelectBaseProps & {
+type UncontrolledInputFieldProps = InputFieldBaseProps & {
   control?: never;
-  name?: string;
   rules?: never;
 };
 
-type SelectProps<
+type InputFieldProps<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, string>,
-> = ControlledSelectProps<TFieldValues, TName> | UncontrolledSelectProps;
+> =
+  | ControlledInputFieldProps<TFieldValues, TName>
+  | UncontrolledInputFieldProps;
 
-function SelectBase({
-  id,
+function InputFieldBase({
   label,
   description,
-  placeholder,
-  errors,
-  options,
+  type,
+  id,
   'aria-invalid': ariaInvalid,
+  errors,
   ...props
-}: SelectBaseProps) {
+}: InputFieldBaseProps) {
   const allErrors = resolveFieldErrors(errors);
   const invalid = hasFieldErrors(allErrors);
   const resolvedAriaInvalid = ariaInvalid ?? (invalid || undefined);
@@ -83,28 +71,14 @@ function SelectBase({
     <BaseField data-invalid={invalid}>
       {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
-      <BaseSelect {...props}>
-        <SelectTrigger id={id} aria-invalid={resolvedAriaInvalid}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {options.map(({ label, value }) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </BaseSelect>
-
+      <Input id={id} type={type} aria-invalid={resolvedAriaInvalid} {...props} />
       {description && <FieldDescription>{description}</FieldDescription>}
       <FieldError errors={allErrors} />
     </BaseField>
   );
 }
 
-function ControlledSelect<
+function ControlledInputField<
   TFieldValues extends FieldValues,
   TName extends FieldPathByValue<TFieldValues, string>,
 >({
@@ -114,39 +88,42 @@ function ControlledSelect<
   defaultValue,
   errors,
   ...props
-}: ControlledSelectProps<TFieldValues, TName>) {
+}: ControlledInputFieldProps<TFieldValues, TName>) {
   const {
     field,
     fieldState: { error: fieldError },
-  } = useController({
-    control,
-    name,
-    rules,
-    defaultValue,
-  });
+  } = useController({ control, name, rules, defaultValue });
 
   return (
-    <SelectBase
+    <InputFieldBase
       {...props}
       name={field.name}
       value={typeof field.value === 'string' ? field.value : ''}
-      onValueChange={field.onChange}
+      onChange={field.onChange}
+      onBlur={field.onBlur}
       errors={resolveFieldErrors(fieldError, errors)}
       disabled={props.disabled ?? field.disabled}
     />
   );
 }
 
-export function Select<
+/**
+ * Campo de input integrado ao react-hook-form.
+ *
+ * - **Não controlado**: espalhe `register('campo')` e passe `errors`.
+ * - **Controlado**: passe `control` + `name` (mesmo padrão de `Select`,
+ *   `Checkbox`, `DateField` e `DateTimeField`).
+ */
+export function InputField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, string> = FieldPathByValue<
     TFieldValues,
     string
   >,
->(props: SelectProps<TFieldValues, TName>) {
+>(props: InputFieldProps<TFieldValues, TName>) {
   if ('control' in props && props.control) {
-    return <ControlledSelect {...props} />;
+    return <ControlledInputField {...props} />;
   }
 
-  return <SelectBase {...props} />;
+  return <InputFieldBase {...props} />;
 }

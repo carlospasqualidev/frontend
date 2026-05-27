@@ -5,8 +5,8 @@ import { SessionTemplate } from './sessionTemplate';
 
 import { useSessionStore } from '@/hooks/useSessionStore';
 import { useZodForm } from '@/lib/forms/useZodForm';
-import { cn } from '@/lib/utils';
 import { sessionService } from '@/services/session/sessionService';
+import { InputField } from '@/components/global/form/inputField';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -14,10 +14,8 @@ import {
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldLabel,
   FieldSeparator,
 } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 
 const loginSchema = z.object({
   email: z.email().trim().min(1, 'Informe seu e-mail.'),
@@ -42,7 +40,6 @@ export function LoginScreen() {
 
   const onSubmit = handleSubmit(async (values) => {
     await sessionService.signIn(values).then(({ user }) => {
-      console.log(user);
       setUser(user);
       navigate({ to: '/' });
     });
@@ -50,7 +47,7 @@ export function LoginScreen() {
 
   return (
     <SessionTemplate>
-      <div className={cn('flex flex-col gap-6')}>
+      <div className="flex flex-col gap-6">
         <Card className="overflow-hidden p-0">
           <CardContent className="grid p-0 md:grid-cols-2">
             <div className="relative hidden bg-muted md:block">
@@ -68,39 +65,38 @@ export function LoginScreen() {
                     Faça login na sua conta
                   </p>
                 </div>
-                <Field data-invalid={Boolean(errors.userName)}>
-                  <FieldLabel htmlFor="email">E-mail</FieldLabel>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    autoComplete="email"
-                    aria-invalid={Boolean(errors.email)}
+
+                <InputField
+                  id="email"
+                  label="E-mail"
+                  type="email"
+                  placeholder="m@example.com"
+                  autoComplete="email"
+                  errors={errors.email}
+                  disabled={isSubmitting}
+                  {...register('email')}
+                />
+
+                <div className="space-y-1">
+                  <InputField
+                    id="password"
+                    label="Senha"
+                    type="password"
+                    autoComplete="current-password"
+                    errors={errors.password}
                     disabled={isSubmitting}
-                    {...register('email')}
+                    {...register('password')}
                   />
-                  <FieldError errors={[errors.email]} />
-                </Field>
-                <Field data-invalid={Boolean(errors.password)}>
-                  <div className="flex items-center">
-                    <FieldLabel htmlFor="password">Senha</FieldLabel>
+                  <div className="flex justify-end">
                     <a
                       href="#"
-                      className="ml-auto text-sm underline-offset-2 hover:underline"
+                      className="text-sm underline-offset-2 hover:underline"
                     >
                       Esqueceu sua senha?
                     </a>
                   </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    aria-invalid={Boolean(errors.password)}
-                    disabled={isSubmitting}
-                    {...register('password')}
-                  />
-                  <FieldError errors={[errors.password]} />
-                </Field>
+                </div>
+
                 <Field>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? 'Entrando...' : 'Entrar'}

@@ -2,9 +2,11 @@ import axios, { type AxiosRequestConfig } from 'axios';
 
 import { thenHandler, catchHandler } from './errorHandlers';
 
+import { env } from '@/lib/env';
+
 //#region CONFIG
 const axiosApi = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}`,
+  baseURL: env.VITE_API_URL,
   withCredentials: true,
 });
 

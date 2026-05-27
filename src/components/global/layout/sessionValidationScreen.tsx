@@ -35,7 +35,7 @@ export function SessionValidationScreen() {
 
   return (
     <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-background px-6">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.08),transparent_28%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-primary),transparent_28%)]/8" />
 
       <div className="relative flex flex-1 items-center justify-center">
         <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">

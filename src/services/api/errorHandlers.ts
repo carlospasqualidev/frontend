@@ -1,21 +1,37 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
+import { env } from '@/lib/env';
 import type { ICatchHandler, IThenHandler } from '@/services/api/types';
 
-export const sendErrorMessage = async ({ error }: { error: Error }) => {
-  if (import.meta.env.PROD) {
-    axios.post('https://ada-logs.herokuapp.com/api/errors/create', {
-      projectName: import.meta.env.VITE_PROJECT_NAME,
-      environment: import.meta.env.VITE_PROJECT_ENVIRONMENT,
-      side: import.meta.env.VITE_PROJECT_SIDE,
-      errorStack: error.stack,
+/**
+ * Envia o erro para um serviço de log externo, se `VITE_ERROR_LOG_URL`
+ * estiver configurado. Só dispara em produção. Nunca lança — falhas no
+ * reporte não devem derrubar a aplicação.
+ */
+export const sendErrorMessage = async ({ error }: { error: unknown }) => {
+  if (!import.meta.env.PROD || !env.VITE_ERROR_LOG_URL) {
+    return;
+  }
+
+  const errorStack = error instanceof Error ? error.stack : String(error);
+
+  // Import dinâmico para evitar dependência circular com a store de sessão.
+  const { useSessionStore } = await import('@/hooks/useSessionStore');
+  const user = useSessionStore.getState().user;
+
+  await axios
+    .post(env.VITE_ERROR_LOG_URL, {
+      projectName: env.VITE_PROJECT_NAME,
+      environment: env.VITE_PROJECT_ENVIRONMENT,
+      side: env.VITE_PROJECT_SIDE,
+      errorStack,
       extraInfo: {
         url: window.location.href,
-        user: localStorage.getItem('user') ?? '',
+        user: user ? JSON.stringify(user) : '',
       },
-    });
-  }
+    })
+    .catch(() => undefined);
 };
 
 export const catchHandler = (err: ICatchHandler) => {
