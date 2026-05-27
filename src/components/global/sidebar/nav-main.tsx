@@ -15,8 +15,6 @@ export function NavMain() {
     <SidebarGroup>
       <SidebarMenu>
         {sidebarData.nav.map((item) => {
-          // fuzzy para destacar também rotas filhas (ex.: /playground/form),
-          // exceto a home, que deve casar de forma exata.
           const isActive = Boolean(
             matchRoute({ to: item.url, fuzzy: item.url !== '/' })
           );
