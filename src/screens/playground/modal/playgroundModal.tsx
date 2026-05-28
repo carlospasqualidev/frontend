@@ -1,12 +1,11 @@
 import { useState } from 'react';
 
-import { PlaygroundPreviewCard } from '../components';
-
+import { Card } from '@/components/global/card/card';
 import { Modal } from '@/components/global/modal/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 function ModalContent({
   setIsModalOpen,
@@ -41,7 +40,7 @@ export function PlaygroundModal() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <PlaygroundPreviewCard
+    <Card
       title="Modal"
       description="Teste o modal responsivo do projeto. No desktop ele abre como dialog; no mobile, como drawer."
     >
@@ -60,6 +59,6 @@ export function PlaygroundModal() {
       >
         Abrir Modal
       </Button>
-    </PlaygroundPreviewCard>
+    </Card>
   );
 }

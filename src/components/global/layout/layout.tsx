@@ -21,7 +21,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </header>
         <ScrollArea className="min-h-0 flex-1">
           <div className="flex min-h-full flex-col gap-4 p-4 pt-0">
-            <div className="flex-1 rounded-xl bg-muted/50 p-4">{children}</div>
+            <div className="flex-1 space-y-4 rounded-xl bg-muted/50 p-4">
+              {children}
+            </div>
           </div>
         </ScrollArea>
       </SidebarInset>

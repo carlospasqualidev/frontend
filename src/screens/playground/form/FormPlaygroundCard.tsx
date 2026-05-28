@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { z } from 'zod';
 
+import { Card } from '@/components/global/card/card';
 import { Checkbox } from '@/components/global/form/checkbox';
 import { DateField } from '@/components/global/form/dateField';
 import { DateTimeField } from '@/components/global/form/dateTimeField';
 import { InputField } from '@/components/global/form/inputField';
 import { MultiSelect } from '@/components/global/form/multiSelect';
 import { Select } from '@/components/global/form/select';
+import { Switch } from '@/components/global/form/switch';
 import { TextArea } from '@/components/global/form/textArea';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FieldDescription, FieldGroup } from '@/components/ui/field';
+import { FieldGroup } from '@/components/ui/field';
+import { Typography } from '@/components/ui/typography';
 import { useZodForm } from '@/lib/forms/useZodForm';
 
 const departmentOptions = [
@@ -46,6 +48,7 @@ const formDefaults = {
   observations: '',
   receiveReports: true,
   acceptTerms: false,
+  adminAccess: false,
 };
 
 const formSchema = z.object({
@@ -93,6 +96,7 @@ const formSchema = z.object({
     .min(10, 'Escreva pelo menos 10 caracteres nas observações.'),
   receiveReports: z.boolean(),
   acceptTerms: z.boolean().refine(Boolean, 'Você precisa aceitar os termos.'),
+  adminAccess: z.boolean(),
 });
 
 type FormData = z.output<typeof formSchema>;
@@ -117,104 +121,98 @@ export function FormPlaygroundCard() {
   });
 
   return (
-    <Card className="border-border/70 shadow-sm">
-      <CardHeader className="space-y-2">
-        <CardTitle>Formulário de teste</CardTitle>
-        <FieldDescription>
-          Este formulário exercita os inputs globais com `react-hook-form` e
-          `zod`, incluindo digitação manual no campo de data.
-        </FieldDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-6" noValidate onSubmit={onSubmit}>
-          <FieldGroup className="grid gap-4 md:grid-cols-2">
-            <InputField
-              id="fullName"
-              label="Nome completo"
-              placeholder="Victor Casagrande"
-              autoComplete="name"
-              errors={errors.fullName}
-              disabled={isSubmitting}
-              {...register('fullName')}
-            />
+    <Card
+      title="Formulário de teste"
+      description="Este formulário exercita os inputs globais com react-hook-form e zod, incluindo digitação manual no campo de data."
+    >
+      <form className="space-y-6" noValidate onSubmit={onSubmit}>
+        <FieldGroup className="grid gap-4 md:grid-cols-2">
+          <InputField
+            id="fullName"
+            label="Nome completo"
+            placeholder="Victor Casagrande"
+            autoComplete="name"
+            errors={errors.fullName}
+            disabled={isSubmitting}
+            {...register('fullName')}
+          />
 
-            <InputField
-              id="businessEmail"
-              label="E-mail corporativo"
-              type="email"
-              placeholder="victor@empresa.com.br"
-              autoComplete="email"
-              errors={errors.businessEmail}
-              disabled={isSubmitting}
-              {...register('businessEmail')}
-            />
+          <InputField
+            id="businessEmail"
+            label="E-mail corporativo"
+            type="email"
+            placeholder="victor@empresa.com.br"
+            autoComplete="email"
+            errors={errors.businessEmail}
+            disabled={isSubmitting}
+            {...register('businessEmail')}
+          />
 
-            <InputField
-              id="role"
-              label="Cargo"
-              placeholder="Analista financeiro"
-              errors={errors.role}
-              disabled={isSubmitting}
-              {...register('role')}
-            />
+          <InputField
+            id="role"
+            label="Cargo"
+            placeholder="Analista financeiro"
+            errors={errors.role}
+            disabled={isSubmitting}
+            {...register('role')}
+          />
 
-            <DateField
-              id="admissionDate"
-              name="admissionDate"
-              control={control}
-              label="Data de admissão"
-              disabled={isSubmitting}
-            />
+          <DateField
+            id="admissionDate"
+            name="admissionDate"
+            control={control}
+            label="Data de admissão"
+            disabled={isSubmitting}
+          />
 
-            <DateTimeField
-              id="admissionDateTime"
-              name="admissionDateTime"
-              control={control}
-              label="Data e hora de admissão"
-              disabled={isSubmitting}
-            />
+          <DateTimeField
+            id="admissionDateTime"
+            name="admissionDateTime"
+            control={control}
+            label="Data e hora de admissão"
+            disabled={isSubmitting}
+          />
 
-            <Select
-              id="department"
-              name="department"
-              control={control}
-              label="Departamento"
-              placeholder="Selecione um departamento"
-              disabled={isSubmitting}
-              options={departmentOptions.map((option) => ({
-                label: option.label,
-                value: option.value,
-              }))}
-            />
+          <Select
+            id="department"
+            name="department"
+            control={control}
+            label="Departamento"
+            placeholder="Selecione um departamento"
+            disabled={isSubmitting}
+            options={departmentOptions.map((option) => ({
+              label: option.label,
+              value: option.value,
+            }))}
+          />
 
-            <Select
-              id="status"
-              name="status"
-              control={control}
-              label="Status"
-              placeholder="Selecione um status"
-              disabled={isSubmitting}
-              options={employeeStatusOptions.map((option) => ({
-                label: option.label,
-                value: option.value,
-              }))}
-            />
+          <Select
+            id="status"
+            name="status"
+            control={control}
+            label="Status"
+            placeholder="Selecione um status"
+            disabled={isSubmitting}
+            options={employeeStatusOptions.map((option) => ({
+              label: option.label,
+              value: option.value,
+            }))}
+          />
 
-            <MultiSelect
-              id="benefits"
-              name="benefits"
-              control={control}
-              label="Benefícios"
-              placeholder="Selecione os benefícios"
-              searchable
-              disabled={isSubmitting}
-              errors={errors.benefits}
-              options={benefitOptions.map((option) => ({
-                label: option.label,
-                value: option.value,
-              }))}
-            />
-          </FieldGroup>
+          <MultiSelect
+            id="benefits"
+            name="benefits"
+            control={control}
+            label="Benefícios"
+            placeholder="Selecione os benefícios"
+            searchable
+            disabled={isSubmitting}
+            errors={errors.benefits}
+            options={benefitOptions.map((option) => ({
+              label: option.label,
+              value: option.value,
+            }))}
+          />
 
           <TextArea
             id="observations"
@@ -224,54 +222,61 @@ export function FormPlaygroundCard() {
             disabled={isSubmitting}
             {...register('observations')}
           />
+        </FieldGroup>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Checkbox
-              id="receiveReports"
-              name="receiveReports"
-              control={control}
-              label="Receber relatórios por e-mail"
-              description="Bom para testar o checkbox em um estado positivo."
-              disabled={isSubmitting}
-            />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Checkbox
+            id="receiveReports"
+            name="receiveReports"
+            control={control}
+            label="Receber relatórios por e-mail"
+            description="Bom para testar o checkbox em um estado positivo."
+            disabled={isSubmitting}
+          />
 
-            <Checkbox
-              id="acceptTerms"
-              name="acceptTerms"
-              control={control}
-              label="Aceito os termos internos"
-              description="Este campo deve falhar se você tentar enviar sem marcar."
-              disabled={isSubmitting}
-            />
-          </div>
+          <Checkbox
+            id="acceptTerms"
+            name="acceptTerms"
+            control={control}
+            label="Aceito os termos internos"
+            description="Este campo deve falhar se você tentar enviar sem marcar."
+            disabled={isSubmitting}
+          />
 
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Validando...' : 'Enviar formulário'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={() => {
-                reset(formDefaults);
-                setLastSubmission(null);
-              }}
-            >
-              Limpar formulário
-            </Button>
-          </div>
+          <Switch
+            id="adminAccess"
+            name="adminAccess"
+            control={control}
+            label="Conceder acesso administrativo"
+            description="Toggle de configuração — exercita o Switch global integrado ao react-hook-form."
+            disabled={isSubmitting}
+          />
+        </div>
 
-          <div className="rounded-2xl border border-dashed border-border/70 bg-muted/30 p-4">
-            <p className="text-sm font-medium text-foreground">
-              Último envio válido
-            </p>
-            <pre className="mt-3 overflow-x-auto text-sm leading-6 text-muted-foreground">
-              {JSON.stringify(lastSubmission, null, 2)}
-            </pre>
-          </div>
-        </form>
-      </CardContent>
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Validando...' : 'Enviar formulário'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={() => {
+              reset(formDefaults);
+              setLastSubmission(null);
+            }}
+          >
+            Limpar formulário
+          </Button>
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-border/70 bg-muted/30 p-4">
+          <Typography variant="small">Último envio válido</Typography>
+          <pre className="mt-3 overflow-x-auto text-sm leading-6 text-muted-foreground">
+            {JSON.stringify(lastSubmission, null, 2)}
+          </pre>
+        </div>
+      </form>
     </Card>
   );
 }

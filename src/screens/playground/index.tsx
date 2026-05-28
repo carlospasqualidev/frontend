@@ -1,5 +1,4 @@
 import { PlaygroundHeader, PlaygroundLinkCard } from './components';
-import { PlaygroundModal } from './modal/playgroundModal';
 
 const links = [
   {
@@ -20,6 +19,42 @@ const links = [
       'Tabela com TanStack Table (shadcn/ui): ordenação, filtro, paginação, seleção e visibilidade de colunas.',
     to: '/playground/data-table',
   },
+  {
+    title: 'Card',
+    description:
+      'Abstração global de card sobre o primitivo do shadcn. Recebe título, descrição e children.',
+    to: '/playground/card',
+  },
+  {
+    title: 'Badge',
+    description:
+      'Variantes, ícones e casos de uso do componente Badge do shadcn.',
+    to: '/playground/badge',
+  },
+  {
+    title: 'Empty',
+    description:
+      'Abstração global de empty state com ícone, título, descrição e CTA opcional.',
+    to: '/playground/empty',
+  },
+  {
+    title: 'Skeleton',
+    description:
+      'Skeletons semânticos focados na informação dinâmica, mantendo a estrutura visível.',
+    to: '/playground/skeleton',
+  },
+  {
+    title: 'Modal',
+    description:
+      'Modal responsivo: dialog no desktop, drawer no mobile.',
+    to: '/playground/modal',
+  },
+  {
+    title: 'Button',
+    description:
+      'Abstração do Button do shadcn com prop loading: spinner, disable automático e prevenção de duplo clique.',
+    to: '/playground/button',
+  },
 ];
 
 export function PlaygroundPage() {
@@ -34,10 +69,6 @@ export function PlaygroundPage() {
         {links.map((link) => (
           <PlaygroundLinkCard key={link.to} {...link} />
         ))}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <PlaygroundModal />
       </div>
     </div>
   );

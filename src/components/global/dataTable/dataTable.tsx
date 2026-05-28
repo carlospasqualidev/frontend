@@ -7,6 +7,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { Search } from 'lucide-react';
 
 import {
   DataTableFilters,
@@ -14,6 +15,7 @@ import {
   type DataTableFilterValues,
 } from './filters';
 
+import { Empty } from '@/components/global/empty/empty';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -103,6 +105,9 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
 
+  const hasActiveFilters =
+    !!defaultFilterValues && Object.keys(defaultFilterValues).length > 0;
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
@@ -182,12 +187,26 @@ export function DataTable<TData, TValue>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {emptyMessage}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length} className="py-6">
+                  <Empty
+                    title={emptyMessage}
+                    description={
+                      hasActiveFilters
+                        ? 'Ajuste os filtros ou remova-os para ver os registros.'
+                        : 'Ainda não há registros para exibir.'
+                    }
+                    icon={<Search />}
+                  >
+                    {hasActiveFilters && onSearch ? (
+                      <Button
+                        variant="outline"
+                        onClick={() => onSearch({})}
+                      >
+                        Limpar filtros
+                      </Button>
+                    ) : null}
+                  </Empty>
                 </TableCell>
               </TableRow>
             )}

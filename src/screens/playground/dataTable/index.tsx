@@ -177,7 +177,7 @@ export function PlaygroundDataTablePage() {
         description="Tabela 100% server-side: filtros, ordenação e paginação são delegados ao backend. Os filtros vão ao servidor ao clicar em 'Buscar', clicar num cabeçalho reordena no servidor, e 'Próxima' é desabilitado quando a página vem incompleta."
       />
 
-      <div className="rounded-2xl border border-border/70 bg-background p-3 shadow-sm sm:rounded-3xl sm:p-5">
+      <div className="rounded-2xl border border-border/70 bg-card p-3 shadow-sm sm:rounded-3xl sm:p-5 dark:shadow-none">
         <DataTable
           columns={columns}
           data={pageData}

@@ -57,6 +57,75 @@ export const playgroundNavigationRoute = createRoute({
   ),
 });
 
+export const playgroundCardRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/card',
+  staticData: {
+    breadcrumb: 'Card',
+  },
+  component: lazyRouteComponent(() => import('./card'), 'PlaygroundCardPage'),
+});
+
+export const playgroundBadgeRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/badge',
+  staticData: {
+    breadcrumb: 'Badge',
+  },
+  component: lazyRouteComponent(
+    () => import('./badge'),
+    'PlaygroundBadgePage'
+  ),
+});
+
+export const playgroundEmptyRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/empty',
+  staticData: {
+    breadcrumb: 'Empty',
+  },
+  component: lazyRouteComponent(
+    () => import('./empty'),
+    'PlaygroundEmptyPage'
+  ),
+});
+
+export const playgroundSkeletonRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/skeleton',
+  staticData: {
+    breadcrumb: 'Skeleton',
+  },
+  component: lazyRouteComponent(
+    () => import('./skeleton'),
+    'PlaygroundSkeletonPage'
+  ),
+});
+
+export const playgroundModalRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/modal',
+  staticData: {
+    breadcrumb: 'Modal',
+  },
+  component: lazyRouteComponent(
+    () => import('./modal'),
+    'PlaygroundModalPage'
+  ),
+});
+
+export const playgroundButtonRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/button',
+  staticData: {
+    breadcrumb: 'Button',
+  },
+  component: lazyRouteComponent(
+    () => import('./button'),
+    'PlaygroundButtonPage'
+  ),
+});
+
 export const playgroundNavigationDetailsRoute = createRoute({
   getParentRoute: () => playgroundNavigationRoute,
   path: '/details',
@@ -85,6 +154,12 @@ export const playgroundRouteTree = playgroundRoute.addChildren([
   playgroundIndexRoute,
   playgroundFormRoute,
   playgroundDataTableRoute,
+  playgroundCardRoute,
+  playgroundBadgeRoute,
+  playgroundEmptyRoute,
+  playgroundSkeletonRoute,
+  playgroundModalRoute,
+  playgroundButtonRoute,
   playgroundNavigationRoute.addChildren([
     playgroundNavigationDetailsRoute.addChildren([
       playgroundNavigationHistoryRoute,

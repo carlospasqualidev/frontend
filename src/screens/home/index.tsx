@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Typography } from '@/components/ui/typography';
 
 type PageHeaderProps = {
   title: string;
@@ -24,12 +25,12 @@ export function DashboardStatCard({
       <p className="text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase">
         {title}
       </p>
-      <strong className="mt-4 block text-3xl font-semibold text-foreground">
+      <Typography as="strong" variant="h2" className="mt-4 block">
         {value}
-      </strong>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+      </Typography>
+      <Typography variant="muted" className="mt-2">
         {description}
-      </p>
+      </Typography>
     </article>
   );
 }
@@ -38,10 +39,12 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-border/70 bg-background p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+        <Typography as="h1" variant="h3">
+          {title}
+        </Typography>
+        <Typography variant="muted" className="max-w-2xl">
           {description}
-        </p>
+        </Typography>
       </div>
       {actions ? <div className="shrink-0">{actions}</div> : null}
     </div>
@@ -86,9 +89,7 @@ export function DashboardPage() {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
-          <p className="text-sm font-semibold text-foreground">
-            Fluxo de inicialização
-          </p>
+          <Typography variant="small">Fluxo de inicialização</Typography>
           <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
             <li>
               1. <code>SessionValidation</code> chama{' '}
@@ -109,9 +110,7 @@ export function DashboardPage() {
         </article>
 
         <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
-          <p className="text-sm font-semibold text-foreground">
-            Como adicionar uma tela
-          </p>
+          <Typography variant="small">Como adicionar uma tela</Typography>
           <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
             <li>
               1. Crie <code>screens/&lt;feature&gt;/index.tsx</code> exportando o
