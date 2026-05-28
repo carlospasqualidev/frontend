@@ -80,6 +80,61 @@ Se uma mudança ameaça introduzir instabilidade, inconsistência ou complexidad
 
 ---
 
+## JSX e markup — menos é mais
+
+Você tende a empilhar `<div>` e classes Tailwind a mais. **Pare**. Cada elemento e cada classe precisa pagar pelo seu lugar. JSX limpo é fundamental — quem lê depois (humano ou Claude) entende a intenção pelo formato, não escava entre wrappers.
+
+### Antes de adicionar uma `<div>`, pergunte
+
+1. Existe pra layout real (flex/grid/spacing)? Mantenha.
+2. Tem semântica de página (`<section>`, `<article>`, `<header>`, `<footer>`, `<nav>`, `<aside>`, `<main>`)? Use o elemento certo, não div.
+3. Existe só pra agrupar JSX? Troque por **Fragment** (`<>...</>`).
+4. Existe só pra aplicar uma classe num filho? Passe a classe pro filho direto.
+
+Se a resposta não é #1 ou #2, a div não deveria estar lá.
+
+### Regras
+
+- **Reuse abstrações globais** (`Card`, `Empty`, `Modal`, `ConfirmDialog`, `Field`) em vez de recriar a estrutura delas com divs e classes soltas.
+- **Não empilhe wrappers de layout**: um `flex`/`grid` parent geralmente basta. `<div flex><div flex>` é code smell.
+- **Sem classe Tailwind redundante**: nada de `w-full` em elemento block-level, `flex-col` num pai que já é `flex-col`, ou `text-foreground` quando é o default.
+- **Prefira styling no elemento certo**, não num wrapper criado pra isso. Se precisa de margem num botão, passe `className` no botão (ou ajuste o `gap` do pai).
+- **Não comente o que o JSX já diz**. Componente bem nomeado dispensa `{/* Header */}` em cima de `<Header />`.
+
+### Exemplo
+
+❌ Excesso de wrappers e classes redundantes:
+
+```tsx
+<div className="flex flex-col gap-4">
+  <div>
+    <div className="flex items-center">
+      <h2 className="text-lg text-foreground">Resumo</h2>
+    </div>
+    <div className="mt-2">
+      <p className="w-full text-sm text-muted-foreground">Visão do dia.</p>
+    </div>
+  </div>
+  <div>
+    <Button onClick={save}>Salvar</Button>
+  </div>
+</div>
+```
+
+✓ Enxuto e legível:
+
+```tsx
+<section className="space-y-2">
+  <Typography variant="h3">Resumo</Typography>
+  <Typography variant="muted">Visão do dia.</Typography>
+  <Button onClick={save}>Salvar</Button>
+</section>
+```
+
+A versão enxuta mostra **o que** o bloco é (uma seção de resumo com 3 elementos) sem o leitor precisar mentalmente desempilhar 5 divs.
+
+---
+
 ## Error handling
 
 - Trate erros de forma explícita e previsível. Sem falhas silenciosas.
