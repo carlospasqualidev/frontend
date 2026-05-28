@@ -4,6 +4,7 @@ import {
   Outlet,
 } from '@tanstack/react-router';
 
+import { validateDataTableSearch } from '@/components/global/dataTable/dataTableSearch';
 import { protectedLayoutRoute } from '@/routes';
 
 export const playgroundRoute = createRoute({
@@ -28,6 +29,20 @@ export const playgroundFormRoute = createRoute({
     breadcrumb: 'Playground de Formulários',
   },
   component: lazyRouteComponent(() => import('./form'), 'PlaygroundFormPage'),
+});
+
+export const playgroundDataTableRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/data-table',
+  // Persiste página/ordenação/filtros na URL (URL filtrada compartilhável).
+  validateSearch: validateDataTableSearch,
+  staticData: {
+    breadcrumb: 'Data Table',
+  },
+  component: lazyRouteComponent(
+    () => import('./dataTable'),
+    'PlaygroundDataTablePage'
+  ),
 });
 
 export const playgroundNavigationRoute = createRoute({
@@ -69,6 +84,7 @@ export const playgroundNavigationHistoryRoute = createRoute({
 export const playgroundRouteTree = playgroundRoute.addChildren([
   playgroundIndexRoute,
   playgroundFormRoute,
+  playgroundDataTableRoute,
   playgroundNavigationRoute.addChildren([
     playgroundNavigationDetailsRoute.addChildren([
       playgroundNavigationHistoryRoute,

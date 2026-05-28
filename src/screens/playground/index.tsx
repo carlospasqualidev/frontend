@@ -14,6 +14,12 @@ const links = [
       'Abre uma área com links mais profundos para validar o breadcrumb com 3 ou mais níveis.',
     to: '/playground/navigation',
   },
+  {
+    title: 'Data Table',
+    description:
+      'Tabela com TanStack Table (shadcn/ui): ordenação, filtro, paginação, seleção e visibilidade de colunas.',
+    to: '/playground/data-table',
+  },
 ];
 
 export function PlaygroundPage() {

@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/global/form/checkbox';
 import { DateField } from '@/components/global/form/dateField';
 import { DateTimeField } from '@/components/global/form/dateTimeField';
 import { InputField } from '@/components/global/form/inputField';
+import { MultiSelect } from '@/components/global/form/multiSelect';
 import { Select } from '@/components/global/form/select';
 import { TextArea } from '@/components/global/form/textArea';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,14 @@ const employeeStatusOptions = [
   { label: 'Desligado', value: 'desligado' },
 ] as const;
 
+const benefitOptions = [
+  { label: 'Vale-refeição', value: 'vale_refeicao' },
+  { label: 'Vale-transporte', value: 'vale_transporte' },
+  { label: 'Plano de saúde', value: 'plano_saude' },
+  { label: 'Plano odontológico', value: 'plano_odontologico' },
+  { label: 'Gympass', value: 'gympass' },
+] as const;
+
 const formDefaults = {
   fullName: '',
   businessEmail: '',
@@ -33,6 +42,7 @@ const formDefaults = {
   admissionDateTime: '',
   department: '',
   status: 'ativo',
+  benefits: [] as string[],
   observations: '',
   receiveReports: true,
   acceptTerms: false,
@@ -66,6 +76,16 @@ const formSchema = z.object({
     .refine(
       (value) => employeeStatusOptions.some((option) => option.value === value),
       'Selecione um status válido.'
+    ),
+  benefits: z
+    .array(z.string())
+    .min(1, 'Selecione pelo menos um benefício.')
+    .refine(
+      (values) =>
+        values.every((value) =>
+          benefitOptions.some((option) => option.value === value)
+        ),
+      'Selecione apenas benefícios válidos.'
     ),
   observations: z
     .string()
@@ -175,6 +195,21 @@ export function FormPlaygroundCard() {
               placeholder="Selecione um status"
               disabled={isSubmitting}
               options={employeeStatusOptions.map((option) => ({
+                label: option.label,
+                value: option.value,
+              }))}
+            />
+
+            <MultiSelect
+              id="benefits"
+              name="benefits"
+              control={control}
+              label="Benefícios"
+              placeholder="Selecione os benefícios"
+              searchable
+              disabled={isSubmitting}
+              errors={errors.benefits}
+              options={benefitOptions.map((option) => ({
                 label: option.label,
                 value: option.value,
               }))}

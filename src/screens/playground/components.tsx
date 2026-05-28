@@ -27,7 +27,7 @@ export function PlaygroundHeader({
   actions,
 }: PlaygroundHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-3xl border border-border/70 bg-background p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-background p-4 shadow-sm sm:rounded-3xl sm:p-6 lg:flex-row lg:items-center lg:justify-between">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">

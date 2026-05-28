@@ -48,7 +48,13 @@ export function PlaygroundModal() {
       <ModalContent isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />
 
       <Button
-        onClick={() => {
+        onClick={(event) => {
+          // Tira o foco do trigger antes do drawer abrir. Como o `Modal` é
+          // controlado por estado externo (e não por `DrawerTrigger`), a vaul
+          // não sabe relinquir o foco sozinha — sem isso, o `aria-hidden` que
+          // ela aplica no fundo cai sobre um botão ainda focado e o Chrome
+          // bloqueia (violação WCAG).
+          event.currentTarget.blur();
           setIsModalOpen(true);
         }}
       >

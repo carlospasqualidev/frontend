@@ -37,7 +37,7 @@ export function Modal({ title, description, children, open, setOpen }: IModal) {
 
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
-          {children}
+          <div className="px-4 pb-4">{children}</div>
         </DrawerContent>
       </Drawer>
     );

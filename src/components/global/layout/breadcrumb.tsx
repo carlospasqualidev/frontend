@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link, useMatches } from '@tanstack/react-router';
 
 import {
@@ -62,18 +63,18 @@ export function Breadcrumb() {
           const isLast = index === visibleItems.length - 1;
 
           return (
-            <BreadcrumbItem key={`${item.routeId}:${item.pathname}`}>
-              {isLast ? (
-                <BreadcrumbPage>{item.title}</BreadcrumbPage>
-              ) : (
-                <>
+            <Fragment key={`${item.routeId}:${item.pathname}`}>
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage>{item.title}</BreadcrumbPage>
+                ) : (
                   <BreadcrumbLink asChild>
                     <Link to={item.pathname}>{item.title}</Link>
                   </BreadcrumbLink>
-                  <BreadcrumbSeparator />
-                </>
-              )}
-            </BreadcrumbItem>
+                )}
+              </BreadcrumbItem>
+              {isLast ? null : <BreadcrumbSeparator />}
+            </Fragment>
           );
         })}
       </BreadcrumbList>
