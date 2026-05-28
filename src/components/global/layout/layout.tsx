@@ -1,5 +1,8 @@
-import { AppSidebar } from '@/components/global/sidebar/app-sidebar';
+import { Suspense } from 'react';
+
 import { Breadcrumb } from '@/components/global/layout/breadcrumb';
+import { SuspenseFallback } from '@/components/global/layout/suspenseFallback';
+import { AppSidebar } from '@/components/global/sidebar/app-sidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -7,6 +10,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
@@ -22,7 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ScrollArea className="min-h-0 flex-1">
           <div className="flex min-h-full flex-col gap-4 p-4 pt-0">
             <div className="flex-1 space-y-4 rounded-xl bg-muted/50 p-4">
-              {children}
+              <Suspense fallback={<SuspenseFallback />}>{children}</Suspense>
             </div>
           </div>
         </ScrollArea>

@@ -126,6 +126,42 @@ export const playgroundButtonRoute = createRoute({
   ),
 });
 
+export const playgroundConfirmDialogRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/confirm-dialog',
+  staticData: {
+    breadcrumb: 'ConfirmDialog',
+  },
+  component: lazyRouteComponent(
+    () => import('./confirmDialog'),
+    'PlaygroundConfirmDialogPage'
+  ),
+});
+
+export const playgroundCrudRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/crud',
+  staticData: {
+    breadcrumb: 'CRUD end-to-end',
+  },
+  component: lazyRouteComponent(
+    () => import('./crud'),
+    'PlaygroundCrudPage'
+  ),
+});
+
+export const playgroundOptimisticUpdateRoute = createRoute({
+  getParentRoute: () => playgroundRoute,
+  path: '/optimistic-update',
+  staticData: {
+    breadcrumb: 'Optimistic update',
+  },
+  component: lazyRouteComponent(
+    () => import('./optimisticUpdate'),
+    'PlaygroundOptimisticUpdatePage'
+  ),
+});
+
 export const playgroundNavigationDetailsRoute = createRoute({
   getParentRoute: () => playgroundNavigationRoute,
   path: '/details',
@@ -160,6 +196,9 @@ export const playgroundRouteTree = playgroundRoute.addChildren([
   playgroundSkeletonRoute,
   playgroundModalRoute,
   playgroundButtonRoute,
+  playgroundConfirmDialogRoute,
+  playgroundCrudRoute,
+  playgroundOptimisticUpdateRoute,
   playgroundNavigationRoute.addChildren([
     playgroundNavigationDetailsRoute.addChildren([
       playgroundNavigationHistoryRoute,

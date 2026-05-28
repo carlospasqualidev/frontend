@@ -117,6 +117,7 @@ Se uma mudança ameaça introduzir instabilidade, inconsistência ou complexidad
 - Escreva teste para lógica não-trivial: utilidades puras, hooks com lógica, regras de negócio, edge cases.
 - Teste o caminho de falha, não só o happy path.
 - Testes legíveis — eles documentam o comportamento esperado.
+- As abstrações globais (`Button`, `Card`, `Empty`, `ConfirmDialog`) já têm testes que cobrem o contrato público — ao mudar a API delas, atualize o teste junto, não depois.
 
 ---
 
@@ -161,13 +162,14 @@ Esconder coluna em mobile é regressão de UX, não responsividade.
 src/
 ├── assets/              # imagens e estáticos importados
 ├── components/
-│   ├── global/          # componentes da aplicação (layout, sidebar, forms, modal, dataTable...)
-│   └── ui/              # componentes shadcn/ui (gerados via CLI — kebab-case)
+│   ├── global/          # abstrações da aplicação (card, modal, empty, skeleton, button, form/, layout/, sidebar/, dataTable/)
+│   └── ui/              # primitivos shadcn/ui (gerados via CLI — kebab-case)
 ├── hooks/               # hooks reutilizáveis (tema, sessão, mobile...)
 ├── lib/                 # utilidades puras (env, datas, forms, queryClient, cn)
 ├── screens/             # telas; cada uma com seu routes.ts co-localizado
 ├── services/            # camada de acesso a dados (api, session...)
 ├── types/               # tipos de domínio compartilhados
+├── index.css            # tokens de design (cor da marca, dark mode, paleta)
 ├── routes.tsx           # árvore de rotas raiz
 └── main.tsx             # entrypoint (providers globais)
 ```
@@ -210,6 +212,27 @@ Depois, registre em [`src/routes.tsx`](src/routes.tsx).
 - Use a instância `api` de [`src/services/api`](src/services/api) — ela já trata `baseURL`, `withCredentials: true` (cookie) e toasts via interceptors. **Não crie axios direto.**
 - Para server state: TanStack Query (`useQuery` / `useMutation`) com o `queryClient` de [`src/lib/queryClient.ts`](src/lib/queryClient.ts). Não use `useEffect` + `fetch`.
 
+**Optimistic updates** — quando a mutação é simples (toggle, delete, edit de campo único) e o servidor raramente recusa, antecipe o resultado no cache pra UI parecer instantânea:
+
+```tsx
+const mutation = useMutation({
+  mutationFn: api.toggleFollow,
+  onMutate: async () => {
+    await queryClient.cancelQueries({ queryKey: KEY });
+    const previous = queryClient.getQueryData(KEY);
+    queryClient.setQueryData(KEY, (prev) => !prev); // mudança otimista
+    return { previous }; // snapshot pro rollback
+  },
+  onError: (_err, _vars, context) => {
+    queryClient.setQueryData(KEY, context?.previous); // rollback
+    toast.error('Falha ao atualizar.');
+  },
+  onSettled: () => queryClient.invalidateQueries({ queryKey: KEY }), // revalida
+});
+```
+
+Veja exemplo vivo em [`src/screens/playground/optimisticUpdate/`](src/screens/playground/optimisticUpdate). Use só onde a latência percebida vale o risco de inconsistência momentânea — pra fluxos críticos (pagamento, perfil), prefira o pattern padrão com loading visível.
+
 ### Sessão e autenticação
 
 - Sessão por cookie HTTP-only. `SessionValidation` ([`src/components/global/layout/sessionValidation.tsx`](src/components/global/layout/sessionValidation.tsx)) valida antes de renderizar rotas protegidas.
@@ -224,8 +247,9 @@ Depois, registre em [`src/routes.tsx`](src/routes.tsx).
 ### Formulários
 
 - Use `useZodForm` ([`src/lib/forms/useZodForm.ts`](src/lib/forms/useZodForm.ts)) — integra React Hook Form com schema Zod.
-- Componentes de campo prontos em [`src/components/global/form/`](src/components/global/form) (`inputField`, `select`, `dateField`, `dateTimeField`, `checkbox`, `textArea`, `multiSelect`).
-- Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) como referência.
+- Componentes de campo prontos em [`src/components/global/form/`](src/components/global/form) (`inputField`, `select`, `dateField`, `dateTimeField`, `checkbox`, `switch`, `textArea`, `multiSelect`).
+- Todos seguem o mesmo padrão: aceitam **uncontrolled** (`{...register('campo')}` + `errors`) **ou controlled** (`control` + `name` + opcional `rules`/`defaultValue`). Discriminated union impede misturar os dois modos.
+- Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e [`src/screens/playground/form/FormPlaygroundCard.tsx`](src/screens/playground/form/FormPlaygroundCard.tsx) como referência.
 
 ### Variáveis de ambiente
 
@@ -240,8 +264,74 @@ Depois, registre em [`src/routes.tsx`](src/routes.tsx).
 ### shadcn/ui
 
 - Adicione componentes via CLI: `npx shadcn@latest add <nome>`. **Não escreva à mão.**
-- Customize `components/ui/<x>.tsx` localmente quando necessário; mas só edite o que foi gerado pelo shadcn, não envolva em wrapper genérico sem ganho real.
+- Customize `components/ui/<x>.tsx` localmente quando necessário; mas só edite o que foi gerado pelo shadcn.
+- Wrappers genéricos só com ganho real (API simplificada, default visual do projeto, integração com `react-hook-form`). Quando criar um, siga o padrão em **Abstrações globais** abaixo.
 - Use `cn()` de [`src/lib/utils.ts`](src/lib/utils.ts) para concatenar classes do Tailwind.
+
+### Abstrações globais (`components/global/`)
+
+Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (incluindo dark mode) e integração com `react-hook-form`. Use estes antes de cair direto no `components/ui/`:
+
+| Abstração       | Caminho                                                                                    | Quando usar                                                                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Card`          | [`card/card.tsx`](src/components/global/card/card.tsx)                                     | Container de conteúdo com `title` + `description` + `children`. Já trata `bg-card`, borda, `shadow-sm` (light) e `dark:shadow-none`.                                                  |
+| `Modal`         | [`modal/modal.tsx`](src/components/global/modal/modal.tsx)                                 | Dialog no desktop, drawer no mobile. Props: `title`, `description`, `children`, `open`, `setOpen`.                                                                                    |
+| `Empty`         | [`empty/empty.tsx`](src/components/global/empty/empty.tsx)                                 | Empty state. Props: `title`, `description` (obrigatórios), `icon`, `children` (opcionais).                                                                                            |
+| `Skeleton*`     | [`skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. **Skeleton só no dado, nunca no card inteiro** — rótulos, títulos e estrutura permanecem visíveis durante o load. |
+| `Button`        | [`button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` — exibe spinner antes do label e desabilita o botão automaticamente. Mantém todas as variantes/props do primitivo.                      |
+| `ConfirmDialog` | [`confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. **Uncontrolled** (`trigger` prop, estado interno) ou **controlled** (`open`/`setOpen`). Loading interno automático e auto-close.      |
+
+**Padrão para criar uma nova abstração global:**
+
+- Pasta `components/global/<nome>/<nome>.tsx`, export nomeado, interface prefixada com `I`.
+- Importe o primitivo como `XPrimitive` (ex.: `Card as CardPrimitive`) para evitar shadowing.
+- Mantenha a API minimalista: props essenciais como obrigatórias, extras como opcionais.
+- Para componentes de formulário ou de "abre/fecha", espelhe o padrão de `inputField.tsx` / `switch.tsx` / `confirmDialog.tsx`: modo **uncontrolled** + modo **controlled** via discriminated union. Discrimine via `'prop' in props` (não via `prop !== undefined`, que não narrowed quando o tipo é `?: never`).
+
+**Confirmações de ação (delete, publicar, arquivar)**: use `ConfirmDialog` com modo uncontrolled — dispensa `useState` no consumidor:
+
+```tsx
+<ConfirmDialog
+  title="Excluir registro?"
+  description="Esta ação não pode ser desfeita."
+  confirmLabel="Excluir"
+  destructive
+  trigger={<Button variant="destructive">Excluir</Button>}
+  onConfirm={async () => {
+    await api.delete(`/records/${id}`);
+    toast.success('Registro excluído.');
+  }}
+/>
+```
+
+O dialog fica aberto enquanto `onConfirm` resolve (botão com spinner via `loading`), fecha em sucesso e permanece aberto se a promise lançar — deixe o erro propagar pro interceptor do `api` (que já mostra o toast).
+
+### Cor da marca e tema
+
+A cor primária do sistema vive em **uma única variável** no topo de [`src/index.css`](src/index.css):
+
+```css
+:root {
+  --brand: oklch(0.488 0.243 264.376); /* azul atual */
+  --brand-foreground: oklch(0.97 0.014 254.604);
+}
+.dark {
+  --brand: oklch(0.424 0.199 265.638); /* mesma marca, tonada */
+}
+```
+
+`--primary`, `--primary-foreground`, `--sidebar-primary` e `--sidebar-primary-foreground` são apenas aliases (`var(--brand)`) — não duplicar valores. Pra trocar a marca em um novo projeto, mude apenas `--brand` (light + dark).
+
+**Não fazem parte da marca**: `--ring`/`--sidebar-ring` (neutros, convenção shadcn), `--chart-1..5` (paleta separada, 5 tons harmonizados), e os tokens neutros (background, border, muted, etc.).
+
+**Dark mode em superfícies "card-like"**: use `bg-card` em vez de `bg-background` (o `.dark` já clareia `--card` em relação ao `--background` pra dar elevação) e adicione `dark:shadow-none` — sombras não rendem em fundo escuro. O `Card` global já faz isso automaticamente.
+
+### Tipografia
+
+- Use o componente [`Typography`](src/components/ui/typography.tsx) para textos do sistema (headings de página, parágrafos, labels). Variantes: `hero`, `h1`, `h2`, `h3`, `lead`, `p`, `small`, `muted`.
+- `as` aceita o elemento HTML semântico independente do styling (ex.: `<Typography as="h1" variant="h3">` para uma h1 com peso visual de h3).
+- Não use a classes `text-{size} font-{weight} text-muted-foreground` manualmente quando uma variante já bate — isso garante consistência visual entre telas.
+- Texto dentro de primitivos shadcn (`CardTitle`, `EmptyTitle`, `FieldLabel`, `Badge`) já tem tipografia interna — não envolver com `Typography`.
 
 ### Datas
 
@@ -250,7 +340,19 @@ Depois, registre em [`src/routes.tsx`](src/routes.tsx).
 ### DataTable
 
 - Padrão de tabela com paginação/filtro server-side em [`src/components/global/dataTable/`](src/components/global/dataTable). Use [`useDataTableQuery`](src/components/global/dataTable/useDataTableQuery.ts) (estado da URL via [`useDataTableUrlQuery`](src/components/global/dataTable/useDataTableUrlQuery.ts)).
+- Empty state automático: quando não há resultados e há filtros ativos, exibe um `Empty` com botão "Limpar filtros" que dispara `onSearch({})`. Sem filtros, mostra "Ainda não há registros para exibir.".
 - Exemplo vivo: [`src/screens/playground/dataTable/`](src/screens/playground/dataTable).
+
+### Playground (demos de componentes)
+
+Cada componente novo ganha sua tela em [`src/screens/playground/<nome>/`](src/screens/playground):
+
+- `playground<Nome>.tsx` — um ou mais componentes exportados, cada um demonstrando um aspecto (variantes, estados, casos de uso). Envolvidos em `Card` global com `title="<Nome> - <variação>"` e descrição explicativa.
+- `index.tsx` — página com `PlaygroundHeader` + grid 2 colunas dos demos.
+- Rota em [`src/screens/playground/routes.ts`](src/screens/playground/routes.ts) com `breadcrumb` em `staticData` e `lazyRouteComponent`.
+- Link card em [`src/screens/playground/index.tsx`](src/screens/playground/index.tsx) pra navegação.
+
+Para demos com estado de loading, use o hook local `useSimulatedLoading` (2s) — veja [`playgroundSkeleton.tsx`](src/screens/playground/skeleton/playgroundSkeleton.tsx) ou [`playgroundButton.tsx`](src/screens/playground/button/playgroundButton.tsx) como referência.
 
 ---
 

@@ -66,13 +66,15 @@ Ao adicionar uma env, declare-a no schema **e** em [`.env.example`](.env.example
 src/
 ├── assets/             # imagens e estáticos importados
 ├── components/
-│   ├── global/         # componentes da aplicação (layout, sidebar, forms, modal...)
-│   └── ui/             # componentes shadcn/ui (gerados via CLI)
+│   ├── global/         # abstrações da aplicação (card, modal, empty, skeleton, button, confirmDialog, form/, layout/, sidebar/, dataTable/)
+│   └── ui/             # primitivos shadcn/ui (gerados via CLI)
 ├── hooks/              # hooks reutilizáveis (tema, sessão, mobile...)
 ├── lib/                # utilidades puras (env, datas, forms, queryClient, cn)
 ├── screens/            # telas, cada uma com seu `routes.ts` co-localizado
+│   └── playground/     # demos vivas de todos os componentes globais
 ├── services/           # camada de acesso a dados (api, session...)
 ├── types/              # tipos compartilhados de domínio
+├── index.css           # tokens de design (cor da marca, dark mode, paleta)
 ├── routes.tsx          # árvore de rotas raiz
 └── main.tsx            # entrypoint (providers globais)
 ```
@@ -87,11 +89,28 @@ src/
 
 ## Padrões
 
+### Componentes globais (`components/global/`)
+
+Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (incluindo dark mode) e integração com `react-hook-form`. Prefira estes antes de cair direto no `components/ui/`:
+
+| Abstração       | Caminho                                                                                           | Uso                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `Card`          | [`global/card/card.tsx`](src/components/global/card/card.tsx)                                     | Container com `title` + `description` + `children`. Dark mode resolvido.                                                                 |
+| `Modal`         | [`global/modal/modal.tsx`](src/components/global/modal/modal.tsx)                                 | Dialog no desktop, drawer no mobile. Controlado por `open`/`setOpen`.                                                                    |
+| `Empty`         | [`global/empty/empty.tsx`](src/components/global/empty/empty.tsx)                                 | Empty state com ícone opcional e CTA via `children`.                                                                                     |
+| `Skeleton*`     | [`global/skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. Skeleton **só no dado**, não no card inteiro.                        |
+| `Button`        | [`global/button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` (spinner + disable automático).                                                            |
+| `ConfirmDialog` | [`global/confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. Uncontrolled (`trigger`) ou controlled (`open`/`setOpen`). Loading interno + auto-close. |
+
+Veja todas em ação em `/playground` (navegue após logar) ou diretamente em [`src/screens/playground/`](src/screens/playground).
+
 ### Adicionar um componente shadcn/ui
 
 ```bash
 npx shadcn@latest add button
 ```
+
+Customize localmente quando precisar. Se criar um wrapper genérico em `components/global/`, siga o padrão: pasta `global/<nome>/<nome>.tsx`, interface prefixada com `I`, primitivo importado como `XPrimitive`.
 
 ### Nova tela + rota
 
@@ -116,8 +135,62 @@ npx shadcn@latest add button
 ### Formulários
 
 Use o hook tipado `useZodForm` ([`src/lib/forms/useZodForm.ts`](src/lib/forms/useZodForm.ts)),
-que integra React Hook Form com um schema Zod. Veja
-[`src/screens/session/login.tsx`](src/screens/session/login.tsx) como referência.
+que integra React Hook Form com um schema Zod.
+
+Componentes de campo prontos em [`src/components/global/form/`](src/components/global/form):
+`inputField`, `select`, `dateField`, `dateTimeField`, `checkbox`, `switch`, `textArea`, `multiSelect`.
+
+Todos aceitam dois modos via discriminated union:
+
+- **Uncontrolled**: espalhe `register('campo')` + passe `errors`.
+- **Controlled**: passe `control` + `name` (+ opcional `rules`/`defaultValue`).
+
+Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e
+[`src/screens/playground/form/FormPlaygroundCard.tsx`](src/screens/playground/form/FormPlaygroundCard.tsx) como referência.
+
+### Confirmações de ação
+
+Para ações destrutivas (delete) ou irreversíveis (publicar, arquivar), use o `ConfirmDialog` global. O modo **uncontrolled** dispensa `useState` no consumidor — o estado de abertura é gerenciado internamente:
+
+```tsx
+import { ConfirmDialog } from '@/components/global/confirmDialog/confirmDialog';
+import { Button } from '@/components/global/button/button';
+
+<ConfirmDialog
+  title="Excluir registro?"
+  description="Esta ação não pode ser desfeita."
+  confirmLabel="Excluir"
+  destructive
+  trigger={<Button variant="destructive">Excluir</Button>}
+  onConfirm={async () => {
+    await api.delete(`/records/${id}`);
+    toast.success('Registro excluído.');
+  }}
+/>;
+```
+
+O componente:
+
+- Abre quando o `trigger` é clicado
+- Mantém o dialog aberto enquanto `onConfirm` resolve (botão de confirmação com spinner)
+- Fecha automaticamente em sucesso; permanece aberto se `onConfirm` lançar
+- Para abrir programaticamente (atalho de teclado, evento externo), use o modo controlled passando `open` + `setOpen` em vez de `trigger`
+
+### Cor da marca e tema
+
+A cor primária do sistema vive em **uma única variável** no topo de [`src/index.css`](src/index.css):
+
+```css
+:root {
+  --brand: oklch(0.488 0.243 264.376); /* azul atual */
+  --brand-foreground: oklch(0.97 0.014 254.604);
+}
+.dark {
+  --brand: oklch(0.424 0.199 265.638); /* mesma marca, tonada */
+}
+```
+
+`--primary` e `--sidebar-primary` são aliases (`var(--brand)`) — pra trocar a marca em um novo projeto, mude apenas `--brand` (light + dark) e tudo se sincroniza via cascade. Tokens neutros (background, border, muted...) e a paleta de gráficos (`--chart-1..5`) ficam intocados.
 
 ### Requisições
 
@@ -136,6 +209,11 @@ renderizar as rotas protegidas; o usuário fica em `useSessionStore` (Zustand).
 Vitest + Testing Library, ambiente `jsdom`. Arquivos `*.test.ts(x)` ao lado do
 código. Setup global em [`src/test/setup.ts`](src/test/setup.ts).
 
+As abstrações globais (`Button`, `Card`, `Empty`, `ConfirmDialog`) e utilitários
+de data/forms vêm com testes mínimos que documentam o comportamento esperado —
+use-os como ponto de partida ao estender.
+
 ```bash
-npm test
+npm test           # roda uma vez
+npm run test:watch # modo watch
 ```

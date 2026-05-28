@@ -55,6 +55,24 @@ const links = [
       'Abstração do Button do shadcn com prop loading: spinner, disable automático e prevenção de duplo clique.',
     to: '/playground/button',
   },
+  {
+    title: 'ConfirmDialog',
+    description:
+      'Padrão de confirmação para ações destrutivas e reversíveis. Loading interno e auto-close após onConfirm.',
+    to: '/playground/confirm-dialog',
+  },
+  {
+    title: 'CRUD end-to-end',
+    description:
+      'Fluxo completo amarrando lista, criação, edição e remoção. Card + Modal + Form + ConfirmDialog em conjunto.',
+    to: '/playground/crud',
+  },
+  {
+    title: 'Optimistic update',
+    description:
+      'Padrão TanStack Query: UI atualiza na hora, rollback automático se o request falhar.',
+    to: '/playground/optimistic-update',
+  },
 ];
 
 export function PlaygroundPage() {

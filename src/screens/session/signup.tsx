@@ -7,8 +7,8 @@ import { useSessionStore } from '@/hooks/useSessionStore';
 import { useZodForm } from '@/lib/forms/useZodForm';
 import { cn } from '@/lib/utils';
 import { sessionService } from '@/services/session/sessionService';
+import { Button } from '@/components/global/button/button';
 import { InputField } from '@/components/global/form/inputField';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Field,
@@ -132,8 +132,8 @@ export function SignupScreen({
                 </div>
 
                 <Field>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Criando conta...' : 'Criar conta'}
+                  <Button type="submit" loading={isSubmitting}>
+                    Criar conta
                   </Button>
                   <FieldError errors={[errors.root]} />
                 </Field>

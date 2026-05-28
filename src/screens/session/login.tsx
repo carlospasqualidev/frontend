@@ -6,8 +6,8 @@ import { SessionTemplate } from './sessionTemplate';
 import { useSessionStore } from '@/hooks/useSessionStore';
 import { useZodForm } from '@/lib/forms/useZodForm';
 import { sessionService } from '@/services/session/sessionService';
+import { Button } from '@/components/global/button/button';
 import { InputField } from '@/components/global/form/inputField';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Field,
@@ -98,8 +98,8 @@ export function LoginScreen() {
                 </div>
 
                 <Field>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Entrando...' : 'Entrar'}
+                  <Button type="submit" loading={isSubmitting}>
+                    Entrar
                   </Button>
                   <FieldError errors={[errors.root]} />
                 </Field>
