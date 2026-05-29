@@ -28,7 +28,10 @@ import type { IDateValueWithTimeStamp } from './types';
  * });
  * // → ""
  */
-export function transformIntoInputDate({ date, hasTimeStamp }: IDateValueWithTimeStamp) {
+export function transformIntoInputDate({
+  date,
+  hasTimeStamp,
+}: IDateValueWithTimeStamp) {
   if (!date) return ''; // Retorna string para deixar o input vazio;
 
   if (hasTimeStamp) {

@@ -22,7 +22,7 @@ fetching, testes, lint e hooks de commit).
 
 ## Requisitos
 
-- Node.js >= 22 (ou 20.19+)
+- Node.js >= 22
 - npm
 
 ## Começando
@@ -35,16 +35,28 @@ npm run dev
 
 ## Scripts
 
-| Script               | Descrição                          |
-| -------------------- | ---------------------------------- |
-| `npm run dev`        | Servidor de desenvolvimento        |
-| `npm run build`      | Typecheck + build de produção      |
-| `npm run preview`    | Pré-visualiza o build              |
-| `npm run lint`       | ESLint                             |
-| `npm run format`     | Prettier (escrita)                 |
-| `npm run typecheck`  | Checagem de tipos (`tsc --noEmit`) |
-| `npm test`           | Executa a suíte de testes uma vez  |
-| `npm run test:watch` | Testes em modo watch               |
+| Script               | Descrição                                                       |
+| -------------------- | --------------------------------------------------------------- |
+| `npm run dev`        | Servidor de desenvolvimento                                     |
+| `npm run build`      | Typecheck + build de produção                                   |
+| `npm run preview`    | Pré-visualiza o build                                           |
+| `npm run lint`       | ESLint                                                          |
+| `npm run format`     | Prettier (escrita)                                              |
+| `npm run typecheck`  | Checagem de tipos (`tsc -b`)                                    |
+| `npm test`           | Executa a suíte de testes uma vez                               |
+| `npm run test:watch` | Testes em modo watch                                            |
+| `npm run check`      | Roda `lint + typecheck + test` em sequência                     |
+| `npm run clean`      | Limpa `dist/` e caches (`node_modules/.tmp`, `.vite`, `.cache`) |
+
+## Convenções de repositório
+
+- [`.editorconfig`](.editorconfig) padroniza encoding/EOL/indent entre editores.
+- [`.gitattributes`](.gitattributes) força `eol=lf` em arquivos de texto — sem isso, clonar no Windows gera diffs de CRLF↔LF a cada PR.
+- Husky tem dois hooks:
+  - `pre-commit` (existente): roda `lint-staged` (ESLint + Prettier no que foi staged).
+  - `pre-push` (novo): roda `npm run typecheck && npm test`. Erro de tipo ou teste quebrado para o push antes do servidor.
+- Antes de pushar manualmente: `npm run check` (lint + typecheck + test).
+- CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda em **Node 22**.
 
 ## Variáveis de ambiente
 
@@ -93,14 +105,20 @@ src/
 
 Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (incluindo dark mode) e integração com `react-hook-form`. Prefira estes antes de cair direto no `components/ui/`:
 
-| Abstração       | Caminho                                                                                           | Uso                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `Card`          | [`global/card/card.tsx`](src/components/global/card/card.tsx)                                     | Container com `title` + `description` + `children`. Dark mode resolvido.                                                                 |
-| `Modal`         | [`global/modal/modal.tsx`](src/components/global/modal/modal.tsx)                                 | Dialog no desktop, drawer no mobile. Controlado por `open`/`setOpen`.                                                                    |
-| `Empty`         | [`global/empty/empty.tsx`](src/components/global/empty/empty.tsx)                                 | Empty state com ícone opcional e CTA via `children`.                                                                                     |
-| `Skeleton*`     | [`global/skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. Skeleton **só no dado**, não no card inteiro.                        |
-| `Button`        | [`global/button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` (spinner + disable automático).                                                            |
-| `ConfirmDialog` | [`global/confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. Uncontrolled (`trigger`) ou controlled (`open`/`setOpen`). Loading interno + auto-close. |
+| Abstração          | Caminho                                                                                               | Uso                                                                                                                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Card`             | [`global/card/card.tsx`](src/components/global/card/card.tsx)                                         | Container com `title` + `description` + `children`. Dark mode resolvido.                                                                                                |
+| `Modal`            | [`global/modal/modal.tsx`](src/components/global/modal/modal.tsx)                                     | Dialog no desktop, drawer no mobile. Controlado por `open`/`setOpen`.                                                                                                   |
+| `Empty`            | [`global/empty/empty.tsx`](src/components/global/empty/empty.tsx)                                     | Empty state com ícone opcional e CTA via `children`.                                                                                                                    |
+| `Skeleton*`        | [`global/skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                         | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. Skeleton **só no dado**, não no card inteiro.                                                       |
+| `Button`           | [`global/button/button.tsx`](src/components/global/button/button.tsx)                                 | Estende o Button do shadcn com prop `loading` (spinner + disable automático).                                                                                           |
+| `ConfirmDialog`    | [`global/confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx)     | Confirmação para ações destrutivas/reversíveis. Uncontrolled (`trigger`) ou controlled (`open`/`setOpen`). Loading interno + auto-close.                                |
+| `PageHeader`       | [`global/pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)                 | Cabeçalho padrão de tela: título, descrição e área opcional de ações. Usado em `home/` e em todo o `playground/`.                                                       |
+| `ErrorFallback`    | [`global/errorFallback/index.tsx`](src/components/global/errorFallback/index.tsx)                     | Fallback do `react-error-boundary` no topo do app. CTA para tentar restabelecer a sessão.                                                                               |
+| `Layout` + sidebar | [`global/layout/`](src/components/global/layout) + [`global/sidebar/`](src/components/global/sidebar) | Shell autenticado: `SidebarProvider` + `AppSidebar` + header com `SidebarTrigger`, breadcrumb e `Outlet`.                                                               |
+| Form fields        | [`global/form/`](src/components/global/form)                                                          | `InputField`, `Select`, `MultiSelect`, `Checkbox`, `Switch`, `TextArea`, `DateField`, `DateTimeField`, `FieldGroup`. Uncontrolled ou controlled via `control` + `name`. |
+| `DataTable`        | [`global/dataTable/`](src/components/global/dataTable)                                                | Tabela server-side com filtros declarativos, ordenação, paginação. Estado em memória (`useDataTableQuery`) ou na URL (`useDataTableUrlQuery`).                          |
+| `SocialIcons`      | [`global/socialIcons/socialIcons.tsx`](src/components/global/socialIcons/socialIcons.tsx)             | Logos Apple/Google/Meta para botões de OAuth/SSO (não cobertos pelo Lucide).                                                                                            |
 
 Veja todas em ação em `/playground` (navegue após logar) ou diretamente em [`src/screens/playground/`](src/screens/playground).
 
@@ -209,9 +227,11 @@ renderizar as rotas protegidas; o usuário fica em `useSessionStore` (Zustand).
 Vitest + Testing Library, ambiente `jsdom`. Arquivos `*.test.ts(x)` ao lado do
 código. Setup global em [`src/test/setup.ts`](src/test/setup.ts).
 
-As abstrações globais (`Button`, `Card`, `Empty`, `ConfirmDialog`) e utilitários
-de data/forms vêm com testes mínimos que documentam o comportamento esperado —
-use-os como ponto de partida ao estender.
+As abstrações globais (`Button`, `Card`, `Empty`, `ConfirmDialog`, `Modal`,
+`Switch`, `TextArea`, `InputField`), o `useDataTableQuery`, o
+`validateDataTableSearch` e os utilitários puros (`cn`, `useTheme`, helpers
+de data e transforms ISO ↔ display) vêm com testes que documentam o
+comportamento esperado — use-os como ponto de partida ao estender.
 
 ```bash
 npm test           # roda uma vez

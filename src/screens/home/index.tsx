@@ -1,57 +1,36 @@
-import type { ReactNode } from 'react';
-
+import { Card } from '@/components/global/card/card';
+import { PageHeader } from '@/components/global/pageHeader/pageHeader';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui/typography';
 
-type PageHeaderProps = {
-  title: string;
-  description: string;
-  actions?: ReactNode;
-};
-
-type DashboardStatCardProps = {
+interface DashboardStatCardProps {
   title: string;
   value: string;
   description: string;
-};
+}
 
-export function DashboardStatCard({
+function DashboardStatCard({
   title,
   value,
   description,
 }: DashboardStatCardProps) {
   return (
-    <article className="rounded-3xl border border-border/70 bg-background p-5 shadow-sm">
-      <p className="text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase">
+    <article className="space-y-2 rounded-3xl border border-border/70 bg-card p-5 shadow-sm dark:shadow-none">
+      <Typography
+        variant="small"
+        className="tracking-[0.22em] text-muted-foreground uppercase"
+      >
         {title}
-      </p>
-      <Typography as="strong" variant="h2" className="mt-4 block">
+      </Typography>
+      <Typography as="strong" variant="h2" className="block">
         {value}
       </Typography>
-      <Typography variant="muted" className="mt-2">
-        {description}
-      </Typography>
+      <Typography variant="muted">{description}</Typography>
     </article>
   );
 }
 
-export function PageHeader({ title, description, actions }: PageHeaderProps) {
-  return (
-    <div className="flex flex-col gap-4 rounded-3xl border border-border/70 bg-background p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-      <div className="space-y-2">
-        <Typography as="h1" variant="h3">
-          {title}
-        </Typography>
-        <Typography variant="muted" className="max-w-2xl">
-          {description}
-        </Typography>
-      </div>
-      {actions ? <div className="shrink-0">{actions}</div> : null}
-    </div>
-  );
-}
-
-const DASHBOARD_METRICS = [
+const DASHBOARD_METRICS: DashboardStatCardProps[] = [
   {
     title: 'Proteção',
     value: 'Sessão validada',
@@ -72,6 +51,37 @@ const DASHBOARD_METRICS = [
   },
 ];
 
+const BOOTSTRAP_STEPS = [
+  'SessionValidation chama sessionService.validate() (GET /users/me) enviando os cookies (withCredentials).',
+  'Enquanto valida, exibe SessionValidationScreen; o usuário autenticado é guardado em useSessionStore (Zustand).',
+  'Se a validação falha, redireciona para /login; se ok, renderiza o Layout protegido com o Outlet.',
+];
+
+const NEW_SCREEN_STEPS = [
+  'Crie screens/<feature>/index.tsx exportando o componente da tela.',
+  'Crie screens/<feature>/routes.ts com createRoute + lazyRouteComponent.',
+  'Registre a rota na árvore em routes.tsx.',
+];
+
+function NumberedList({ items }: { items: string[] }) {
+  return (
+    <ol className="space-y-3">
+      {items.map((item, index) => (
+        <li key={item} className="flex gap-3">
+          <Typography
+            as="span"
+            variant="small"
+            className="shrink-0 text-muted-foreground"
+          >
+            {index + 1}.
+          </Typography>
+          <Typography variant="muted">{item}</Typography>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export function DashboardPage() {
   return (
     <div className="space-y-6">
@@ -88,44 +98,19 @@ export function DashboardPage() {
       </div>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
-          <Typography variant="small">Fluxo de inicialização</Typography>
-          <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
-            <li>
-              1. <code>SessionValidation</code> chama{' '}
-              <code>sessionService.validate()</code> (<code>GET /users/me</code>)
-              enviando os cookies (<code>withCredentials</code>).
-            </li>
-            <li>
-              2. Enquanto valida, exibe <code>SessionValidationScreen</code>; o
-              usuário autenticado é guardado em <code>useSessionStore</code>{' '}
-              (Zustand).
-            </li>
-            <li>
-              3. Se a validação falha, redireciona para <code>/login</code>; se
-              ok, renderiza o <code>Layout</code> protegido com o{' '}
-              <code>Outlet</code>.
-            </li>
-          </ol>
-        </article>
+        <Card
+          title="Fluxo de inicialização"
+          description="O que acontece entre o boot e a primeira tela protegida."
+        >
+          <NumberedList items={BOOTSTRAP_STEPS} />
+        </Card>
 
-        <article className="rounded-3xl border border-border/70 bg-background p-6 shadow-sm">
-          <Typography variant="small">Como adicionar uma tela</Typography>
-          <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
-            <li>
-              1. Crie <code>screens/&lt;feature&gt;/index.tsx</code> exportando o
-              componente da tela.
-            </li>
-            <li>
-              2. Crie <code>screens/&lt;feature&gt;/routes.ts</code> com{' '}
-              <code>createRoute</code> + <code>lazyRouteComponent</code> para
-              herdar o code-splitting.
-            </li>
-            <li>
-              3. Registre a rota na árvore em <code>routes.tsx</code>.
-            </li>
-          </ol>
-        </article>
+        <Card
+          title="Como adicionar uma tela"
+          description="Três passos para uma nova rota dentro do shell autenticado."
+        >
+          <NumberedList items={NEW_SCREEN_STEPS} />
+        </Card>
       </section>
     </div>
   );

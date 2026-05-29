@@ -9,7 +9,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
@@ -24,7 +24,7 @@ import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
 type CheckboxBaseProps = React.ComponentProps<typeof CheckboxPrimitive.Root> & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
 };
 
 type ControlledCheckboxProps<
@@ -45,7 +45,6 @@ type ControlledCheckboxProps<
 
 type UncontrolledCheckboxProps = CheckboxBaseProps & {
   control?: never;
-  name?: string;
   rules?: never;
 };
 
@@ -122,6 +121,15 @@ function ControlledCheckbox<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, boolean>,
+>(
+  props: CheckboxProps<TFieldValues, TName>
+): props is ControlledCheckboxProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 export function Checkbox<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, boolean> = FieldPathByValue<
@@ -129,7 +137,7 @@ export function Checkbox<
     boolean
   >,
 >(props: CheckboxProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledCheckbox {...props} />;
   }
 

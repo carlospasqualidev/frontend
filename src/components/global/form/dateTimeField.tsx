@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import { CalendarIcon, Clock2Icon, XIcon } from 'lucide-react';
 import {
@@ -12,7 +10,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   hasFieldErrors,
   resolveFieldErrors,
 } from '@/lib/forms/errors';
@@ -59,7 +57,7 @@ type DateTimeFieldBaseProps = Omit<
 > & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -450,7 +448,7 @@ function DateTimeFieldBase({
           />
 
           <div className="border-t border-border/60 bg-muted/20 px-2 py-1.5">
-            <div className="mb-2 flex justify-center gap-1.5 text-[13px] font-medium text-shadow-muted-foreground">
+            <div className="mb-2 flex justify-center gap-1.5 text-[13px] font-medium text-muted-foreground">
               Horário
             </div>
             <div className="mb-0.5 flex items-center justify-center">
@@ -514,6 +512,15 @@ function ControlledDateTimeField<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, string>,
+>(
+  props: DateTimeFieldProps<TFieldValues, TName>
+): props is ControlledDateTimeFieldProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 export function DateTimeField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, string> = FieldPathByValue<
@@ -521,7 +528,7 @@ export function DateTimeField<
     string
   >,
 >(props: DateTimeFieldProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledDateTimeField {...props} />;
   }
 

@@ -9,7 +9,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
@@ -33,7 +33,7 @@ type SelectBaseProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
   label: string;
   description?: string;
   placeholder?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
   'aria-invalid'?: boolean;
   options: { value: string; label: string }[];
 };
@@ -56,7 +56,6 @@ type ControlledSelectProps<
 
 type UncontrolledSelectProps = SelectBaseProps & {
   control?: never;
-  name?: string;
   rules?: never;
 };
 
@@ -137,6 +136,15 @@ function ControlledSelect<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, string>,
+>(
+  props: SelectProps<TFieldValues, TName>
+): props is ControlledSelectProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 export function Select<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, string> = FieldPathByValue<
@@ -144,7 +152,7 @@ export function Select<
     string
   >,
 >(props: SelectProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledSelect {...props} />;
   }
 

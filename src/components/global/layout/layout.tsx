@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 
 import { Breadcrumb } from '@/components/global/layout/breadcrumb';
 import { SuspenseFallback } from '@/components/global/layout/suspenseFallback';
-import { AppSidebar } from '@/components/global/sidebar/app-sidebar';
+import { AppSidebar } from '@/components/global/sidebar/appSidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -17,9 +17,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset className="h-svh overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex h-[50%] items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1 cursor-pointer" />
-            <Separator orientation="vertical" className="mr-2 self-stretch" />
+            <Separator orientation="vertical" className="mr-2 h-5" />
             <Breadcrumb />
           </div>
         </header>

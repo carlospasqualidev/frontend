@@ -1,4 +1,5 @@
 import { type SortingState } from '@tanstack/react-table';
+import { toast } from 'sonner';
 
 import { PlaygroundHeader } from '../components';
 
@@ -174,7 +175,7 @@ export function PlaygroundDataTablePage() {
     <div className="space-y-6">
       <PlaygroundHeader
         title="Data Table"
-        description="Tabela 100% server-side: filtros, ordenação e paginação são delegados ao backend. Os filtros vão ao servidor ao clicar em 'Buscar', clicar num cabeçalho reordena no servidor, e 'Próxima' é desabilitado quando a página vem incompleta."
+        description="Tabela 100% server-side: filtros, ordenação e paginação são delegados ao backend. Os filtros vão ao servidor ao clicar em 'Buscar', clicar num cabeçalho reordena no servidor, e 'Próxima' é desabilitado quando a página vem incompleta. Clique em qualquer linha para abrir os detalhes — o menu de ações e o checkbox de seleção não disparam essa navegação."
       />
 
       <div className="rounded-2xl border border-border/70 bg-card p-3 shadow-sm sm:rounded-3xl sm:p-5 dark:shadow-none">
@@ -182,6 +183,9 @@ export function PlaygroundDataTablePage() {
           columns={columns}
           data={pageData}
           filters={filters}
+          onRowClick={(payment) =>
+            toast(`Abrir detalhes de ${payment.email} (R$ ${payment.amount})`)
+          }
           {...tableProps}
         />
       </div>

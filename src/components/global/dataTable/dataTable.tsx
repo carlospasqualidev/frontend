@@ -28,7 +28,12 @@ import {
 
 declare module '@tanstack/react-table' {
   // Permite que cada coluna passe classes Tailwind para o `<th>`/`<td>` —
-  // útil para esconder colunas em breakpoints estreitos (`hidden md:table-cell`).
+  // útil para alinhamento, largura mínima e estilo. Não use para esconder
+  // colunas em breakpoints estreitos: a regra do projeto é rolagem horizontal
+  // do container (`overflow-x-auto`), não ocultar informação em mobile.
+  // Os generics replicam a assinatura original do `ColumnMeta` no tanstack;
+  // a augmentation deste projeto só usa `className`.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string;
   }
@@ -68,6 +73,13 @@ interface DataTableProps<TData, TValue> {
   onSearch?: (values: DataTableFilterValues) => void;
   /** Valores iniciais dos filtros. */
   defaultFilterValues?: DataTableFilterValues;
+  /**
+   * Quando definido, cada linha vira clicável e dispara este callback com a
+   * linha original (`row.original`) — útil para navegar para uma tela de
+   * detalhes. Botões/menus dentro de células (`actionsColumn`, `selectColumn`)
+   * não disparam o clique da linha; eles param a propagação automaticamente.
+   */
+  onRowClick?: (row: TData) => void;
 }
 
 /**
@@ -101,6 +113,7 @@ export function DataTable<TData, TValue>({
   filters,
   onSearch,
   defaultFilterValues,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -141,7 +154,7 @@ export function DataTable<TData, TValue>({
         />
       ) : null}
 
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -170,6 +183,30 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  onClick={
+                    onRowClick ? () => onRowClick(row.original) : undefined
+                  }
+                  onKeyDown={
+                    onRowClick
+                      ? (event) => {
+                          // Só dispara quando o foco está na própria linha —
+                          // Enter/Espaço em botões/checkboxes dentro de células
+                          // têm `event.target` diferente e são ignorados aqui.
+                          if (event.target !== event.currentTarget) return;
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onRowClick(row.original);
+                          }
+                        }
+                      : undefined
+                  }
+                  role={onRowClick ? 'button' : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  className={
+                    onRowClick
+                      ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      : undefined
+                  }
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as
@@ -199,10 +236,7 @@ export function DataTable<TData, TValue>({
                     icon={<Search />}
                   >
                     {hasActiveFilters && onSearch ? (
-                      <Button
-                        variant="outline"
-                        onClick={() => onSearch({})}
-                      >
+                      <Button variant="outline" onClick={() => onSearch({})}>
                         Limpar filtros
                       </Button>
                     ) : null}

@@ -2,9 +2,37 @@
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
+    <!-- TODO: substituir /vite.svg pelo favicon do projeto. -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vite-app</title>
+    <meta name="description" content="%VITE_PROJECT_NAME%" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0a0a" />
+    <meta property="og:title" content="%VITE_PROJECT_NAME%" />
+    <meta property="og:type" content="website" />
+    <title>%VITE_PROJECT_NAME%</title>
+    <!--
+      Anti-FOUC do tema escuro: aplica a classe (.dark / .light) no <html> antes
+      do React montar, lendo a mesma chave de localStorage usada pelo ThemeProvider.
+      Mantenha em sincronia com src/hooks/useThemeProvider.tsx (storageKey 'theme').
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var theme = stored === 'dark' || stored === 'light' || stored === 'system' ? stored : 'system';
+          var resolved =
+            theme === 'system'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : theme;
+          document.documentElement.classList.add(resolved);
+        } catch (e) {
+          /* localStorage indisponível: ThemeProvider resolve no mount. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

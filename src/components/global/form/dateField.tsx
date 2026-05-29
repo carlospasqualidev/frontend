@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import { CalendarIcon, Clock2Icon, XIcon } from 'lucide-react';
 import {
@@ -12,7 +10,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   hasFieldErrors,
   resolveFieldErrors,
 } from '@/lib/forms/errors';
@@ -53,7 +51,7 @@ type DateFieldBaseProps = Omit<
 > & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -318,6 +316,15 @@ function ControlledDateField<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, string>,
+>(
+  props: DateFieldProps<TFieldValues, TName>
+): props is ControlledDateFieldProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 export function DateField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, string> = FieldPathByValue<
@@ -325,7 +332,7 @@ export function DateField<
     string
   >,
 >(props: DateFieldProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledDateField {...props} />;
   }
 

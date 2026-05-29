@@ -1,23 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useSimulatedLoading } from '../useSimulatedLoading';
 
 import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-const LOADING_MS = 2000;
-
-function useSimulatedLoading() {
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading) return;
-    const timeout = setTimeout(() => setIsLoading(false), LOADING_MS);
-    return () => clearTimeout(timeout);
-  }, [isLoading]);
-
-  return { isLoading, start: () => setIsLoading(true) };
-}
 
 export function PlaygroundButtonLoading() {
   const { isLoading, start } = useSimulatedLoading();

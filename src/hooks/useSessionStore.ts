@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { sessionUserRef } from '@/services/api/sessionUserRef';
 import { sessionService } from '@/services/session/sessionService';
 import type { IUser } from '@/types/user/types';
 
@@ -11,9 +12,16 @@ export interface ISessionStore {
 
 export const useSessionStore = create<ISessionStore>((set) => ({
   user: null,
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    sessionUserRef.set(user);
+    set({ user });
+  },
   signOut: async () => {
-    await sessionService.signOut();
-    set({ user: null });
+    try {
+      await sessionService.signOut();
+    } finally {
+      sessionUserRef.set(null);
+      set({ user: null });
+    }
   },
 }));

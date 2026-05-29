@@ -8,7 +8,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
@@ -23,7 +23,7 @@ import { Switch as BaseSwitch } from '@/components/ui/switch';
 type SwitchBaseProps = React.ComponentProps<typeof BaseSwitch> & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
 };
 
 type ControlledSwitchProps<
@@ -44,7 +44,6 @@ type ControlledSwitchProps<
 
 type UncontrolledSwitchProps = SwitchBaseProps & {
   control?: never;
-  name?: string;
   rules?: never;
 };
 
@@ -53,12 +52,7 @@ type SwitchProps<
   TName extends FieldPathByValue<TFieldValues, boolean>,
 > = ControlledSwitchProps<TFieldValues, TName> | UncontrolledSwitchProps;
 
-function SwitchBase({
-  label,
-  description,
-  errors,
-  ...props
-}: SwitchBaseProps) {
+function SwitchBase({ label, description, errors, ...props }: SwitchBaseProps) {
   const allErrors = resolveFieldErrors(errors);
   const invalid = hasFieldErrors(allErrors);
   const { 'aria-invalid': ariaInvalid, ...switchProps } = props;
@@ -121,6 +115,15 @@ function ControlledSwitch<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, boolean>,
+>(
+  props: SwitchProps<TFieldValues, TName>
+): props is ControlledSwitchProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 export function Switch<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, boolean> = FieldPathByValue<
@@ -128,7 +131,7 @@ export function Switch<
     boolean
   >,
 >(props: SwitchProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledSwitch {...props} />;
   }
 

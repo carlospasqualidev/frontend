@@ -19,7 +19,10 @@ const envSchema = z.object({
   /** Lado da aplicação (ex.: Client, Backoffice). */
   VITE_PROJECT_SIDE: z.string().optional(),
   /** Endpoint opcional para reporte de erros em produção. */
-  VITE_ERROR_LOG_URL: z.url().optional(),
+  VITE_ERROR_LOG_URL: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.url().optional()
+  ),
 });
 
 const parsed = envSchema.safeParse(import.meta.env);

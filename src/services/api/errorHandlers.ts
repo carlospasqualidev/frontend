@@ -1,8 +1,14 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
+import { sessionUserRef } from './sessionUserRef';
+
 import { env } from '@/lib/env';
-import type { ICatchHandler, IThenHandler } from '@/services/api/types';
+import {
+  hasResponseMessage,
+  type ICatchHandler,
+  type IThenHandler,
+} from '@/services/api/types';
 
 /**
  * Envia o erro para um serviço de log externo, se `VITE_ERROR_LOG_URL`
@@ -15,10 +21,7 @@ export const sendErrorMessage = async ({ error }: { error: unknown }) => {
   }
 
   const errorStack = error instanceof Error ? error.stack : String(error);
-
-  // Import dinâmico para evitar dependência circular com a store de sessão.
-  const { useSessionStore } = await import('@/hooks/useSessionStore');
-  const user = useSessionStore.getState().user;
+  const user = sessionUserRef.get();
 
   await axios
     .post(env.VITE_ERROR_LOG_URL, {
@@ -35,17 +38,30 @@ export const sendErrorMessage = async ({ error }: { error: unknown }) => {
 };
 
 export const catchHandler = (err: ICatchHandler) => {
-  if (err.response?.data) {
-    if (err.response.data.message)
-      toast.error(err.response.data.message, { id: 'errorToastId' });
-    else toast.error(`Erro ${err.response.status}`, { id: 'errorToastId' });
-  } else {
-    toast.error('Erro de comunicação', { id: 'errorToastId' });
+  const data = err.response?.data;
+
+  if (hasResponseMessage(data)) {
+    toast.error(data.message, { id: 'errorToastId' });
+    return;
   }
+
+  if (err.response?.status) {
+    toast.error(`Erro ${err.response.status}`, { id: 'errorToastId' });
+    return;
+  }
+
+  toast.error('Erro de comunicação', { id: 'errorToastId' });
 };
 
+/**
+ * Interceptor de sucesso. Se a resposta carrega `data.message`, exibe um
+ * toast de sucesso automaticamente — pensado para confirmações de
+ * mutations (criar/atualizar/excluir). Se a sua API anexa `message` em
+ * respostas de listagem, ajuste o backend ou troque este interceptor por
+ * um opt-in explícito por chamada.
+ */
 export const thenHandler = (res: IThenHandler) => {
-  if (res?.data?.message) {
+  if (hasResponseMessage(res?.data)) {
     toast.success(res.data.message);
   }
 };

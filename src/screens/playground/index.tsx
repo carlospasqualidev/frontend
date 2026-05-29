@@ -45,8 +45,7 @@ const links = [
   },
   {
     title: 'Modal',
-    description:
-      'Modal responsivo: dialog no desktop, drawer no mobile.',
+    description: 'Modal responsivo: dialog no desktop, drawer no mobile.',
     to: '/playground/modal',
   },
   {

@@ -1,4 +1,3 @@
-'use client';
 import * as React from 'react';
 
 import {
@@ -8,16 +7,23 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface ICard {
   title: string;
   description: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-export function Card({ title, description, children }: ICard) {
+export function Card({ title, description, children, className }: ICard) {
   return (
-    <CardPrimitive className="rounded-2xl border border-border/70 shadow-sm ring-0 sm:rounded-3xl dark:shadow-none">
+    <CardPrimitive
+      className={cn(
+        'rounded-2xl border border-border/70 shadow-sm ring-0 sm:rounded-3xl dark:shadow-none',
+        className
+      )}
+    >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>

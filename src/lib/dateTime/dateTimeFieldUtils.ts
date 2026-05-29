@@ -9,7 +9,8 @@
  */
 export const FORM_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 export const DISPLAY_DATE_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-export const FORM_DATE_TIME_PATTERN = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})$/;
+export const FORM_DATE_TIME_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})$/;
 export const DISPLAY_DATE_TIME_PATTERN =
   /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/;
 

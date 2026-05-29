@@ -31,6 +31,8 @@ export function useZodForm<TSchema extends FormSchema, TContext = unknown>({
 > {
   return useForm<FormValues<TSchema>, TContext, FormOutput<TSchema>>({
     ...props,
+    mode,
+    reValidateMode,
     resolver: zodResolver(schema),
   });
 }

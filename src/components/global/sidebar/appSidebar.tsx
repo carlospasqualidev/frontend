@@ -1,10 +1,8 @@
-'use client';
-
 import * as React from 'react';
 
-import { NavMain } from './nav-main';
-import { NavUser } from './nav-user';
-import { Header } from './header';
+import { NavMain } from './navMain';
+import { NavUser } from './navUser';
+import { SidebarBrand } from './sidebarBrand';
 
 import {
   Sidebar,
@@ -14,11 +12,11 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <Header />
+        <SidebarBrand />
       </SidebarHeader>
       <SidebarContent>
         <NavMain />

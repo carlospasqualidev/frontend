@@ -8,7 +8,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
@@ -21,7 +21,7 @@ import {
 import {
   MultiSelect as BaseMultiSelect,
   type MultiSelectOption,
-} from '@/components/ui/multi-select';
+} from '@/components/global/multiSelect/multiSelectPrimitive';
 
 type MultiSelectBaseProps = Omit<
   React.ComponentProps<typeof BaseMultiSelect>,
@@ -29,7 +29,7 @@ type MultiSelectBaseProps = Omit<
 > & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
   options: MultiSelectOption[];
 };
 
@@ -51,7 +51,6 @@ type ControlledMultiSelectProps<
 
 type UncontrolledMultiSelectProps = MultiSelectBaseProps & {
   control?: never;
-  name?: string;
   rules?: never;
 };
 
@@ -125,6 +124,15 @@ function ControlledMultiSelect<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, string[]>,
+>(
+  props: MultiSelectProps<TFieldValues, TName>
+): props is ControlledMultiSelectProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 export function MultiSelect<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPathByValue<TFieldValues, string[]> = FieldPathByValue<
@@ -132,7 +140,7 @@ export function MultiSelect<
     string[]
   >,
 >(props: MultiSelectProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledMultiSelect {...props} />;
   }
 

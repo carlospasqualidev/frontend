@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useSimulatedLoading } from '../useSimulatedLoading';
 
 import { Card } from '@/components/global/card/card';
 import {
@@ -11,22 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui/typography';
 
-const LOADING_MS = 2000;
-
-function useSimulatedLoading() {
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading) return;
-    const timeout = setTimeout(() => setIsLoading(false), LOADING_MS);
-    return () => clearTimeout(timeout);
-  }, [isLoading]);
-
-  return { isLoading, reload: () => setIsLoading(true) };
-}
-
 export function PlaygroundSkeletonMonetary() {
-  const { isLoading, reload } = useSimulatedLoading();
+  const { isLoading, start: reload } = useSimulatedLoading();
 
   return (
     <Card
@@ -52,7 +38,7 @@ export function PlaygroundSkeletonMonetary() {
 }
 
 export function PlaygroundSkeletonTextFields() {
-  const { isLoading, reload } = useSimulatedLoading();
+  const { isLoading, start: reload } = useSimulatedLoading();
 
   return (
     <Card
@@ -108,7 +94,7 @@ export function PlaygroundSkeletonTextFields() {
 }
 
 export function PlaygroundSkeletonStatus() {
-  const { isLoading, reload } = useSimulatedLoading();
+  const { isLoading, start: reload } = useSimulatedLoading();
 
   return (
     <Card
@@ -132,7 +118,7 @@ export function PlaygroundSkeletonStatus() {
 }
 
 export function PlaygroundSkeletonProfile() {
-  const { isLoading, reload } = useSimulatedLoading();
+  const { isLoading, start: reload } = useSimulatedLoading();
 
   return (
     <Card

@@ -1,10 +1,10 @@
 import {
-  ChevronsUpDownIcon,
-  SparklesIcon,
   BadgeCheckIcon,
-  CreditCardIcon,
   BellIcon,
+  ChevronsUpDownIcon,
+  CreditCardIcon,
   LogOutIcon,
+  SparklesIcon,
 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -24,8 +24,17 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { ToggleTheme } from '@/components/global/layout/toggle-theme';
+import { ToggleTheme } from '@/components/global/layout/toggleTheme';
 import { useSessionStore } from '@/hooks/useSessionStore';
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase();
+  return (
+    parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)
+  ).toUpperCase();
+}
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -33,11 +42,16 @@ export function NavUser() {
   const navigate = useNavigate();
 
   async function handleSignOut() {
-    await signOut();
-    await navigate({ to: '/login', replace: true });
+    try {
+      await signOut();
+    } finally {
+      await navigate({ to: '/login', replace: true });
+    }
   }
 
   if (!user) return null;
+
+  const initials = getInitials(user.name);
 
   return (
     <SidebarMenu>
@@ -50,7 +64,9 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -69,7 +85,9 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>

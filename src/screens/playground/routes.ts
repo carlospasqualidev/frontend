@@ -72,10 +72,7 @@ export const playgroundBadgeRoute = createRoute({
   staticData: {
     breadcrumb: 'Badge',
   },
-  component: lazyRouteComponent(
-    () => import('./badge'),
-    'PlaygroundBadgePage'
-  ),
+  component: lazyRouteComponent(() => import('./badge'), 'PlaygroundBadgePage'),
 });
 
 export const playgroundEmptyRoute = createRoute({
@@ -84,10 +81,7 @@ export const playgroundEmptyRoute = createRoute({
   staticData: {
     breadcrumb: 'Empty',
   },
-  component: lazyRouteComponent(
-    () => import('./empty'),
-    'PlaygroundEmptyPage'
-  ),
+  component: lazyRouteComponent(() => import('./empty'), 'PlaygroundEmptyPage'),
 });
 
 export const playgroundSkeletonRoute = createRoute({
@@ -108,10 +102,7 @@ export const playgroundModalRoute = createRoute({
   staticData: {
     breadcrumb: 'Modal',
   },
-  component: lazyRouteComponent(
-    () => import('./modal'),
-    'PlaygroundModalPage'
-  ),
+  component: lazyRouteComponent(() => import('./modal'), 'PlaygroundModalPage'),
 });
 
 export const playgroundButtonRoute = createRoute({
@@ -144,10 +135,7 @@ export const playgroundCrudRoute = createRoute({
   staticData: {
     breadcrumb: 'CRUD end-to-end',
   },
-  component: lazyRouteComponent(
-    () => import('./crud'),
-    'PlaygroundCrudPage'
-  ),
+  component: lazyRouteComponent(() => import('./crud'), 'PlaygroundCrudPage'),
 });
 
 export const playgroundOptimisticUpdateRoute = createRoute({

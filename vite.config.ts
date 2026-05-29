@@ -14,10 +14,17 @@ export default defineConfig({
     },
   },
   build: {
+    // Sourcemap oculto: o arquivo .map fica no dist mas não é referenciado pelo
+    // bundle minificado, então o navegador não baixa em produção. Permite que
+    // logs/reports (VITE_ERROR_LOG_URL) e ferramentas de monitoramento mapeiem
+    // o stack trace de volta ao código original sem expor publicamente.
+    sourcemap: 'hidden',
     rollupOptions: {
       output: {
         // Separa as libs maiores em chunks próprios para melhorar o cache
-        // (uma mudança no app não invalida o bundle do React/Radix/etc.).
+        // (uma mudança no app não invalida o bundle do React/TanStack).
+        // Radix/vaul/etc. ficam no `vendor` porque se referenciam entre si e
+        // separá-los gera chunks circulares.
         manualChunks(id) {
           if (!id.includes('node_modules')) {
             return undefined;
@@ -29,10 +36,6 @@ export default defineConfig({
 
           if (id.includes('@tanstack')) {
             return 'tanstack';
-          }
-
-          if (id.includes('radix-ui') || id.includes('@radix-ui')) {
-            return 'radix';
           }
 
           return 'vendor';

@@ -8,7 +8,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 type InputFieldBaseProps = React.ComponentProps<'input'> & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
 };
 
 type ControlledInputFieldProps<
@@ -71,7 +71,12 @@ function InputFieldBase({
     <BaseField data-invalid={invalid}>
       {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
-      <Input id={id} type={type} aria-invalid={resolvedAriaInvalid} {...props} />
+      <Input
+        id={id}
+        type={type}
+        aria-invalid={resolvedAriaInvalid}
+        {...props}
+      />
       {description && <FieldDescription>{description}</FieldDescription>}
       <FieldError errors={allErrors} />
     </BaseField>
@@ -107,6 +112,15 @@ function ControlledInputField<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, string>,
+>(
+  props: InputFieldProps<TFieldValues, TName>
+): props is ControlledInputFieldProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 /**
  * Campo de input integrado ao react-hook-form.
  *
@@ -121,7 +135,7 @@ export function InputField<
     string
   >,
 >(props: InputFieldProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledInputField {...props} />;
   }
 

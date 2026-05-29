@@ -182,7 +182,8 @@ A versão enxuta mostra **o que** o bloco é (uma seção de resumo com 3 elemen
 - Um commit, uma mudança lógica.
 - Mensagens em inglês, modo imperativo: `add user session validation` (não `added`/`adding`).
 - PRs pequenos e revisáveis. Se não dá para revisar em 30 min, está grande demais.
-- Husky + lint-staged rodam ESLint e Prettier no `pre-commit` — não pule hooks (`--no-verify`).
+- Husky + lint-staged rodam ESLint e Prettier no `pre-commit`. O `pre-push` roda `typecheck + test`. Não pule hooks (`--no-verify`) — se um teste/typecheck quebra, conserte; não bypasse.
+- Antes de empurrar manualmente, rode `npm run check` (lint + typecheck + test).
 
 ---
 
@@ -320,6 +321,7 @@ Veja exemplo vivo em [`src/screens/playground/optimisticUpdate/`](src/screens/pl
 
 - Adicione componentes via CLI: `npx shadcn@latest add <nome>`. **Não escreva à mão.**
 - Customize `components/ui/<x>.tsx` localmente quando necessário; mas só edite o que foi gerado pelo shadcn.
+- **Componentes próprios (não-shadcn) ficam em `components/global/`, não em `components/ui/`.** Exemplo: `MultiSelect` é escrito à mão e vive em [`global/multiSelect/multiSelectPrimitive.tsx`](src/components/global/multiSelect/multiSelectPrimitive.tsx).
 - Wrappers genéricos só com ganho real (API simplificada, default visual do projeto, integração com `react-hook-form`). Quando criar um, siga o padrão em **Abstrações globais** abaixo.
 - Use `cn()` de [`src/lib/utils.ts`](src/lib/utils.ts) para concatenar classes do Tailwind.
 
@@ -335,13 +337,29 @@ Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (inclui
 | `Skeleton*`     | [`skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. **Skeleton só no dado, nunca no card inteiro** — rótulos, títulos e estrutura permanecem visíveis durante o load. |
 | `Button`        | [`button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` — exibe spinner antes do label e desabilita o botão automaticamente. Mantém todas as variantes/props do primitivo.                      |
 | `ConfirmDialog` | [`confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. **Uncontrolled** (`trigger` prop, estado interno) ou **controlled** (`open`/`setOpen`). Loading interno automático e auto-close.      |
+| `PageHeader`    | [`pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)             | Cabeçalho padrão de tela: `title`, `description`, `actions` opcional. Usado em `home/` e em todo o `playground/`.                                                                     |
 
 **Padrão para criar uma nova abstração global:**
 
 - Pasta `components/global/<nome>/<nome>.tsx`, export nomeado, interface prefixada com `I`.
 - Importe o primitivo como `XPrimitive` (ex.: `Card as CardPrimitive`) para evitar shadowing.
 - Mantenha a API minimalista: props essenciais como obrigatórias, extras como opcionais.
-- Para componentes de formulário ou de "abre/fecha", espelhe o padrão de `inputField.tsx` / `switch.tsx` / `confirmDialog.tsx`: modo **uncontrolled** + modo **controlled** via discriminated union. Discrimine via `'prop' in props` (não via `prop !== undefined`, que não narrowed quando o tipo é `?: never`).
+- Para componentes de formulário ou de "abre/fecha", espelhe o padrão de `inputField.tsx` / `switch.tsx` / `confirmDialog.tsx`: modo **uncontrolled** + modo **controlled** via discriminated union. Discrimine via `'prop' in props` — nunca via `prop !== undefined`. Quando uma das variantes declarar `prop?: never`, o `'prop' in props` sozinho não narrowed para TS; nesses casos, encapsule num **type guard** com type predicate. Padrão usado em todos os fields e no `ConfirmDialog`:
+
+```ts
+function isControlled<TFieldValues, TName>(
+  props: FieldProps<TFieldValues, TName>
+): props is ControlledFieldProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
+export function Field(props: FieldProps<...>) {
+  if (isControlled(props)) {
+    return <ControlledField {...props} />;
+  }
+  return <FieldBase {...props} />;
+}
+```
 
 **Confirmações de ação (delete, publicar, arquivar)**: use `ConfirmDialog` com modo uncontrolled — dispensa `useState` no consumidor:
 
@@ -407,7 +425,7 @@ Cada componente novo ganha sua tela em [`src/screens/playground/<nome>/`](src/sc
 - Rota em [`src/screens/playground/routes.ts`](src/screens/playground/routes.ts) com `breadcrumb` em `staticData` e `lazyRouteComponent`.
 - Link card em [`src/screens/playground/index.tsx`](src/screens/playground/index.tsx) pra navegação.
 
-Para demos com estado de loading, use o hook local `useSimulatedLoading` (2s) — veja [`playgroundSkeleton.tsx`](src/screens/playground/skeleton/playgroundSkeleton.tsx) ou [`playgroundButton.tsx`](src/screens/playground/button/playgroundButton.tsx) como referência.
+Para demos com estado de loading, use o hook compartilhado [`useSimulatedLoading`](src/screens/playground/useSimulatedLoading.ts) (2s).
 
 ---
 
@@ -423,11 +441,13 @@ Para demos com estado de loading, use o hook local `useSimulatedLoading` (2s) �
 | `npm run typecheck`  | `tsc -b`                           |
 | `npm test`           | Vitest run                         |
 | `npm run test:watch` | Vitest watch                       |
+| `npm run check`      | Lint + typecheck + test            |
+| `npm run clean`      | Remove `dist/` e caches            |
 
 ---
 
 ## Ambiente
 
 - Windows (PowerShell). Em comandos shell use sintaxe PS (`$env:VAR`, `$null`, sem `&&` em PS 5.1).
-- Node >= 22 recomendado (ou 20.19+).
+- Node >= 22 (versão fixa do template; CI roda em Node 22).
 - `npm` (lockfile `package-lock.json`).

@@ -1,9 +1,9 @@
-'use client';
 import * as React from 'react';
 
 import { Button } from '@/components/global/button/button';
 import {
   AlertDialog as AlertDialogPrimitive,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -76,13 +76,9 @@ function ConfirmDialogInternal({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button
-            variant="outline"
-            disabled={isPending}
-            onClick={() => setOpen(false)}
-          >
+          <AlertDialogCancel disabled={isPending}>
             {cancelLabel}
-          </Button>
+          </AlertDialogCancel>
           <Button
             variant={destructive ? 'destructive' : 'default'}
             loading={isPending}
@@ -112,9 +108,13 @@ function UncontrolledConfirmDialog(props: UncontrolledProps) {
  * Em ambos os modos, o componente gerencia o loading interno
  * enquanto `onConfirm` resolve, e fecha automaticamente em sucesso.
  */
+function isUncontrolled(props: IConfirmDialog): props is UncontrolledProps {
+  return 'trigger' in props;
+}
+
 export function ConfirmDialog(props: IConfirmDialog) {
-  if ('trigger' in props && props.trigger !== undefined) {
-    return <UncontrolledConfirmDialog {...(props as UncontrolledProps)} />;
+  if (isUncontrolled(props)) {
+    return <UncontrolledConfirmDialog {...props} />;
   }
-  return <ConfirmDialogInternal {...(props as ControlledProps)} />;
+  return <ConfirmDialogInternal {...props} />;
 }

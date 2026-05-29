@@ -152,10 +152,7 @@ export function PlaygroundCrud() {
       );
       toast.success('Registro atualizado.');
     } else {
-      setPeople((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), ...values },
-      ]);
+      setPeople((prev) => [...prev, { id: crypto.randomUUID(), ...values }]);
       toast.success('Registro cadastrado.');
     }
     setModalOpen(false);
@@ -197,7 +194,7 @@ export function PlaygroundCrud() {
           />
         </Modal>
 
-        <div className="overflow-hidden rounded-md border">
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>

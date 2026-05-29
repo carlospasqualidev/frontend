@@ -5,7 +5,7 @@ import { InputField } from '@/components/global/form/inputField';
 import { Select } from '@/components/global/form/select';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { MultiSelect } from '@/components/global/multiSelect/multiSelectPrimitive';
 
 /** Valor interno do select que representa "sem filtro" (radix não aceita ''). */
 const ALL_VALUE = '__all__';

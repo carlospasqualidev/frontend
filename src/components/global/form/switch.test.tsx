@@ -48,12 +48,7 @@ describe('Switch (global)', () => {
 
       return (
         <>
-          <Switch
-            id="admin"
-            name="admin"
-            control={control}
-            label="Admin"
-          />
+          <Switch id="admin" name="admin" control={control} label="Admin" />
           <span data-testid="value">{String(admin)}</span>
         </>
       );

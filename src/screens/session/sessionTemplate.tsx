@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 
-import { ToggleTheme } from '@/components/global/layout/toggle-theme';
+import { ToggleTheme } from '@/components/global/layout/toggleTheme';
 
 export function SessionTemplate({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+    <div className="relative flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
       <div className="absolute top-4 right-4">
         <ToggleTheme />
       </div>

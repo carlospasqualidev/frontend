@@ -57,7 +57,11 @@ import type { IDateFormatterValue } from './types';
  * });
  * // → "-"
  */
-export function dateFormatter({ date, hasTimeStamp, showHours }: IDateFormatterValue) {
+export function dateFormatter({
+  date,
+  hasTimeStamp,
+  showHours,
+}: IDateFormatterValue) {
   if (!date) return '-';
 
   const d = new Date(date);

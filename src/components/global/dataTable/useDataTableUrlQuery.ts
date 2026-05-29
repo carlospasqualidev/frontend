@@ -65,6 +65,10 @@ export function useDataTableUrlQuery({
     }
 
     setSeeded(true);
+    // Roda apenas no mount: os defaults só entram na URL se ela já estiver
+    // vazia. Depois disso, a URL é a fonte da verdade e não queremos que
+    // mudanças em `defaultSorting`/`defaultFilters` ressuscitem os defaults.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Antes do seed (primeiro render), aplica defaults; depois, URL é a verdade.
@@ -107,5 +111,9 @@ export function useDataTableUrlQuery({
 
   // `defaultFilterValues` reflete os filtros atuais da URL, para os campos do
   // cabeçalho abrirem preenchidos (inclusive ao recarregar/compartilhar).
-  return buildDataTableResult({ page, pageSize, sort, filters }, patch, filters);
+  return buildDataTableResult(
+    { page, pageSize, sort, filters },
+    patch,
+    filters
+  );
 }

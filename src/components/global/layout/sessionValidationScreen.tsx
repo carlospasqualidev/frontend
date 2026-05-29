@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { Progress } from '@/components/ui/progress';
+import { Typography } from '@/components/ui/typography';
 import { sidebarData } from '@/lib/constants/sidebar';
 
 function getNextProgress(current: number) {
@@ -35,7 +36,7 @@ export function SessionValidationScreen() {
 
   return (
     <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-background px-6">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-primary),transparent_28%)]/8" />
+      <div className="bg-[radial-gradient(circle_at_center,var(--color-primary),transparent_28%)]/8 absolute inset-0" />
 
       <div className="relative flex flex-1 items-center justify-center">
         <div className="flex w-full max-w-xs flex-col items-center gap-6 text-center">
@@ -51,17 +52,26 @@ export function SessionValidationScreen() {
                 aria-label="Validando sessão"
               />
 
-              <p className="text-xs text-muted-foreground">
+              <Typography variant="muted" align="center" className="text-xs">
                 Preparando seu ambiente...
-              </p>
+              </Typography>
             </div>
           </div>
         </div>
       </div>
 
       <div className="relative pb-10 text-center">
-        <p className="text-sm text-muted-foreground">por</p>
-        <p className="text-xl font-semibold text-primary">{name}</p>
+        <Typography variant="muted" align="center">
+          por
+        </Typography>
+        <Typography
+          as="strong"
+          variant="h3"
+          align="center"
+          className="block text-primary"
+        >
+          {name}
+        </Typography>
       </div>
     </div>
   );

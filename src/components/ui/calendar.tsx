@@ -66,7 +66,7 @@ function CalendarDropdown({
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="max-h-72 min-w-0 w-auto">
+      <SelectContent className="max-h-72 w-auto min-w-0">
         {options?.map((option) => (
           <SelectItem
             key={option.value}

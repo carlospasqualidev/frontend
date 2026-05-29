@@ -1,4 +1,3 @@
-'use client';
 import * as React from 'react';
 
 import {
@@ -15,7 +14,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMobile';
 
 interface IModal {
   title: string;
@@ -45,7 +44,7 @@ export function Modal({ title, description, children, open, setOpen }: IModal) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-106.25">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
 

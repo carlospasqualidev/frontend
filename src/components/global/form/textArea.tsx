@@ -8,7 +8,7 @@ import {
 } from 'react-hook-form';
 
 import {
-  type TFormFieldErrors,
+  type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 type TextAreaBaseProps = React.ComponentProps<'textarea'> & {
   label: string;
   description?: string;
-  errors?: TFormFieldErrors;
+  errors?: FormFieldErrors;
 };
 
 type ControlledTextAreaProps<
@@ -108,6 +108,15 @@ function ControlledTextArea<
   );
 }
 
+function isControlled<
+  TFieldValues extends FieldValues,
+  TName extends FieldPathByValue<TFieldValues, string>,
+>(
+  props: TextAreaProps<TFieldValues, TName>
+): props is ControlledTextAreaProps<TFieldValues, TName> {
+  return 'control' in props;
+}
+
 /**
  * Campo de textarea integrado ao react-hook-form.
  *
@@ -122,7 +131,7 @@ export function TextArea<
     string
   >,
 >(props: TextAreaProps<TFieldValues, TName>) {
-  if ('control' in props && props.control) {
+  if (isControlled(props)) {
     return <ControlledTextArea {...props} />;
   }
 

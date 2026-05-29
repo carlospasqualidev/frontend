@@ -31,7 +31,10 @@ export function SessionValidation({ children }: PropsWithChildren) {
     }
 
     void bootstrapSession();
-  }, [navigate, setUser, signOut]);
+    // Roda apenas no mount: a validação inicial não deve refazer quando o
+    // próprio `setUser` injeta o usuário no store.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!isReady) {
     return <SessionValidationScreen />;
