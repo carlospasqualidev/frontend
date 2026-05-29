@@ -1,6 +1,6 @@
 /**
- * Devolve as iniciais de um nome para uso em `Avatar` quando não há imagem.
- * Compartilhado entre a lista e o detalhe do usuário.
+ * Devolve as iniciais de um nome para uso em avatares quando não há imagem.
+ * Um nome único → duas primeiras letras; múltiplos → primeira + última inicial.
  */
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);

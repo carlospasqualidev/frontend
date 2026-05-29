@@ -1,15 +1,14 @@
 import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { UserAvatar } from '@/components/global/avatar/userAvatar';
 import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Typography } from '@/components/ui/typography';
 import { useSessionStore } from '@/hooks/useSessionStore';
-import { getInitials } from '@/screens/users/getInitials';
 
 export function ProfileTab() {
   const user = useSessionStore((state) => state.user);
@@ -27,12 +26,13 @@ export function ProfileTab() {
         description="Como você aparece para outras pessoas do espaço."
       >
         <div className="flex flex-wrap items-center gap-4">
-          <Avatar size="lg" className="size-20">
-            <AvatarImage src={user.image ?? undefined} alt={user.name} />
-            <AvatarFallback className="text-lg">
-              {getInitials(user.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={user.name}
+            imageUrl={user.image}
+            size="lg"
+            className="size-20"
+            fallbackClassName="text-lg"
+          />
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"

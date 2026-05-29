@@ -15,13 +15,12 @@ import {
   textFilter,
 } from '@/components/global/dataTable/filters';
 import { useDataTableUrlQuery } from '@/components/global/dataTable/useDataTableUrlQuery';
+import { UserAvatar } from '@/components/global/avatar/userAvatar';
 import { Button } from '@/components/global/button/button';
 import { PageActions } from '@/components/global/layout/pageActions';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
-import { getInitials } from '@/screens/users/getInitials';
 import { queryUsers } from '@/screens/users/mockUsers';
 import {
   ROLE_BADGE_VARIANT,
@@ -86,9 +85,7 @@ export function UsersPage() {
         const user = row.original;
         return (
           <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-            </Avatar>
+            <UserAvatar name={user.name} />
             <div className="min-w-0">
               <Typography as="span" variant="small" className="block truncate">
                 {user.name}
