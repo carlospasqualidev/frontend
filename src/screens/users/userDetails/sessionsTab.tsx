@@ -1,10 +1,10 @@
 import { MonitorSmartphone } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
 import { Empty } from '@/components/global/empty/empty';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';

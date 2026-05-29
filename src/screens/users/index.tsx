@@ -15,10 +15,10 @@ import {
   textFilter,
 } from '@/components/global/dataTable/filters';
 import { useDataTableUrlQuery } from '@/components/global/dataTable/useDataTableUrlQuery';
+import { Button } from '@/components/global/button/button';
 import { PageActions } from '@/components/global/layout/pageActions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
 import { getInitials } from '@/screens/users/getInitials';

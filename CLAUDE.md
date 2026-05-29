@@ -167,6 +167,25 @@ A versão enxuta mostra **o que** o bloco é (uma seção de resumo com 3 elemen
 - Não logue dados sensíveis (senhas, tokens, dados pessoais) — nem em `console.log` durante desenvolvimento.
 - Não armazene tokens em `localStorage`/`sessionStorage` — a sessão é por cookie HTTP-only.
 
+### LGPD e dados pessoais (PII)
+
+Produto pt-BR opera sob a LGPD. Considere PII e **proibido logar** em qualquer canal (console, Sentry/breadcrumb, analytics, query string da URL, body de erro exibido ao usuário, payload de toast):
+
+- **Identificadores pessoais**: nome completo, CPF, CNPJ (de pessoa física), RG, CNH, passaporte, título de eleitor, PIS.
+- **Contato**: e-mail, telefone, endereço, CEP.
+- **Credenciais e sessão**: senha (em qualquer forma — texto puro, hash, parcial), token de API, cookie de sessão, código 2FA, perguntas de recuperação.
+- **Financeiro**: número de cartão (mesmo mascarado), CVV, dados bancários, conta, chave PIX.
+- **Sensíveis (art. 5º, II)**: dados de saúde, biometria, origem racial, religião, opinião política, orientação sexual.
+
+Regras práticas:
+
+- **Erros de API**: o interceptor do `api` exibe mensagem amigável — não relogue o objeto de erro cru no `console.error` de produção. Em dev, OK, desde que o `.env.local` não vá pro repo.
+- **Query string nunca leva PII** (`?email=foo@bar.com` aparece em log de servidor, histórico do navegador, referer). Use POST body.
+- **URL de tela pode conter ID opaco** (`/users/abc123`), nunca CPF na URL.
+- **Toast/erro ao usuário não ecoa o input**: `"Falha ao salvar."` em vez de `"Falha ao salvar o usuário ${nome} (CPF ${cpf})."`.
+- **Form com PII** (cadastro, perfil): se for usar `react-hook-form` devtools/Storybook, garanta que defaultValues não foram commitados com dado real.
+- **Storybook e mocks**: dados de exemplo são fictícios — não cole CPF/e-mail real "porque é só pra testar".
+
 ---
 
 ## Performance
@@ -181,12 +200,67 @@ A versão enxuta mostra **o que** o bloco é (uma seção de resumo com 3 elemen
 ## Testes
 
 - Vitest + Testing Library, ambiente `jsdom`.
-- Arquivos `*.test.ts(x)` ao lado do código testado (não em pasta separada).
-- Setup global em [`src/test/setup.ts`](src/test/setup.ts).
+- Todos os testes vivem em [`src/tests/`](src/tests), organizados em pastas — uma pasta por componente/módulo, com o arquivo `<name>.test.ts(x)` dentro. Espelha o agrupamento usado nas stories.
+- Setup global em [`src/tests/setup.ts`](src/tests/setup.ts) (referenciado em [`vitest.config.ts`](vitest.config.ts)).
+- O componente/módulo é importado via alias `@/...`, nunca por caminho relativo.
+
+```
+src/tests/
+├── setup.ts
+├── globais/<component>/<name>.test.tsx     # abstrações de components/global/
+│   ├── button/button.test.tsx
+│   ├── card/card.test.tsx
+│   ├── dataTable/{dataTable,dataTableSearch,useDataTableQuery}.test.tsx
+│   └── form/<field>/<field>.test.tsx
+├── hooks/<hook>/<hook>.test.tsx
+├── lib/<grupo>/<arquivo>.test.ts
+└── services/<servico>/<arquivo>.test.ts
+```
+
 - Escreva teste para lógica não-trivial: utilidades puras, hooks com lógica, regras de negócio, edge cases.
 - Teste o caminho de falha, não só o happy path.
 - Testes legíveis — eles documentam o comportamento esperado.
 - As abstrações globais (`Button`, `Card`, `Empty`, `ConfirmDialog`) já têm testes que cobrem o contrato público — ao mudar a API delas, atualize o teste junto, não depois.
+
+### Como escrever testes (práticas)
+
+Três regras pegam 90% da qualidade de teste:
+
+**1. Use `userEvent`, não `fireEvent`.** `userEvent` simula a sequência real (`pointerdown` → `focus` → `input` → `change` → `blur`) e dispara handlers que o `fireEvent` pula. `fireEvent.click` em um botão controlado por React Hook Form não dispara `onBlur` e o erro de validação não aparece. Importe sempre de `@testing-library/user-event`.
+
+```ts
+const user = userEvent.setup();
+await user.type(screen.getByLabelText('E-mail'), 'foo@bar.com');
+await user.click(screen.getByRole('button', { name: 'Entrar' }));
+```
+
+**2. Prefira `getByRole` / `findByRole` a `getByTestId`.** Role + accessible name é como o usuário (e o leitor de tela) encontra o elemento — se o teste passa por role, a acessibilidade do componente também passou. `data-testid` é fallback para casos sem role natural (containers genéricos, elementos puramente visuais).
+
+```ts
+✓ screen.getByRole('button', { name: 'Salvar' });
+✓ screen.getByRole('textbox', { name: 'E-mail' });
+✓ screen.getByRole('alert');                          // erro de validação, toast
+✗ screen.getByTestId('save-button');                  // só se não houver role
+```
+
+Ordem de prioridade (segue Testing Library): `getByRole` → `getByLabelText` (forms) → `getByPlaceholderText` → `getByText` → `getByDisplayValue` → `getByTestId`.
+
+**3. `findBy*` para async, não `await waitFor(() => getBy*)`.** `findBy*` já é `waitFor` + `getBy` — mais curto, mais legível, mensagem de erro melhor.
+
+```ts
+✓ await screen.findByText('Registro salvo.');
+✗ await waitFor(() => expect(screen.getByText('Registro salvo.')).toBeInTheDocument());
+```
+
+Use `waitFor` apenas para asserções que não são "elemento apareceu" (ex.: `expect(mock).toHaveBeenCalledWith(...)`).
+
+**Outras práticas:**
+
+- **`queryBy*` para asserção negativa** (`expect(queryByText('...')).not.toBeInTheDocument()`). Nunca use `getBy*` esperando ausência — ele lança.
+- **Não mocke o que você está testando.** Mocke serviços externos (`api`, `toast`), não o próprio componente nem os fields globais.
+- **Wrapper de teste centralizado**: queries do TanStack Query, router e theme provider devem vir de um helper em `src/tests/` para não repetir setup em cada teste.
+- **Factories de dados** (`makeUser({ name: 'Maria' })`) co-localizadas no teste ou em `src/tests/factories/` — evita literais gigantes inline.
+- **Limpe estado entre testes**: `afterEach(() => queryClient.clear())` quando o teste compartilha cliente.
 
 ---
 
@@ -210,6 +284,42 @@ Todo texto exposto ao usuário em **português brasileiro (pt-BR)**.
 - Evite jargão técnico para usuários operacionais.
   - Correto: `Falha ao salvar o registro. Tente novamente.`
   - Evite: `Unexpected persistence layer failure.`
+
+### Acentuação e codificação (evitar mojibake)
+
+**Sempre acentue corretamente.** Texto pt-BR sem acento é erro, não estilo — `usuario`, `nao`, `acao`, `informacoes` viram bug visível para o usuário final. Mesmo em rascunho, mantenha `usuário`, `não`, `ação`, `informações`.
+
+- **Salve arquivos em UTF-8 sem BOM.** Strings literais (`'Não foi possível salvar.'`), comentários, labels, mensagens de erro de schema Zod, títulos de `Card`/`Modal`/`Empty`, tudo em UTF-8 correto.
+- **Mojibake é zero-tolerância.** Se você ver `não`, `ã`, `Ã§`, `Ã©`, `â€"`, `?` no lugar de letra acentuada, ou caracteres invertidos `Â`, `Ã`, isso é arquivo lido como Latin-1/CP1252 e escrito como UTF-8 (ou vice-versa). Conserte o arquivo (re-salve em UTF-8) — **não "corrija" o texto trocando por versão sem acento.**
+- **No PowerShell (Windows), nunca redirecione texto pt-BR com `>` ou `Out-File` sem `-Encoding utf8`** — o default vira UTF-16 LE com BOM e quebra o build/leitura. Para escrever texto com acento via shell, use as ferramentas `Write`/`Edit` do projeto, não `echo "..." > arquivo`.
+- **Caracteres comuns que precisam aparecer corretos**: `á é í ó ú â ê ô ã õ à ç` (minúsculas) e suas maiúsculas. Aspas tipográficas (`" "` `' '`) e travessão (`—`) também são UTF-8 — preserve.
+- **Lista mínima de palavras que aparecem direto no produto e precisam estar acentuadas**: ação, não, número, código, válido/inválido, próximo/anterior, página, último, índice, descrição, padrão, série, área, é/está, mês, está, três, após, até, já, só.
+- **Atalhos automáticos do editor** (autocorreção que troca `não` por `nao`, configuração regional do shell) são fonte recorrente de regressão. Se você notar um arquivo onde acento sumiu silenciosamente, é provável que tenha sido salvo numa codificação errada — re-salve em UTF-8 antes de continuar editando.
+
+❌ `<Empty title="Nenhum usuario encontrado" description="Tente uma nova busca." />`
+✓ `<Empty title="Nenhum usuário encontrado" description="Tente uma nova busca." />`
+
+❌ `z.string().min(1, 'Campo obrigatorio.')`
+✓ `z.string().min(1, 'Campo obrigatório.')`
+
+---
+
+## Acessibilidade (a11y)
+
+Radix (via shadcn) dá a base de a11y — foco, ARIA, navegação por teclado. Mas as regressões comuns vêm de **remover** ou **ignorar** o que Radix já entrega. As regras abaixo são o mínimo para uma tela nova não degradar.
+
+- **Nunca remova o `focus-visible:ring`.** Se está atrapalhando o visual, ajuste a cor do ring (`--ring`), não remova. Sem indicador de foco, navegação por teclado fica cega.
+- **Toda input precisa de label associada.** Use os fields globais (`InputField`, `Select`, `DateField`...) — eles já geram `<FieldLabel htmlFor>` ↔ `<Input id>`. **Não use `placeholder` como label** — placeholder some quando o usuário começa a digitar e leitor de tela ignora.
+- **Botão-ícone exige `aria-label` em pt-BR**. `<Button variant="ghost" size="icon" aria-label="Fechar"><X /></Button>`. Sem isso, o leitor de tela anuncia "botão" sem dizer o quê.
+- **Texto sempre dentro do elemento certo.** Não envolva texto em `<div onClick={...}>` — use `<button>` (ou `<Button variant="link">`). Div clicável não é focável por teclado, não tem role de botão, não dispara em `Enter`/`Space`.
+- **Imagens precisam de `alt`.** Decorativa: `alt=""` (explícito). Informativa: descrição curta em pt-BR. Avatar: `alt={nome}` com fallback nas iniciais.
+- **Contraste mínimo de 4.5:1** para texto sobre fundo (WCAG AA). Os tokens do projeto (`text-foreground` sobre `bg-background`, `text-muted-foreground` sobre `bg-card`) já passam — desvio só com motivo claro.
+- **Foco inicial em Modal/Drawer/ConfirmDialog**: Radix põe foco no primeiro elemento focável; se há campo de input principal, garanta que ele seja o primeiro. Em `ConfirmDialog` destrutivo, **foco fica no botão de cancelar**, não no de confirmar (evita confirmação acidental no `Enter`).
+- **Toasts (`sonner`)**: já anunciam via `aria-live` por padrão. Não envolva toast em wrapper que sobrescreva role.
+- **Listas com seleção/navegação por teclado**: use `role="listbox"` + `role="option"` + `aria-selected`, ou simplesmente reuse `Select` / `MultiSelect` globais que já têm isso.
+- **`tabIndex` só quando há motivo.** `tabIndex={0}` em elemento naturalmente focável é redundante; `tabIndex={-1}` só para remover do tab order temporariamente; `tabIndex` positivo (`tabIndex={1}`) **nunca** — quebra a ordem natural do documento.
+- **Não esconda conteúdo só para vidente.** `display: none` / `hidden` esconde de todos; para conteúdo só-leitor-de-tela use a classe utilitária `sr-only`. Para esconder do leitor mas manter visível, `aria-hidden="true"`.
+- **Animação respeita `prefers-reduced-motion`**: Tailwind tem `motion-safe:` / `motion-reduce:` — use em qualquer animação não-trivial.
 
 ---
 
@@ -298,6 +408,7 @@ src/
 - Rotas protegidas ficam sob `protectedLayoutRoute` (que envolve `SessionValidation` + `Layout`). Login/signup ficam fora dela.
 - `defaultPreload: 'intent'` já está ativo — não precise reconfigurar.
 - Use `staticData: { breadcrumb: '...' }` para alimentar o breadcrumb global.
+- **Toda rota protegida declara `errorComponent`** — sem isso, um erro lançado no render derruba o app inteiro num fallback genérico. Use o [`ErrorFallback`](src/components/global/errorFallback) global, que mostra mensagem amigável em pt-BR + botão "Tentar novamente" disparando `router.invalidate()` (refaz loaders e remonta a rota).
 
 Esqueleto para nova tela + rota:
 
@@ -305,12 +416,14 @@ Esqueleto para nova tela + rota:
 // src/screens/minha-tela/routes.ts
 import { createRoute, lazyRouteComponent } from '@tanstack/react-router';
 import { protectedLayoutRoute } from '@/routes';
+import { ErrorFallback } from '@/components/global/errorFallback';
 
 export const minhaTelaRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
   path: '/minha-tela',
   staticData: { breadcrumb: 'Minha tela' },
   component: lazyRouteComponent(() => import('.'), 'MinhaTela'),
+  errorComponent: ErrorFallback,
 });
 ```
 
@@ -388,6 +501,129 @@ Só introduza um wrapper na raiz quando precisar de um comportamento de layout r
 - Use a instância `api` de [`src/services/api`](src/services/api) — ela já trata `baseURL`, `withCredentials: true` (cookie) e toasts via interceptors. **Não crie axios direto.**
 - Para server state: TanStack Query (`useQuery` / `useMutation`) com o `queryClient` de [`src/lib/queryClient.ts`](src/lib/queryClient.ts). Não use `useEffect` + `fetch`.
 
+#### Convenção de `queryKey`
+
+`queryKey` é a identidade do dado no cache — ela determina o que é deduplicado, o que é invalidado e o que sobrevive a uma navegação. Sem convenção firme, uma tela invalida `['users']`, outra invalida `['user-list']` e nada bate.
+
+**Use array hierárquico, do mais genérico ao mais específico:**
+
+```ts
+['users']; // lista global
+['users', { page: 1, search: 'maria' }]; // lista paginada/filtrada
+['users', userId]; // detalhe
+['users', userId, 'permissions']; // sub-recurso do detalhe
+['users', userId, 'sessions']; // outro sub-recurso
+```
+
+A regra mental: o primeiro elemento é o **recurso**, o segundo é o **identificador** (ou objeto de filtros), e os elementos seguintes são **sub-recursos**. Filtros vão como objeto (`{ page, search }`), nunca concatenados em string (`['users-page-1-maria']`) — TanStack Query compara estruturalmente.
+
+**Factory por feature.** Para cada feature, exporte um `queryKeys` factory em `screens/<feature>/queryKeys.ts` (ou no arquivo de serviço) — assim a tela, o hook e a mutation falam a mesma língua:
+
+```ts
+// screens/users/queryKeys.ts
+export const userKeys = {
+  all: ['users'] as const,
+  list: (filters: UserFilters) => [...userKeys.all, filters] as const,
+  detail: (id: string) => [...userKeys.all, id] as const,
+  permissions: (id: string) => [...userKeys.detail(id), 'permissions'] as const,
+};
+```
+
+**Invalidação: invalide o prefixo certo, não o mundo.** `invalidateQueries({ queryKey: userKeys.all })` invalida tudo que começa com `['users']` — lista, detalhe, sub-recursos. Use isso para "alguma coisa no domínio mudou, recarregue". Para invalidação cirúrgica, passe a key mais específica.
+
+```ts
+// editou permissões de um usuário
+queryClient.invalidateQueries({ queryKey: userKeys.permissions(id) }); // só esse sub-recurso
+// criou usuário novo
+queryClient.invalidateQueries({ queryKey: userKeys.all }); // refaz lista e qualquer detalhe stale
+```
+
+**Nunca chame `invalidateQueries()` sem args** — invalida o cache inteiro e derruba todas as telas montadas.
+
+**`setQueryData` vs `invalidateQueries`**: se você já tem a resposta da API em mãos (POST que retorna o registro criado), use `setQueryData(userKeys.detail(id), data)` para popular o cache sem ida ao servidor. `invalidate` é para forçar refetch quando não temos o dado novo.
+
+#### Toda tela usa TanStack Query
+
+Qualquer dado vindo do servidor entra na tela via **TanStack Query** — sem exceção. Não há `useEffect` + `fetch`, não há `useState` espelhando resposta de API, não há `axios` chamado direto no `onClick`. Isso não é preferência estética: o cache compartilhado, deduplicação, refetch em foco, retry, devtools e integração com router só funcionam se **todo mundo** usar a biblioteca.
+
+**Estrutura mínima de uma tela com dados:**
+
+```tsx
+const { data, isPending, isError, refetch } = useQuery({
+  queryKey: userKeys.list(filters),
+  queryFn: () => api.get('/users', { params: filters }).then((r) => r.data),
+  staleTime: 30_000,
+});
+
+if (isPending) return <UsersListSkeleton />;
+if (isError) return <ErrorFallback onRetry={refetch} />;
+return <UsersTable rows={data} />;
+```
+
+**Técnicas que toda tela deve aplicar quando se aplicarem:**
+
+**1. `staleTime` consciente, não default.** O default do TanStack Query é `staleTime: 0` — qualquer remontagem refetcha. Para uma listagem que muda pouco (catálogo, settings), use `staleTime: 60_000` (1 min) ou mais; para dado volátil (saldo, status em tempo real), `staleTime: 0` é correto. Sem `staleTime` definido, navegar entre telas vira "carregando..." perpétuo.
+
+**2. `staleTime` ≠ `gcTime`.** `staleTime` decide quando o dado é considerado velho (e refetcha em background); `gcTime` decide quando o dado **sai do cache** depois que nenhum componente o usa (default 5 min). Para dados consultados várias vezes na mesma sessão (perfil do usuário logado), aumente `gcTime` para evitar refetch ao voltar pra uma tela já visitada.
+
+**3. `placeholderData` para paginação/filtro sem flicker.** Em listas paginadas, ao trocar de página o default é "limpar tudo e mostrar skeleton". Com `placeholderData: keepPreviousData` (ou função custom), a tela mantém os dados anteriores enquanto a nova página carrega — sem layout jumping. Já usado em `useDataTableQuery`; replique em listas custom.
+
+```ts
+import { keepPreviousData } from '@tanstack/react-query';
+useQuery({ queryKey, queryFn, placeholderData: keepPreviousData });
+```
+
+**4. `enabled` para queries dependentes.** Quando uma query depende de outra (`useQuery` do detalhe depende do `id` que veio da rota), nunca chame com `id` vazio — passe `enabled: !!id`. Sem isso, a query roda com `undefined` e a API retorna 404.
+
+```ts
+useQuery({
+  queryKey: userKeys.detail(id),
+  queryFn: () => api.get(`/users/${id}`).then((r) => r.data),
+  enabled: !!id,
+});
+```
+
+**5. Prefetch em hover / loader de rota.** `defaultPreload: 'intent'` do TanStack Router já dispara prefetch do **chunk** ao passar o mouse — mas **não** prefetcha os dados. Para tela rápida sem skeleton, prefetch o dado em paralelo:
+
+```ts
+// no routes.ts da tela
+loader: ({ params }) =>
+  queryClient.prefetchQuery({
+    queryKey: userKeys.detail(params.id),
+    queryFn: () => api.get(`/users/${params.id}`).then((r) => r.data),
+  }),
+```
+
+Quando o usuário chega na tela, o `useQuery` encontra o cache pronto e renderiza sem loading.
+
+**6. Mutations expõem estado, não inventam.** Use `isPending`, `error`, `isSuccess` da `useMutation` — não crie `useState('loading' | 'idle')` paralelo. O `Button` global aceita `loading={mutation.isPending}` direto.
+
+```tsx
+const mutation = useMutation({ mutationFn: api.createUser });
+<Button loading={mutation.isPending} onClick={() => mutation.mutate(data)}>
+  Criar
+</Button>;
+```
+
+**7. Invalide na hora certa.** Após mutation, invalide a key afetada em `onSuccess` (ou `onSettled` se a UI precisa esperar o refetch antes do próximo passo). Veja a subseção "Convenção de `queryKey`" acima.
+
+**8. `refetchOnWindowFocus`**: ligado por default — bom para dado que envelhece (dashboard, lista de tickets). Para dado caro/raro de mudar, desligue na query específica (`refetchOnWindowFocus: false`), não globalmente.
+
+**9. Deduplicação é automática.** Dois componentes que chamam `useQuery` com a **mesma `queryKey`** ao mesmo tempo disparam **uma** requisição. Aproveite isso: extraia hooks (`useUserDetail(id)`) e use em quantos lugares precisar — não há custo de rede extra.
+
+**10. `useInfiniteQuery` para "carregar mais" / scroll infinito.** Não recrie scroll infinito com `useState([...itens, ...novos])`. `useInfiniteQuery` cuida de paginação cumulativa, `getNextPageParam`, e expõe `fetchNextPage` + `hasNextPage`.
+
+**11. DevTools no dev.** O `@tanstack/react-query-devtools` está disponível — mantenha montado em desenvolvimento (oculto por default). Cache, key, estado de cada query ficam inspecionáveis sem `console.log`.
+
+**Anti-padrões a evitar:**
+
+- ❌ `useState` + `useEffect(() => fetch(...))` — substitua por `useQuery`.
+- ❌ `useQuery` dentro de `useEffect` ou dentro de condicional — sempre top-level do componente; use `enabled` para condicionar.
+- ❌ `queryKey: ['users']` em duas telas com filtros diferentes — vira mesma entrada de cache e uma sobrescreve a outra.
+- ❌ `queryClient.invalidateQueries()` sem args — derruba o cache inteiro.
+- ❌ Espelhar `data` em `useState` local — duplica fonte de verdade; consuma `data` direto.
+- ❌ Chamar `api.get` no `onClick` para "atualizar a tela" — invalide a queryKey, o `useQuery` refetcha sozinho.
+
 **Optimistic updates** — quando a mutação é simples (toggle, delete, edit de campo único) e o servidor raramente recusa, antecipe o resultado no cache pra UI parecer instantânea:
 
 ```tsx
@@ -427,6 +663,39 @@ Veja o padrão demonstrado na story `Padrões/OptimisticUpdate` no Storybook (`n
 - Todos seguem o mesmo padrão: aceitam **uncontrolled** (`{...register('campo')}` + `errors`) **ou controlled** (`control` + `name` + opcional `rules`/`defaultValue`). Discriminated union impede misturar os dois modos.
 - Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e a story `Formulário/Formulário completo` no Storybook como referência.
 
+#### Cobertura obrigatória com Zod
+
+**Todo formulário precisa ter cada campo coberto por um schema Zod — sem exceção.** A validação acontece **antes** do submit e antes de qualquer chamada à API. O schema é a fonte de verdade do shape e das regras do formulário; nada de validação ad-hoc dentro do `onSubmit` ou em `useState`.
+
+- **Defina um schema por formulário** com `z.object({ ... })` colocando regra apropriada em cada campo (`z.string().min(1, 'Obrigatório')`, `z.string().email('E-mail inválido')`, `z.coerce.number().int().positive()`, etc.). Não deixe campo "solto" — se ele existe no form, ele existe no schema.
+- **Mensagens de erro em pt-BR** dentro do próprio schema (`{ message: 'Informe um CPF válido.' }`). Erros do Zod chegam direto nos `errors` dos fields — não reescreva no componente.
+- **Tipos derivam do schema**: `type FormData = z.infer<typeof schema>`. Não declare uma `interface` paralela ao schema — quando ela diverge, o form mente.
+- **Validações com dependência entre campos** vão em `.refine()` / `.superRefine()` (ex.: `passwordConfirm === password`, `endDate >= startDate`), não em `useEffect`.
+- **Transformações de entrada/saída** (máscaras de CPF/telefone, parse de data) ficam no schema via `.transform()` ou nos utilitários de [`src/lib/dateTime/`](src/lib/dateTime). Não duplique no `onSubmit`.
+- **Resposta da API que vira valor inicial** (modo edição) também passa por um schema — defina `apiSchema` e use `.parse()` antes de jogar no `defaultValues`. Servidor não é fonte de verdade do shape do cliente.
+
+❌ Validação à mão fora do schema:
+
+```tsx
+const onSubmit = (data: FormData) => {
+  if (!data.email.includes('@')) {
+    toast.error('E-mail inválido');
+    return;
+  }
+  // ...
+};
+```
+
+✓ Tudo no schema, o form bloqueia o submit sozinho:
+
+```ts
+const schema = z.object({
+  email: z.string().email('Informe um e-mail válido.'),
+  password: z.string().min(8, 'Mínimo de 8 caracteres.'),
+});
+type FormData = z.infer<typeof schema>;
+```
+
 ### Variáveis de ambiente
 
 - Validadas em [`src/lib/env.ts`](src/lib/env.ts) com Zod no boot — falha rápido se faltar.
@@ -447,7 +716,15 @@ Veja o padrão demonstrado na story `Padrões/OptimisticUpdate` no Storybook (`n
 
 ### Abstrações globais (`components/global/`)
 
-Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (incluindo dark mode) e integração com `react-hook-form`. Use estes antes de cair direto no `components/ui/`:
+Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (incluindo dark mode) e integração com `react-hook-form`.
+
+**Regra dura: sempre prefira a abstração de `components/global/` antes de importar do `components/ui/`.** O `components/ui/` é o andar do primitivo shadcn cru — ele existe para alimentar o `global/`, não para ser consumido direto pelas telas. Quando você importa `@/components/ui/...` numa tela, você está pulando a camada que padroniza dark mode, espaçamento, integração com `react-hook-form` e tom visual do projeto — e a próxima tela vai parecer diferente da anterior.
+
+- **Antes de importar de `components/ui/`**, varra `components/global/` (incluindo `global/form/`) atrás de equivalente. Se já existe, use o global.
+- **Se faltar a abstração**, crie uma nova em `components/global/<nome>/` seguindo o padrão da seção "Padrão para criar uma nova abstração global" abaixo — assim a próxima tela já encontra pronto. Não saia importando `ui/` direto "só por essa vez".
+- **Exceções legítimas para importar de `ui/` direto**: (1) você está escrevendo a própria abstração `global/` que envolve aquele primitivo; (2) é um primitivo composicional puro sem equivalente global (ex.: `Tabs`, `Sheet`, `Popover` usados como blocos de layout). Em nenhum caso `Button`, `Card`, `Input`, `Select`, `Dialog`, `Checkbox`, `Switch`, `Textarea` devem ser importados de `ui/` numa tela — todos têm wrapper global.
+
+Use estes antes de cair direto no `components/ui/`:
 
 | Abstração       | Caminho                                                                                    | Quando usar                                                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -464,6 +741,8 @@ Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (inclui
 - Pasta `components/global/<nome>/<nome>.tsx`, export nomeado, interface prefixada com `I`.
 - Importe o primitivo como `XPrimitive` (ex.: `Card as CardPrimitive`) para evitar shadowing.
 - Mantenha a API minimalista: props essenciais como obrigatórias, extras como opcionais.
+- **Story obrigatória no mesmo PR.** Toda abstração nova em `components/global/<nome>/` precisa entrar acompanhada de `src/stories/globais/<nome>/<nome>.stories.tsx` com vitrine das variações principais (estados: default, loading, error/disabled, com/sem prop opcional). Sem story, a abstração some do radar da próxima sessão — humano ou Claude — e a tela seguinte reinventa o componente.
+- **Teste obrigatório no mesmo PR.** Espelhe a story com `src/tests/globais/<nome>/<nome>.test.tsx` cobrindo o contrato público (props obrigatórias, estados, handlers). Veja `button/button.test.tsx` e `confirmDialog/confirmDialog.test.tsx` como referência de profundidade esperada.
 - Para componentes de formulário ou de "abre/fecha", espelhe o padrão de `inputField.tsx` / `switch.tsx` / `confirmDialog.tsx`: modo **uncontrolled** + modo **controlled** via discriminated union. Discrimine via `'prop' in props` — nunca via `prop !== undefined`. Quando uma das variantes declarar `prop?: never`, o `'prop' in props` sozinho não narrowed para TS; nesses casos, encapsule num **type guard** com type predicate. Padrão usado em todos os fields e no `ConfirmDialog`:
 
 ```ts
@@ -538,11 +817,29 @@ A cor primária do sistema vive em **uma única variável** no topo de [`src/ind
 
 ### Storybook (demos de componentes)
 
-Cada componente global tem uma story co-localizada (`button/button.stories.tsx`, etc.) com uma única "Vitrine" mostrando todas as variações em um só lugar. Rode com `npm run storybook` (porta 6006).
+Todas as stories vivem em [`src/stories/`](src/stories), organizadas em três pastas — uma pasta por componente, com o arquivo `<name>.stories.tsx` dentro. Cada componente tem uma "Vitrine" mostrando todas as variações em um só lugar. Rode com `npm run storybook` (porta 6006).
 
-- Stories vivem ao lado do componente, mesmo padrão dos arquivos de teste.
+```
+src/stories/
+├── Introducao.stories.tsx                    # boas-vindas
+├── globais/<component>/<component>.stories.tsx     # abstrações em components/global/
+│   ├── button/button.stories.tsx
+│   ├── card/card.stories.tsx
+│   ├── dataTable/DataTable.stories.tsx
+│   ├── pageActions/pageActions.stories.tsx
+│   └── form/<field>/<field>.stories.tsx       # inputField, select, dateField...
+├── ui-primitivos/<component>/<Component>.stories.tsx  # primitivos shadcn em components/ui/
+│   ├── tabs/Tabs.stories.tsx
+│   └── typography/Typography.stories.tsx
+└── padroes/<padrao>/<Padrao>.stories.tsx      # composições e padrões
+    ├── form/Form.stories.tsx                  # formulário completo com Zod
+    └── patterns/Patterns.stories.tsx          # OptimisticUpdate, CRUD, etc.
+```
+
+- Stories ficam **separadas** do componente (diferente dos `*.test.tsx`, que continuam co-localizados). Isso mantém o source dos componentes enxuto e centraliza a documentação visual.
 - Cada vitrine envolve as variações em `Card` global com título + descrição explicativa.
-- Composições maiores (`DataTable`, `Form completo`, `CRUD`, `OptimisticUpdate`) ficam em [`src/stories/`](src/stories).
+- O componente é importado via alias `@/components/...`, nunca por caminho relativo.
+- O título da story (`title:` no `meta`) usa o mesmo prefixo da pasta (`Globais/Button`, `UI primitivos/Tabs`, `Padrões/OptimisticUpdate`).
 - Configuração: [`.storybook/main.ts`](.storybook/main.ts) e [`.storybook/preview.tsx`](.storybook/preview.tsx) (já injetam `ThemeProvider`, `QueryClient` e `Toaster`).
 
 ---

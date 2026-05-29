@@ -6,7 +6,7 @@ function Introducao() {
   return (
     <article className="prose mx-auto max-w-3xl space-y-6 text-foreground">
       <Typography as="h1" variant="h1">
-        Design System — frontv2
+        Design System
       </Typography>
 
       <Typography variant="lead">
@@ -16,8 +16,8 @@ function Introducao() {
       </Typography>
 
       <Typography variant="p">
-        Cada componente ganha uma <em>Vitrine</em> única que demonstra todas
-        as suas variações em uma só tela.
+        Cada componente ganha uma <em>Vitrine</em> única que demonstra todas as
+        suas variações em uma só tela.
       </Typography>
 
       <Typography as="h2" variant="h3">
@@ -26,10 +26,10 @@ function Introducao() {
 
       <ul className="list-disc space-y-2 pl-6">
         <li>
-          <strong>Globais</strong> — abstrações criadas em cima do shadcn/ui
-          que padronizam API, defaults visuais (incluindo dark mode) e
-          integração com <code>react-hook-form</code>. São o que você deve
-          consumir nas telas, e não o primitivo do shadcn direto.
+          <strong>Globais</strong> — abstrações criadas em cima do shadcn/ui que
+          padronizam API, defaults visuais (incluindo dark mode) e integração
+          com <code>react-hook-form</code>. São o que você deve consumir nas
+          telas, e não o primitivo do shadcn direto.
         </li>
         <li>
           <strong>Formulário</strong> — campos integrados ao{' '}
@@ -56,9 +56,9 @@ function Introducao() {
 
       <Typography variant="p">
         O switch de tema (canto superior) aplica <code>light</code>/
-        <code>dark</code> no <code>&lt;html&gt;</code> — mesmo mecanismo do
-        app real. Use-o para validar contraste, sombras e cores da marca em
-        ambos os modos.
+        <code>dark</code> no <code>&lt;html&gt;</code> — mesmo mecanismo do app
+        real. Use-o para validar contraste, sombras e cores da marca em ambos os
+        modos.
       </Typography>
 
       <Typography as="h2" variant="h3">
@@ -68,15 +68,13 @@ function Introducao() {
       <ul className="list-disc space-y-2 pl-6">
         <li>
           Stories ficam <strong>co-localizadas</strong> com o componente (
-          <code>button/button.stories.tsx</code>, etc.), seguindo o mesmo
-          padrão dos arquivos de teste.
+          <code>button/button.stories.tsx</code>, etc.), seguindo o mesmo padrão
+          dos arquivos de teste.
         </li>
         <li>
           Textos em <strong>pt-BR</strong>, igual à interface.
         </li>
-        <li>
-          Cada story tem uma descrição explicando o caso de uso.
-        </li>
+        <li>Cada story tem uma descrição explicando o caso de uso.</li>
       </ul>
     </article>
   );

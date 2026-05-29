@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { UserPlus } from 'lucide-react';
 
+import { Button } from '@/components/global/button/button';
 import { PageActions } from '@/components/global/layout/pageActions';
-import { Button } from '@/components/ui/button';
 import { useSessionStore } from '@/hooks/useSessionStore';
 import { ActivityChart } from '@/screens/home/activityChart';
 import { HomeGreeting } from '@/screens/home/homeGreeting';

@@ -8,9 +8,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/global/button/button';
 import { Empty } from '@/components/global/empty/empty';
 import { PageActions } from '@/components/global/layout/pageActions';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { findUserById } from '@/screens/users/mockUsers';
 import { ActivityTab } from '@/screens/users/userDetails/activityTab';

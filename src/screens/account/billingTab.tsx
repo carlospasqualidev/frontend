@@ -1,9 +1,9 @@
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui/typography';
 
 interface Invoice {

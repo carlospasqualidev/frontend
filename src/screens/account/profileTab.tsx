@@ -1,9 +1,9 @@
 import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,34 +57,36 @@ export function ProfileTab() {
         title="Informações públicas"
         description="Dados exibidos no seu perfil e em comentários."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="account-name">Nome</Label>
-            <Input id="account-name" name="name" defaultValue={user.name} />
+        <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="account-name">Nome</Label>
+              <Input id="account-name" name="name" defaultValue={user.name} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="account-email">E-mail</Label>
+              <Input
+                id="account-email"
+                name="email"
+                type="email"
+                defaultValue={user.email}
+                readOnly
+                aria-readonly
+              />
+              <Typography variant="muted" className="text-xs">
+                Para alterar o e-mail, contate o administrador.
+              </Typography>
+            </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="account-email">E-mail</Label>
-            <Input
-              id="account-email"
-              name="email"
-              type="email"
-              defaultValue={user.email}
-              readOnly
-              aria-readonly
+            <Label htmlFor="account-bio">Bio</Label>
+            <Textarea
+              id="account-bio"
+              name="bio"
+              rows={3}
+              placeholder="Conte um pouco sobre você..."
             />
-            <Typography variant="muted" className="text-xs">
-              Para alterar o e-mail, contate o administrador.
-            </Typography>
           </div>
-        </div>
-        <div className="mt-4 grid gap-2">
-          <Label htmlFor="account-bio">Bio</Label>
-          <Textarea
-            id="account-bio"
-            name="bio"
-            rows={3}
-            placeholder="Conte um pouco sobre você..."
-          />
         </div>
       </Card>
 

@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
-import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/ui/typography';
 import {
   PENDING_TASKS,
