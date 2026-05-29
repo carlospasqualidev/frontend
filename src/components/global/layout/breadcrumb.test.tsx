@@ -34,21 +34,21 @@ function makeRouter(initialPath: string) {
     component: () => <span>home</span>,
   });
 
-  const playgroundRoute = createRoute({
+  const usersRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path: '/playground',
-    staticData: { breadcrumb: 'Playground' },
+    path: '/users',
+    staticData: { breadcrumb: 'Usuários' },
     component: () => <Outlet />,
   });
 
-  const playgroundIndex = createRoute({
-    getParentRoute: () => playgroundRoute,
+  const usersIndex = createRoute({
+    getParentRoute: () => usersRoute,
     path: '/',
-    component: () => <span>playground</span>,
+    component: () => <span>users</span>,
   });
 
   const detailsRoute = createRoute({
-    getParentRoute: () => playgroundRoute,
+    getParentRoute: () => usersRoute,
     path: '/details',
     staticData: { breadcrumb: 'Detalhes' },
     component: () => <span>details</span>,
@@ -57,7 +57,7 @@ function makeRouter(initialPath: string) {
   return createRouter({
     routeTree: rootRoute.addChildren([
       homeRoute,
-      playgroundRoute.addChildren([playgroundIndex, detailsRoute]),
+      usersRoute.addChildren([usersIndex, detailsRoute]),
     ]),
     history: createMemoryHistory({ initialEntries: [initialPath] }),
   });
@@ -72,25 +72,25 @@ describe('Breadcrumb', () => {
   });
 
   it('renderiza apenas o título da rota atual em uma rota de 1 nível', async () => {
-    const router = makeRouter('/playground');
+    const router = makeRouter('/users');
     render(<RouterProvider router={router} />);
 
-    const current = await screen.findByText('Playground');
+    const current = await screen.findByText('Usuários');
     expect(current).toBeInTheDocument();
     // Item atual é marcado como página atual (aria-current="page"), não link real.
     expect(current).toHaveAttribute('aria-current', 'page');
   });
 
   it('encadeia rotas com staticData.breadcrumb em sequência', async () => {
-    const router = makeRouter('/playground/details');
+    const router = makeRouter('/users/details');
     render(<RouterProvider router={router} />);
 
-    const playgroundLabel = await screen.findByText('Playground');
+    const usersLabel = await screen.findByText('Usuários');
     const detailsLabel = await screen.findByText('Detalhes');
-    expect(playgroundLabel).toBeInTheDocument();
+    expect(usersLabel).toBeInTheDocument();
     expect(detailsLabel).toBeInTheDocument();
-    // "Playground" deixou de ser a rota atual e virou um link real para /playground.
-    expect(playgroundLabel.closest('a')).toHaveAttribute('href', '/playground');
+    // "Usuários" deixou de ser a rota atual e virou um link real para /users.
+    expect(usersLabel.closest('a')).toHaveAttribute('href', '/users');
     // "Detalhes" é a rota atual e não envolve <a>.
     expect(detailsLabel.closest('a')).toBeNull();
     expect(detailsLabel).toHaveAttribute('aria-current', 'page');

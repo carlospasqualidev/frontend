@@ -1,4 +1,4 @@
-import { RollerCoaster, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 import { env } from '@/lib/env';
 
@@ -24,11 +24,6 @@ export const sidebarData = {
       title: 'Início',
       url: '/',
       icon: <Home />,
-    },
-    {
-      title: 'Playground',
-      url: '/playground',
-      icon: <RollerCoaster />,
     },
   ],
 };

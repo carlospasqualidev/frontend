@@ -6,7 +6,6 @@ import {
 } from '@tanstack/react-router';
 
 import { NotFound } from './components/global/layout/notFound';
-import { playgroundRouteTree } from './screens/playground/routes';
 
 import { Layout } from '@/components/global/layout/layout';
 import { SessionValidation } from '@/components/global/layout/sessionValidation';
@@ -48,6 +47,6 @@ export const router = createRouter({
   routeTree: rootRoute.addChildren([
     loginRoute,
     signupRoute,
-    protectedLayoutRoute.addChildren([homeRoute, playgroundRouteTree]),
+    protectedLayoutRoute.addChildren([homeRoute]),
   ]),
 });

@@ -8,6 +8,11 @@ import {
 } from 'react-hook-form';
 
 import {
+  MultiSelect as BaseMultiSelect,
+  type MultiSelectOption,
+} from './multiSelectPrimitive';
+
+import {
   type FormFieldErrors,
   resolveFieldErrors,
   hasFieldErrors,
@@ -18,10 +23,6 @@ import {
   FieldError,
   FieldLabel,
 } from '@/components/ui/field';
-import {
-  MultiSelect as BaseMultiSelect,
-  type MultiSelectOption,
-} from '@/components/global/multiSelect/multiSelectPrimitive';
 
 type MultiSelectBaseProps = Omit<
   React.ComponentProps<typeof BaseMultiSelect>,

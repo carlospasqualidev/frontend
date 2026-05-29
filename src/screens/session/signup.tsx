@@ -8,18 +8,12 @@ import { useZodForm } from '@/lib/forms/useZodForm';
 import { sessionService } from '@/services/session/sessionService';
 import { Button } from '@/components/global/button/button';
 import { InputField } from '@/components/global/form/inputField';
-import {
-  AppleIcon,
-  GoogleIcon,
-  MetaIcon,
-} from '@/components/global/socialIcons/socialIcons';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldSeparator,
 } from '@/components/ui/field';
 import { Typography } from '@/components/ui/typography';
 
@@ -135,37 +129,6 @@ export function SignupScreen() {
                     Criar conta
                   </Button>
                   <FieldError errors={[errors.root]} />
-                </Field>
-
-                <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                  Ou continue com
-                </FieldSeparator>
-
-                <Field className="grid grid-cols-3 gap-4">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    disabled={isSubmitting}
-                  >
-                    <AppleIcon />
-                    <span className="sr-only">Cadastrar com Apple</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    disabled={isSubmitting}
-                  >
-                    <GoogleIcon />
-                    <span className="sr-only">Cadastrar com Google</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    disabled={isSubmitting}
-                  >
-                    <MetaIcon />
-                    <span className="sr-only">Cadastrar com Meta</span>
-                  </Button>
                 </Field>
 
                 <FieldDescription className="text-center">

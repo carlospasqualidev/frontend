@@ -16,6 +16,7 @@ import {
 } from './filters';
 
 import { Empty } from '@/components/global/empty/empty';
+import { SkeletonText } from '@/components/global/skeleton/skeleton';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -25,6 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
+const SKELETON_WIDTHS = ['w-20', 'w-32', 'w-24', 'w-28', 'w-16'];
 
 declare module '@tanstack/react-table' {
   // Permite que cada coluna passe classes Tailwind para o `<th>`/`<td>` —
@@ -80,6 +83,12 @@ interface DataTableProps<TData, TValue> {
    * não disparam o clique da linha; eles param a propagação automaticamente.
    */
   onRowClick?: (row: TData) => void;
+  /**
+   * Exibe `pageSize` linhas com skeletons no lugar do conteúdo das células.
+   * Filtros e cabeçalho permanecem visíveis e interativos; a paginação é
+   * desabilitada durante o load para evitar disparos em estado inconsistente.
+   */
+  isLoading?: boolean;
 }
 
 /**
@@ -114,6 +123,7 @@ export function DataTable<TData, TValue>({
   onSearch,
   defaultFilterValues,
   onRowClick,
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -178,7 +188,29 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              Array.from({ length: pageSize }).map((_, rowIndex) => (
+                <TableRow
+                  key={`skeleton-${rowIndex}`}
+                  className="hover:bg-transparent"
+                >
+                  {table.getVisibleLeafColumns().map((column, colIndex) => {
+                    const meta = column.columnDef.meta as
+                      | { className?: string }
+                      | undefined;
+                    const width =
+                      SKELETON_WIDTHS[
+                        (rowIndex + colIndex) % SKELETON_WIDTHS.length
+                      ];
+                    return (
+                      <TableCell key={column.id} className={meta?.className}>
+                        <SkeletonText className={width} />
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -253,7 +285,7 @@ export function DataTable<TData, TValue>({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(pageIndex - 1)}
-          disabled={pageIndex === 0}
+          disabled={pageIndex === 0 || isLoading}
         >
           Anterior
         </Button>
@@ -261,7 +293,7 @@ export function DataTable<TData, TValue>({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(pageIndex + 1)}
-          disabled={data.length < pageSize}
+          disabled={isLoading || data.length < pageSize}
         >
           Próxima
         </Button>

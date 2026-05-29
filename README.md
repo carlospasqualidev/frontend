@@ -35,18 +35,20 @@ npm run dev
 
 ## Scripts
 
-| Script               | Descrição                                                       |
-| -------------------- | --------------------------------------------------------------- |
-| `npm run dev`        | Servidor de desenvolvimento                                     |
-| `npm run build`      | Typecheck + build de produção                                   |
-| `npm run preview`    | Pré-visualiza o build                                           |
-| `npm run lint`       | ESLint                                                          |
-| `npm run format`     | Prettier (escrita)                                              |
-| `npm run typecheck`  | Checagem de tipos (`tsc -b`)                                    |
-| `npm test`           | Executa a suíte de testes uma vez                               |
-| `npm run test:watch` | Testes em modo watch                                            |
-| `npm run check`      | Roda `lint + typecheck + test` em sequência                     |
-| `npm run clean`      | Limpa `dist/` e caches (`node_modules/.tmp`, `.vite`, `.cache`) |
+| Script                    | Descrição                                                       |
+| ------------------------- | --------------------------------------------------------------- |
+| `npm run dev`             | Servidor de desenvolvimento                                     |
+| `npm run build`           | Typecheck + build de produção                                   |
+| `npm run preview`         | Pré-visualiza o build                                           |
+| `npm run lint`            | ESLint                                                          |
+| `npm run format`          | Prettier (escrita)                                              |
+| `npm run typecheck`       | Checagem de tipos (`tsc -b`)                                    |
+| `npm test`                | Executa a suíte de testes uma vez                               |
+| `npm run test:watch`      | Testes em modo watch                                            |
+| `npm run check`           | Roda `lint + typecheck + test` em sequência                     |
+| `npm run storybook`       | Storybook em modo dev (porta 6006)                              |
+| `npm run build-storybook` | Build estático do Storybook em `storybook-static/`              |
+| `npm run clean`           | Limpa `dist/` e caches (`node_modules/.tmp`, `.vite`, `.cache`) |
 
 ## Convenções de repositório
 
@@ -83,7 +85,6 @@ src/
 ├── hooks/              # hooks reutilizáveis (tema, sessão, mobile...)
 ├── lib/                # utilidades puras (env, datas, forms, queryClient, cn)
 ├── screens/            # telas, cada uma com seu `routes.ts` co-localizado
-│   └── playground/     # demos vivas de todos os componentes globais
 ├── services/           # camada de acesso a dados (api, session...)
 ├── types/              # tipos compartilhados de domínio
 ├── index.css           # tokens de design (cor da marca, dark mode, paleta)
@@ -113,14 +114,13 @@ Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (inclui
 | `Skeleton*`        | [`global/skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                         | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. Skeleton **só no dado**, não no card inteiro.                                                       |
 | `Button`           | [`global/button/button.tsx`](src/components/global/button/button.tsx)                                 | Estende o Button do shadcn com prop `loading` (spinner + disable automático).                                                                                           |
 | `ConfirmDialog`    | [`global/confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx)     | Confirmação para ações destrutivas/reversíveis. Uncontrolled (`trigger`) ou controlled (`open`/`setOpen`). Loading interno + auto-close.                                |
-| `PageHeader`       | [`global/pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)                 | Cabeçalho padrão de tela: título, descrição e área opcional de ações. Usado em `home/` e em todo o `playground/`.                                                       |
+| `PageHeader`       | [`global/pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)                 | Cabeçalho padrão de tela: título, descrição e área opcional de ações. Usado em `home/`.                                                                                 |
 | `ErrorFallback`    | [`global/errorFallback/index.tsx`](src/components/global/errorFallback/index.tsx)                     | Fallback do `react-error-boundary` no topo do app. CTA para tentar restabelecer a sessão.                                                                               |
 | `Layout` + sidebar | [`global/layout/`](src/components/global/layout) + [`global/sidebar/`](src/components/global/sidebar) | Shell autenticado: `SidebarProvider` + `AppSidebar` + header com `SidebarTrigger`, breadcrumb e `Outlet`.                                                               |
 | Form fields        | [`global/form/`](src/components/global/form)                                                          | `InputField`, `Select`, `MultiSelect`, `Checkbox`, `Switch`, `TextArea`, `DateField`, `DateTimeField`, `FieldGroup`. Uncontrolled ou controlled via `control` + `name`. |
 | `DataTable`        | [`global/dataTable/`](src/components/global/dataTable)                                                | Tabela server-side com filtros declarativos, ordenação, paginação. Estado em memória (`useDataTableQuery`) ou na URL (`useDataTableUrlQuery`).                          |
-| `SocialIcons`      | [`global/socialIcons/socialIcons.tsx`](src/components/global/socialIcons/socialIcons.tsx)             | Logos Apple/Google/Meta para botões de OAuth/SSO (não cobertos pelo Lucide).                                                                                            |
 
-Veja todas em ação em `/playground` (navegue após logar) ou diretamente em [`src/screens/playground/`](src/screens/playground).
+Veja todas em ação no Storybook (`npm run storybook`, porta 6006). Cada componente tem uma vitrine mostrando suas variações.
 
 ### Adicionar um componente shadcn/ui
 
@@ -163,8 +163,8 @@ Todos aceitam dois modos via discriminated union:
 - **Uncontrolled**: espalhe `register('campo')` + passe `errors`.
 - **Controlled**: passe `control` + `name` (+ opcional `rules`/`defaultValue`).
 
-Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e
-[`src/screens/playground/form/FormPlaygroundCard.tsx`](src/screens/playground/form/FormPlaygroundCard.tsx) como referência.
+Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e a story
+`Formulário/Formulário completo` no Storybook como referência.
 
 ### Confirmações de ação
 

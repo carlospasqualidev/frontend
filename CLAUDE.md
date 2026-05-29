@@ -287,7 +287,7 @@ const mutation = useMutation({
 });
 ```
 
-Veja exemplo vivo em [`src/screens/playground/optimisticUpdate/`](src/screens/playground/optimisticUpdate). Use só onde a latência percebida vale o risco de inconsistência momentânea — pra fluxos críticos (pagamento, perfil), prefira o pattern padrão com loading visível.
+Veja o padrão demonstrado na story `Padrões/OptimisticUpdate` no Storybook (`npm run storybook`). Use só onde a latência percebida vale o risco de inconsistência momentânea — pra fluxos críticos (pagamento, perfil), prefira o pattern padrão com loading visível.
 
 ### Sessão e autenticação
 
@@ -305,7 +305,7 @@ Veja exemplo vivo em [`src/screens/playground/optimisticUpdate/`](src/screens/pl
 - Use `useZodForm` ([`src/lib/forms/useZodForm.ts`](src/lib/forms/useZodForm.ts)) — integra React Hook Form com schema Zod.
 - Componentes de campo prontos em [`src/components/global/form/`](src/components/global/form) (`inputField`, `select`, `dateField`, `dateTimeField`, `checkbox`, `switch`, `textArea`, `multiSelect`).
 - Todos seguem o mesmo padrão: aceitam **uncontrolled** (`{...register('campo')}` + `errors`) **ou controlled** (`control` + `name` + opcional `rules`/`defaultValue`). Discriminated union impede misturar os dois modos.
-- Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e [`src/screens/playground/form/FormPlaygroundCard.tsx`](src/screens/playground/form/FormPlaygroundCard.tsx) como referência.
+- Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e a story `Formulário/Formulário completo` no Storybook como referência.
 
 ### Variáveis de ambiente
 
@@ -321,7 +321,7 @@ Veja exemplo vivo em [`src/screens/playground/optimisticUpdate/`](src/screens/pl
 
 - Adicione componentes via CLI: `npx shadcn@latest add <nome>`. **Não escreva à mão.**
 - Customize `components/ui/<x>.tsx` localmente quando necessário; mas só edite o que foi gerado pelo shadcn.
-- **Componentes próprios (não-shadcn) ficam em `components/global/`, não em `components/ui/`.** Exemplo: `MultiSelect` é escrito à mão e vive em [`global/multiSelect/multiSelectPrimitive.tsx`](src/components/global/multiSelect/multiSelectPrimitive.tsx).
+- **Componentes próprios (não-shadcn) ficam em `components/global/`, não em `components/ui/`.** Exemplo: o primitivo `MultiSelect` é escrito à mão e vive em [`global/form/multiSelectPrimitive.tsx`](src/components/global/form/multiSelectPrimitive.tsx), ao lado do wrapper integrado ao `react-hook-form`.
 - Wrappers genéricos só com ganho real (API simplificada, default visual do projeto, integração com `react-hook-form`). Quando criar um, siga o padrão em **Abstrações globais** abaixo.
 - Use `cn()` de [`src/lib/utils.ts`](src/lib/utils.ts) para concatenar classes do Tailwind.
 
@@ -337,7 +337,7 @@ Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (inclui
 | `Skeleton*`     | [`skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. **Skeleton só no dado, nunca no card inteiro** — rótulos, títulos e estrutura permanecem visíveis durante o load. |
 | `Button`        | [`button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` — exibe spinner antes do label e desabilita o botão automaticamente. Mantém todas as variantes/props do primitivo.                      |
 | `ConfirmDialog` | [`confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. **Uncontrolled** (`trigger` prop, estado interno) ou **controlled** (`open`/`setOpen`). Loading interno automático e auto-close.      |
-| `PageHeader`    | [`pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)             | Cabeçalho padrão de tela: `title`, `description`, `actions` opcional. Usado em `home/` e em todo o `playground/`.                                                                     |
+| `PageHeader`    | [`pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)             | Cabeçalho padrão de tela: `title`, `description`, `actions` opcional. Usado em `home/`.                                                                                               |
 
 **Padrão para criar uma nova abstração global:**
 
@@ -414,18 +414,16 @@ A cor primária do sistema vive em **uma única variável** no topo de [`src/ind
 
 - Padrão de tabela com paginação/filtro server-side em [`src/components/global/dataTable/`](src/components/global/dataTable). Use [`useDataTableQuery`](src/components/global/dataTable/useDataTableQuery.ts) (estado da URL via [`useDataTableUrlQuery`](src/components/global/dataTable/useDataTableUrlQuery.ts)).
 - Empty state automático: quando não há resultados e há filtros ativos, exibe um `Empty` com botão "Limpar filtros" que dispara `onSearch({})`. Sem filtros, mostra "Ainda não há registros para exibir.".
-- Exemplo vivo: [`src/screens/playground/dataTable/`](src/screens/playground/dataTable).
+- Exemplo vivo: story `DataTable/ServerSide` no Storybook.
 
-### Playground (demos de componentes)
+### Storybook (demos de componentes)
 
-Cada componente novo ganha sua tela em [`src/screens/playground/<nome>/`](src/screens/playground):
+Cada componente global tem uma story co-localizada (`button/button.stories.tsx`, etc.) com uma única "Vitrine" mostrando todas as variações em um só lugar. Rode com `npm run storybook` (porta 6006).
 
-- `playground<Nome>.tsx` — um ou mais componentes exportados, cada um demonstrando um aspecto (variantes, estados, casos de uso). Envolvidos em `Card` global com `title="<Nome> - <variação>"` e descrição explicativa.
-- `index.tsx` — página com `PlaygroundHeader` + grid 2 colunas dos demos.
-- Rota em [`src/screens/playground/routes.ts`](src/screens/playground/routes.ts) com `breadcrumb` em `staticData` e `lazyRouteComponent`.
-- Link card em [`src/screens/playground/index.tsx`](src/screens/playground/index.tsx) pra navegação.
-
-Para demos com estado de loading, use o hook compartilhado [`useSimulatedLoading`](src/screens/playground/useSimulatedLoading.ts) (2s).
+- Stories vivem ao lado do componente, mesmo padrão dos arquivos de teste.
+- Cada vitrine envolve as variações em `Card` global com título + descrição explicativa.
+- Composições maiores (`DataTable`, `Form completo`, `CRUD`, `OptimisticUpdate`) ficam em [`src/stories/`](src/stories).
+- Configuração: [`.storybook/main.ts`](.storybook/main.ts) e [`.storybook/preview.tsx`](.storybook/preview.tsx) (já injetam `ThemeProvider`, `QueryClient` e `Toaster`).
 
 ---
 

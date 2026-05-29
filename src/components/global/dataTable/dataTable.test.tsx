@@ -17,7 +17,11 @@ const columns: ColumnDef<Row>[] = [
 ];
 
 const filters: DataTableFilter[] = [
-  textFilter({ key: 'email', label: 'E-mail' }),
+  textFilter({
+    key: 'email',
+    label: 'E-mail',
+    placeholder: 'Buscar por e-mail',
+  }),
 ];
 
 describe('DataTable', () => {
@@ -78,6 +82,52 @@ describe('DataTable', () => {
 
     await userEvent.click(clearButton);
     expect(handleSearch).toHaveBeenCalledWith({});
+  });
+
+  describe('isLoading', () => {
+    it('renderiza pageSize linhas de skeleton e desabilita a paginação', () => {
+      const data: Row[] = [{ id: '1', email: 'ana@example.com' }];
+
+      const { container } = render(
+        <DataTable
+          columns={columns}
+          data={data}
+          pageIndex={1}
+          onPageChange={() => undefined}
+          pageSize={3}
+          isLoading
+        />
+      );
+
+      expect(screen.queryByText('ana@example.com')).not.toBeInTheDocument();
+      expect(
+        container.querySelectorAll('[data-slot="skeleton"]')
+      ).toHaveLength(3);
+      expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
+    });
+
+    it('mantém filtros visíveis e interativos durante o loading', async () => {
+      const handleSearch = vi.fn();
+
+      render(
+        <DataTable
+          columns={columns}
+          data={[]}
+          pageIndex={0}
+          onPageChange={() => undefined}
+          filters={filters}
+          onSearch={handleSearch}
+          isLoading
+        />
+      );
+
+      const emailInput = screen.getByPlaceholderText('Buscar por e-mail');
+      await userEvent.type(emailInput, 'ana');
+      await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+
+      expect(handleSearch).toHaveBeenCalledWith({ email: 'ana' });
+    });
   });
 
   it('desabilita "Anterior" na primeira página', () => {
