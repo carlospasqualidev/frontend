@@ -116,7 +116,7 @@ export function DataTable<TData, TValue>({
   data,
   pageIndex,
   onPageChange,
-  pageSize = 50,
+  pageSize = 25,
   emptyMessage = 'Nenhum resultado.',
   onSortingChange,
   filters,
@@ -236,7 +236,7 @@ export function DataTable<TData, TValue>({
                   tabIndex={onRowClick ? 0 : undefined}
                   className={
                     onRowClick
-                      ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
                       : undefined
                   }
                 >

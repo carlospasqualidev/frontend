@@ -1,12 +1,11 @@
 import {
   BadgeCheckIcon,
-  BellIcon,
   ChevronsUpDownIcon,
-  CreditCardIcon,
   LogOutIcon,
   SparklesIcon,
 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
+import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -98,24 +97,20 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toast('Plano Pro em breve.')}>
                 <SparklesIcon />
                 Upgrade para Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  void navigate({ to: '/account' });
+                }}
+              >
                 <BadgeCheckIcon />
                 Conta
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Pagamento
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notificações
               </DropdownMenuItem>
             </DropdownMenuGroup>
 

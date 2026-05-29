@@ -1,0 +1,226 @@
+import { useNavigate } from '@tanstack/react-router';
+import { type ColumnDef } from '@tanstack/react-table';
+import { Copy, Pencil, Trash2, UserPlus, UserX } from 'lucide-react';
+import { toast } from 'sonner';
+
+import {
+  actionsColumn,
+  SortableHeader,
+} from '@/components/global/dataTable/columnHelpers';
+import { DataTable } from '@/components/global/dataTable/dataTable';
+import {
+  dateRangeFilter,
+  multiSelectFilter,
+  selectFilter,
+  textFilter,
+} from '@/components/global/dataTable/filters';
+import { useDataTableUrlQuery } from '@/components/global/dataTable/useDataTableUrlQuery';
+import { PageActions } from '@/components/global/layout/pageActions';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Typography } from '@/components/ui/typography';
+import { dateFormatter } from '@/lib/dateTime/dateFormatter';
+import { getInitials } from '@/screens/users/getInitials';
+import { queryUsers } from '@/screens/users/mockUsers';
+import {
+  ROLE_BADGE_VARIANT,
+  STATUS_BADGE_VARIANT,
+} from '@/screens/users/userBadges';
+import {
+  USER_ROLE_LABELS,
+  USER_ROLE_OPTIONS,
+  USER_STATUS_LABELS,
+  USER_STATUS_OPTIONS,
+  type ManagedUser,
+} from '@/screens/users/types';
+
+const filters = [
+  textFilter({
+    key: 'q',
+    label: 'Buscar',
+    placeholder: 'Nome ou e-mail...',
+  }),
+  multiSelectFilter({
+    key: 'role',
+    label: 'Papel',
+    placeholder: 'Todos os papéis',
+    options: USER_ROLE_OPTIONS,
+  }),
+  selectFilter({
+    key: 'status',
+    label: 'Status',
+    options: USER_STATUS_OPTIONS,
+  }),
+  dateRangeFilter({
+    key: 'createdAt',
+    label: 'Cadastrado em',
+  }),
+];
+
+const PAGE_SIZE = 25;
+
+export function UsersPage() {
+  const navigate = useNavigate();
+
+  const { query, tableProps } = useDataTableUrlQuery({
+    pageSize: PAGE_SIZE,
+    defaultSorting: [{ id: 'createdAt', desc: true }],
+  });
+
+  const data = queryUsers({
+    filters: query.filters,
+    sort: query.sort,
+    page: query.page,
+    pageSize: PAGE_SIZE,
+  });
+
+  const columns: ColumnDef<ManagedUser>[] = [
+    {
+      id: 'user',
+      header: ({ column }) => (
+        <SortableHeader column={column}>Usuário</SortableHeader>
+      ),
+      accessorKey: 'name',
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <Typography as="span" variant="small" className="block truncate">
+                {user.name}
+              </Typography>
+              <Typography
+                as="span"
+                variant="muted"
+                className="block truncate text-xs"
+              >
+                {user.email}
+              </Typography>
+            </div>
+          </div>
+        );
+      },
+      meta: { className: 'min-w-[260px]' },
+    },
+    {
+      accessorKey: 'role',
+      header: 'Papel',
+      cell: ({ row }) => {
+        const role = row.original.role;
+        return (
+          <Badge variant={ROLE_BADGE_VARIANT[role]}>
+            {USER_ROLE_LABELS[role]}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return (
+          <Badge variant={STATUS_BADGE_VARIANT[status]}>
+            {USER_STATUS_LABELS[status]}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <SortableHeader column={column}>Cadastrado em</SortableHeader>
+      ),
+      cell: ({ row }) =>
+        dateFormatter({ date: row.original.createdAt, hasTimeStamp: false }),
+    },
+    {
+      accessorKey: 'lastLoginAt',
+      header: ({ column }) => (
+        <SortableHeader column={column}>Último acesso</SortableHeader>
+      ),
+      cell: ({ row }) => {
+        const value = row.original.lastLoginAt;
+        if (!value) {
+          return (
+            <Typography as="span" variant="muted">
+              Nunca acessou
+            </Typography>
+          );
+        }
+        return dateFormatter({ date: value, hasTimeStamp: false });
+      },
+    },
+    actionsColumn<ManagedUser>({
+      label: 'Ações',
+      actions: (user) => [
+        {
+          label: 'Copiar e-mail',
+          icon: <Copy />,
+          onSelect: () => {
+            void navigator.clipboard.writeText(user.email);
+            toast.success('E-mail copiado para a área de transferência.');
+          },
+        },
+        {
+          label: 'Editar',
+          icon: <Pencil />,
+          onSelect: () =>
+            navigate({
+              to: '/users/$userId',
+              params: { userId: user.id },
+            }),
+        },
+        {
+          label: user.status === 'active' ? 'Desativar' : 'Reativar',
+          icon: <UserX />,
+          separatorBefore: true,
+          onSelect: () =>
+            toast(
+              user.status === 'active'
+                ? `${user.name} foi desativado.`
+                : `${user.name} foi reativado.`
+            ),
+        },
+        {
+          label: 'Excluir',
+          icon: <Trash2 />,
+          destructive: true,
+          onSelect: () => toast(`Excluir ${user.name}.`),
+        },
+      ],
+    }),
+  ];
+
+  return (
+    <>
+      <PageActions>
+        <Button
+          aria-label="Novo usuário"
+          onClick={() => toast('Abrir formulário de novo usuário.')}
+        >
+          <UserPlus />
+          <span className="hidden sm:inline">Novo usuário</span>
+        </Button>
+      </PageActions>
+
+      <DataTable
+        columns={columns}
+        data={data}
+        filters={filters}
+        emptyMessage="Nenhum usuário encontrado."
+        onRowClick={(user) =>
+          navigate({
+            to: '/users/$userId',
+            params: { userId: user.id },
+          })
+        }
+        {...tableProps}
+      />
+    </>
+  );
+}

@@ -38,6 +38,16 @@ Evite complexidade desnecessária, over-engineering e soluções que desviem da 
 
 Se uma mudança ameaça introduzir instabilidade, inconsistência ou complexidade desnecessária, prefira a versão mais simples e segura.
 
+### Inspirações de design e organização
+
+Para decisões de UX, layout ou organização de tela, siga esta ordem:
+
+1. **Procure primeiro no próprio projeto.** Antes de inventar, varra `src/screens/`, `src/components/global/` e o Storybook (`npm run storybook`) atrás de algo equivalente. Replique pasta, abstração e cadência visual que já existem (`PageActions`, `Card`, `Tabs` variant `line`, `DataTable`, organização em pastas por aba). Padronização interna **sempre** vence preferência individual — uma tela nova deve parecer parte do sistema, não um experimento isolado.
+2. **Quando não houver referência interna, inspire-se em sistemas consolidados** (GitHub, Linear, Vercel Dashboard, Stripe Dashboard, Notion). Use-os para preencher lacunas — _como_ eles organizam abas de settings, _onde_ eles colocam ações primárias, _como_ eles paginam. Adapte para as abstrações deste projeto; não copie estrutura paralela ("trouxe um header novo do GitHub" em vez de usar `PageActions` é regressão de padronização).
+3. **Se a decisão vai virar padrão para outras telas, documente.** Quando você introduz uma nova convenção que se repetirá (ex.: slot global de `PageActions`, organização em pasta por aba), registre brevemente em `CLAUDE.md` para que a próxima sessão (humana ou Claude) já chegue alinhada.
+
+Resumo: **consistência interna > inspiração externa > improvisar do zero.**
+
 ---
 
 ## Linguagem de código
@@ -98,6 +108,10 @@ Se a resposta não é #1 ou #2, a div não deveria estar lá.
 - **Reuse abstrações globais** (`Card`, `Empty`, `Modal`, `ConfirmDialog`, `Field`) em vez de recriar a estrutura delas com divs e classes soltas.
 - **Não empilhe wrappers de layout**: um `flex`/`grid` parent geralmente basta. `<div flex><div flex>` é code smell.
 - **Sem classe Tailwind redundante**: nada de `w-full` em elemento block-level, `flex-col` num pai que já é `flex-col`, ou `text-foreground` quando é o default.
+- **Prefira utilitários da escala Tailwind à notação em pixel**. A escala do Tailwind (1 = 0.25rem = 4px) cobre praticamente todo caso de UI — use ela em vez de bracket notation com `px`. Valores arbitrários quebram a escala, descalibram o ritmo visual entre componentes e o ESLint do projeto sinaliza casos comuns (`min-h-[4px]` → `min-h-1`).
+  - ❌ `min-h-[4px]` · `w-[16px]` · `size-[20px]` · `gap-[8px]` · `mt-[12px]`
+  - ✓ `min-h-1` · `w-4` · `size-5` · `gap-2` · `mt-3`
+  - Bracket notation só para valores fora da escala (ex.: `min-w-[260px]` em uma coluna específica de tabela, `top-[3px]` para ajuste óptico fino).
 - **Prefira styling no elemento certo**, não num wrapper criado pra isso. Se precisa de margem num botão, passe `className` no botão (ou ajuste o `gap` do pai).
 - **Não comente o que o JSX já diz**. Componente bem nomeado dispensa `{/* Header */}` em cima de `<Header />`.
 
@@ -212,6 +226,45 @@ Esconder coluna em mobile é regressão de UX, não responsividade.
 
 ---
 
+## Loading e estados intermediários
+
+**Não substitua a tela por um spinner gigante nem por um skeleton genérico.** Quando algo está carregando, monte a **estrutura final da tela primeiro** e troque **apenas o dado que muda** por skeleton. Cabeçalhos, rótulos, ações, filtros, navegação, breadcrumb — tudo que não muda entre vazio e preenchido continua **visível e interativo**.
+
+### Por quê
+
+Spinner gigante centralizado no lugar do conteúdo:
+
+- **Atrasa a percepção do que a tela é** — o usuário só descobre o layout depois que carrega.
+- **Esconde a navegação contextual** (breadcrumb, abas, ações secundárias) que ele poderia usar pra clicar em outro lugar enquanto espera.
+- **Provoca CLS** (layout shift) — quando o conteúdo aparece, a estrutura se monta de uma vez e empurra tudo.
+
+Skeleton localizado onde o dado entra:
+
+- O usuário já entende **o que a tela faz** antes dos dados chegarem.
+- Mantém a UI **interativa** ao redor (filtros, breadcrumb, ações secundárias).
+- Sem layout shift: o espaço final do dado já está reservado.
+
+### Padrões corretos (já no projeto — reuse antes de criar)
+
+- **[`DataTable`](src/components/global/dataTable/dataTable.tsx)** com `isLoading={true}`: header, filtros e paginação **continuam visíveis**; só as células do `<tbody>` viram skeleton, linha-a-linha.
+- **[`Skeleton*`](src/components/global/skeleton/skeleton.tsx)** (`SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`): granulares por design — coloque no lugar **exato** do dado, dentro do card real.
+- **[`Button` global](src/components/global/button/button.tsx)** com `loading`: spinner pequeno inline **dentro do botão** que disparou a ação. Esse spinner é localizado, não é "spinner de tela".
+
+### Anti-padrões a evitar
+
+- ❌ `<div className="flex min-h-64 items-center justify-center"><Loader2 /></div>` no lugar do conteúdo de uma tela.
+- ❌ Envolver tela ou card inteiro num `<Skeleton className="h-full w-full" />` genérico.
+- ❌ Skeletonizar rótulos fixos ("Nome", "E-mail", "Status") — eles nunca mudam, não precisam virar bloco cinza.
+- ❌ Modal/Drawer que abre e mostra spinner gigante até o form aparecer. Renderize o form com skeleton nos campos.
+
+### Exceções legítimas
+
+Tela cheia com indicador grande **só** quando ainda não existe shell pra mostrar — ex.: [`SessionValidationScreen`](src/components/global/layout/sessionValidationScreen.tsx) durante o boot da app, antes de qualquer rota protegida ter renderizado. Aí o "shell" não existe ainda; branding + barra de progresso é o melhor que dá.
+
+O fallback do `<Suspense>` que carrega chunks de rota (em [`layout.tsx`](src/components/global/layout/layout.tsx)) deve ser **discreto** (barra fina pulsante, dots, ou nada visível) — `defaultPreload: 'intent'` já cobre 99% dos casos; o fallback é só pra cliques antes do hover. Spinner gigante aqui empobrece a navegação.
+
+---
+
 ## Estrutura de pastas
 
 ```
@@ -262,6 +315,73 @@ export const minhaTelaRoute = createRoute({
 ```
 
 Depois, registre em [`src/routes.tsx`](src/routes.tsx).
+
+### Organização de telas
+
+`screens/<feature>/index.tsx` deve ficar **enxuto** — apenas o shell da tela: orquestração de abas, layout principal, navegação e chamadas a hooks/serviços. Quando a tela cresce com várias seções lógicas (abas, blocos extensos, dialogs específicos, formulários grandes), **promova para pasta** e separe cada bloco em seu próprio arquivo. Não empilhe `OverviewTab`, `ActivityTab`, `PermissionsTab` etc. num único arquivo gigante.
+
+❌ Tudo num só `userDetails.tsx`:
+
+```tsx
+function OverviewTab() { ... }      // 40 linhas
+function ActivityTab() { ... }      // 60 linhas
+function PermissionsTab() { ... }   // 50 linhas
+function SessionsTab() { ... }      // 70 linhas
+
+export function UserDetailsPage() {
+  return <Tabs>...</Tabs>;
+}
+```
+
+✓ Pasta com uma seção por arquivo:
+
+```
+screens/users/userDetails/
+├── index.tsx              # UserDetailsPage — só o shell, monta as abas
+├── overviewTab.tsx        # exporta OverviewTab
+├── activityTab.tsx        # exporta ActivityTab
+├── permissionsTab.tsx     # exporta PermissionsTab
+└── sessionsTab.tsx        # exporta SessionsTab
+```
+
+Cada arquivo exporta apenas o seu componente público. Helpers privados (constantes de ícones, sub-componentes usados em uma única seção, type guards locais) ficam **dentro do arquivo onde são usados**, não num `utils.ts` compartilhado por reflexo. Utilitários compartilhados entre lista e detalhe (ex.: `getInitials`, mapas de variante de `Badge`) vivem ao lado do `routes.ts` da feature (`screens/<feature>/getInitials.ts`, `screens/<feature>/userBadges.ts`).
+
+O `lazyRouteComponent(() => import('./userDetails'), 'UserDetailsPage')` continua funcionando sem mudança — o resolver acha `userDetails/index.tsx` automaticamente.
+
+O mesmo padrão vale para a lista (`index.tsx` da feature) quando ela ganha extensão: extraia colunas, filtros e células custom para arquivos próprios em vez de inflar o componente da página.
+
+**Não embrulhe a tela inteira num wrapper de spacing/padding.** O [`Layout`](src/components/global/layout/layout.tsx) global já aplica `space-y-4` ao container que recebe `children`, então os filhos diretos do componente da tela (`<PageHeader />`, `<section>`, `<Tabs>`, grids) **já ficam espaçados automaticamente**. Adicionar `<div className="space-y-6">…</div>` (ou outro `space-y-*` / `p-*`) na raiz da tela é redundante, descalibra o ritmo visual entre telas e empilha uma `<div>` à toa.
+
+❌ Wrapper redundante:
+
+```tsx
+export function DashboardPage() {
+  return (
+    <div className="space-y-6">           {/* o Layout já faz isso */}
+      <PageHeader ... />
+      <StatsGrid />
+      <ActivityChart />
+    </div>
+  );
+}
+```
+
+✓ Filhos soltos sob um Fragment (`<>` somente se houver `<PageActions>` ou múltiplos irmãos):
+
+```tsx
+export function DashboardPage() {
+  return (
+    <>
+      <PageActions>...</PageActions>
+      <PageHeader ... />
+      <StatsGrid />
+      <ActivityChart />
+    </>
+  );
+}
+```
+
+Só introduza um wrapper na raiz quando precisar de um comportamento de layout real que o Layout não cobre — ex.: a tela quer ocupar 100% da altura disponível (`flex h-full min-h-0 flex-col`, como na lista de usuários). Nesse caso, o wrapper paga pelo seu lugar; spacing puro não.
 
 ### HTTP
 
