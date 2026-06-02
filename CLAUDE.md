@@ -785,6 +785,14 @@ export function Field(props: FieldProps<...>) {
 
 O dialog fica aberto enquanto `onConfirm` resolve (botão com spinner via `loading`), fecha em sucesso e permanece aberto se a promise lançar — deixe o erro propagar pro interceptor do `api` (que já mostra o toast).
 
+**Confirmação dupla para ações críticas:** Para ações mais sérias (bloquear/banir usuário, apagar dados sensíveis, reverter cobrança), exija uma confirmação adicional antes de executar. Padrões recomendados:
+
+- UX: primeiro `ConfirmDialog` com descrição clara; se o usuário confirmar, abra um segundo passo que peça digitar o nome do recurso ou uma palavra de confirmação (`BLOCK`, `APAGAR`) antes de habilitar o botão final. Isso reduz confirmações acidentais.
+- Técnica: reuse `ConfirmDialog` em modo uncontrolled para o gatilho, e no `onConfirm` do primeiro passo abra um segundo modal ou um pequeno inline form que exige a confirmação textual. Implemente a ação final através de `useMutation` com `onMutate`/`onError`/`onSettled` para optimistic updates/rollback quando aplicável.
+- Exemplo rápido: botão "Bloquear" → `ConfirmDialog` com `description` → ao confirmar mostrar campo `Digite "BLOQUEAR" para confirmar` + botão final que só fica `enabled` quando o texto bate.
+
+Use confirmação dupla apenas em ações irreversíveis ou que tenham alto impacto de negócio; para ações de rotina, o `ConfirmDialog` simples é suficiente.
+
 ### Cor da marca e tema
 
 A cor primária do sistema vive em **uma única variável** no topo de [`src/index.css`](src/index.css):
