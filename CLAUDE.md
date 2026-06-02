@@ -362,6 +362,8 @@ Skeleton localizado onde o dado entra:
 
 Regra adicional: Os skeletons devem ser extraídos para arquivos próprios em vez de serem definidos inline nos `index` ou arquivos de tela. Coloque o skeleton co-localizado com o componente que ele simula (por exemplo: `src/screens/users/userListSkeleton.tsx`) ou em `src/components/global/skeleton/` quando for reutilizável. Nome recomendado: `ComponentSkeleton.tsx` (camelCase para arquivos .tsx do projeto). Cada skeleton novo deve vir acompanhado de uma story e um teste (mesma regra das abstrações globais) para manter a vitrine e a cobertura automatizada. Isso evita poluição do arquivo `index` e melhora legibilidade e reuso.
 
+Adicionalmente, o skeleton deve seguir a estrutura da tela e reproduzir o layout real o mais próximo possível: mantenha as mesmas margens, espaçamentos, tamanhos de blocos e ordem visual dos elementos para evitar shifts visuais quando o conteúdo real for carregado. O objetivo é minimizar CLS e dar ao usuário uma prévia fiel da UI enquanto os dados carregam.
+
 ### Anti-padrões a evitar
 
 - ❌ `<div className="flex min-h-64 items-center justify-center"><Loader2 /></div>` no lugar do conteúdo de uma tela.
