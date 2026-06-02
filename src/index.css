@@ -49,9 +49,13 @@
 }
 
 :root {
+  /* controles nativos (spinner do input number, scrollbar, date picker)
+     seguem o tema claro */
+  color-scheme: light;
+
   /* ────────────────────────────────────────────────────────────────
      COR DA MARCA — altere aqui (e em .dark abaixo) para trocar a
-     identidade visual entre projetos. 
+     identidade visual entre projetos.
      ──────────────────────────────────────────────────────────────── */
   --brand: oklch(0.488 0.243 264.376);
   --brand-foreground: oklch(0.97 0.014 254.604);
@@ -100,6 +104,10 @@
 }
 
 .dark {
+  /* controles nativos seguem o tema escuro — sem isso o spinner do
+     input number aparece branco/claro sobre o fundo escuro */
+  color-scheme: dark;
+
   /* Cor da marca — versão tonada para dark mode (mesma marca, contraste ajustado) */
   --brand: oklch(0.424 0.199 265.638);
   --brand-foreground: oklch(0.97 0.014 254.604);

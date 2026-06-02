@@ -114,6 +114,19 @@ export const Vitrine: Story = {
           disabled
         />
       </Card>
+
+      <Card
+        title="Numérico"
+        description="As setas do spinner nativo seguem o tema (color-scheme) — alterne light/dark para conferir."
+      >
+        <InputField
+          id="limit"
+          label="Limite diário"
+          type="number"
+          defaultValue={5}
+          min={0}
+        />
+      </Card>
     </div>
   ),
 };
