@@ -1,18 +1,21 @@
-import React from 'react';
+import type { JSX } from 'react';
 
-import { SkeletonText, SkeletonValue } from '@/components/global/skeleton/skeleton';
+import {
+  SkeletonText,
+  SkeletonValue,
+} from '@/components/global/skeleton/skeleton';
 
 export function UsersListSkeleton(): JSX.Element {
   return (
     <div className="space-y-4">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="p-4 bg-card rounded-md">
+        <div key={i} className="rounded-md bg-card p-4">
           <div className="flex items-center justify-between">
-            <SkeletonText className="w-1/3 h-6" />
-            <SkeletonValue className="w-24 h-5" />
+            <SkeletonText className="h-6 w-1/3" />
+            <SkeletonValue className="h-5 w-24" />
           </div>
           <div className="mt-2">
-            <SkeletonText className="w-2/3 h-4" />
+            <SkeletonText className="h-4 w-2/3" />
           </div>
         </div>
       ))}
