@@ -29,6 +29,14 @@ import {
 
 const SKELETON_WIDTHS = ['w-20', 'w-32', 'w-24', 'w-28', 'w-16'];
 
+/**
+ * Quantidade fixa de linhas exibidas no estado de carregamento. Não acompanha
+ * o `pageSize` — preencher uma página inteira (ex.: 25/50 linhas) de skeletons
+ * deixa a tela alta demais e ruidosa. Um punhado de linhas já comunica "tabela
+ * carregando" sem custo visual.
+ */
+const SKELETON_ROW_COUNT = 8;
+
 declare module '@tanstack/react-table' {
   // Permite que cada coluna passe classes Tailwind para o `<th>`/`<td>` —
   // útil para alinhamento, largura mínima e estilo. Não use para esconder
@@ -84,9 +92,18 @@ interface DataTableProps<TData, TValue> {
    */
   onRowClick?: (row: TData) => void;
   /**
-   * Exibe `pageSize` linhas com skeletons no lugar do conteúdo das células.
-   * Filtros e cabeçalho permanecem visíveis e interativos; a paginação é
-   * desabilitada durante o load para evitar disparos em estado inconsistente.
+   * URL de destino da linha (ex.: `/users/${row.id}`). Complementa `onRowClick`
+   * para dar à linha o comportamento de um link nativo: clique do meio (scroll)
+   * ou Ctrl/Cmd/Shift+clique abrem a URL em nova aba; o clique normal continua
+   * disparando `onRowClick` (navegação SPA pelo consumidor). Forneça os dois
+   * juntos quando a linha leva a uma tela de detalhes.
+   */
+  getRowHref?: (row: TData) => string;
+  /**
+   * Exibe um número fixo de linhas (`SKELETON_ROW_COUNT`) com skeletons no lugar
+   * do conteúdo das células. Filtros e cabeçalho permanecem visíveis e
+   * interativos; a paginação é desabilitada durante o load para evitar disparos
+   * em estado inconsistente.
    */
   isLoading?: boolean;
 }
@@ -123,6 +140,7 @@ export function DataTable<TData, TValue>({
   onSearch,
   defaultFilterValues,
   onRowClick,
+  getRowHref,
   isLoading = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -190,7 +208,7 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: pageSize }).map((_, rowIndex) => (
+              Array.from({ length: SKELETON_ROW_COUNT }).map((_, rowIndex) => (
                 <TableRow
                   key={`skeleton-${rowIndex}`}
                   className="hover:bg-transparent"
@@ -212,50 +230,95 @@ export function DataTable<TData, TValue>({
                 </TableRow>
               ))
             ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  onClick={
-                    onRowClick ? () => onRowClick(row.original) : undefined
+              table.getRowModel().rows.map((row) => {
+                const href = getRowHref?.(row.original);
+                const interactive = !!onRowClick || !!href;
+
+                const openInNewTab = () => {
+                  if (href) {
+                    window.open(href, '_blank', 'noopener,noreferrer');
                   }
-                  onKeyDown={
-                    onRowClick
-                      ? (event) => {
-                          // Só dispara quando o foco está na própria linha —
-                          // Enter/Espaço em botões/checkboxes dentro de células
-                          // têm `event.target` diferente e são ignorados aqui.
-                          if (event.target !== event.currentTarget) return;
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            onRowClick(row.original);
+                };
+
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    onClick={
+                      interactive
+                        ? (event) => {
+                            // Ctrl/Cmd/Shift+clique abre em nova aba, como num
+                            // link nativo; o clique normal segue a navegação SPA.
+                            if (
+                              href &&
+                              (event.metaKey ||
+                                event.ctrlKey ||
+                                event.shiftKey)
+                            ) {
+                              openInNewTab();
+                              return;
+                            }
+                            onRowClick?.(row.original);
                           }
-                        }
-                      : undefined
-                  }
-                  role={onRowClick ? 'button' : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  className={
-                    onRowClick
-                      ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-                      : undefined
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as
-                      | { className?: string }
-                      | undefined;
-                    return (
-                      <TableCell key={cell.id} className={meta?.className}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
+                        : undefined
+                    }
+                    onAuxClick={
+                      href
+                        ? (event) => {
+                            // Botão do meio (scroll) abre o destino em nova aba.
+                            if (event.button === 1) {
+                              event.preventDefault();
+                              openInNewTab();
+                            }
+                          }
+                        : undefined
+                    }
+                    onMouseDown={
+                      href
+                        ? (event) => {
+                            // Evita o cursor de autoscroll do clique do meio.
+                            if (event.button === 1) event.preventDefault();
+                          }
+                        : undefined
+                    }
+                    onKeyDown={
+                      interactive
+                        ? (event) => {
+                            // Só dispara quando o foco está na própria linha —
+                            // Enter/Espaço em botões/checkboxes dentro de células
+                            // têm `event.target` diferente e são ignorados aqui.
+                            if (event.target !== event.currentTarget) return;
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              onRowClick?.(row.original);
+                            }
+                          }
+                        : undefined
+                    }
+                    role={href ? 'link' : onRowClick ? 'button' : undefined}
+                    tabIndex={interactive ? 0 : undefined}
+                    className={
+                      interactive
+                        ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+                        : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const meta = cell.column.columnDef.meta as
+                        | { className?: string }
+                        | undefined;
+                      return (
+                        <TableCell key={cell.id} className={meta?.className}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={columns.length} className="py-6">

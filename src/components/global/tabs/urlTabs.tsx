@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 
 import {
   Tabs,
@@ -30,6 +30,11 @@ interface IUrlTabs {
  *
  * Quando `value === defaultValue`, a chave é removida da URL (deixa a aba
  * "padrão" sem ?tab=...). Outros search params da rota são preservados.
+ *
+ * - **Responsivo**: a lista de abas rola horizontalmente quando não cabe na
+ *   largura (em vez de quebrar ou esconder abas em mobile).
+ * - **Nova aba do navegador**: clique do meio (scroll) ou Ctrl/Cmd/Shift+clique
+ *   numa aba abrem a URL correspondente (`?tab=...`) em nova guia, como um link.
  */
 export function UrlTabs({
   items,
@@ -40,39 +45,71 @@ export function UrlTabs({
 }: IUrlTabs) {
   const search = useSearch({ strict: false }) as Record<string, unknown>;
   const navigate = useNavigate();
+  const router = useRouter();
 
   const validValues = React.useMemo(
     () => new Set(items.map((item) => item.value)),
     [items]
   );
 
-  const candidate = search[searchKey];
+  const candidate = new Map(Object.entries(search)).get(searchKey);
   const activeTab =
     typeof candidate === 'string' && validValues.has(candidate)
       ? candidate
       : defaultValue;
 
+  const tabSearch = (next: string) => (previous: Record<string, unknown>) => ({
+    ...previous,
+    [searchKey]: next === defaultValue ? undefined : next,
+  });
+
   const setTab = (next: string) => {
-    void navigate({
-      to: '.',
-      search: (previous: Record<string, unknown>) => ({
-        ...previous,
-        [searchKey]: next === defaultValue ? undefined : next,
-      }),
-      replace: true,
-    });
+    void navigate({ to: '.', search: tabSearch(next), replace: true });
+  };
+
+  const hrefForTab = (next: string) =>
+    router.buildLocation({ to: '.', search: tabSearch(next) }).href;
+
+  const openInNewTab = (next: string) => {
+    window.open(hrefForTab(next), '_blank', 'noopener,noreferrer');
   };
 
   return (
     <Tabs value={activeTab} onValueChange={setTab}>
-      <TabsList variant="line" className={listClassName}>
-        {items.map((item) => (
-          <TabsTrigger key={item.value} value={item.value}>
-            {item.icon}
-            {item.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      {/* Container rolável: mantém as abas acessíveis por scroll lateral em
+          telas estreitas. O `pb-2`/`-mb-2` reserva espaço para o sublinhado da
+          aba ativa não ser cortado pelo overflow, sem alterar o ritmo vertical. */}
+      <div className="-mb-2 overflow-x-auto pb-2">
+        <TabsList variant="line" className={cn('w-max', listClassName)}>
+          {items.map((item) => (
+            <TabsTrigger
+              key={item.value}
+              value={item.value}
+              onClick={(event) => {
+                if (event.metaKey || event.ctrlKey || event.shiftKey) {
+                  // Mantém a aba atual e abre a clicada em nova guia.
+                  event.preventDefault();
+                  openInNewTab(item.value);
+                }
+              }}
+              onAuxClick={(event) => {
+                // Botão do meio (scroll) → nova guia.
+                if (event.button === 1) {
+                  event.preventDefault();
+                  openInNewTab(item.value);
+                }
+              }}
+              onMouseDown={(event) => {
+                // Evita o cursor de autoscroll do clique do meio.
+                if (event.button === 1) event.preventDefault();
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
       {items.map((item) => (
         <TabsContent

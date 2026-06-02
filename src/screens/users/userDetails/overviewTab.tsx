@@ -2,8 +2,8 @@ import { Card } from '@/components/global/card/card';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
 import {
-  USER_ROLE_LABELS,
-  USER_STATUS_LABELS,
+  userRoleLabels,
+  userStatusLabels,
   type ManagedUser,
 } from '@/screens/users/types';
 
@@ -38,10 +38,10 @@ export function OverviewTab({ user }: OverviewTabProps) {
           <DefinitionItem label="Nome">{user.name}</DefinitionItem>
           <DefinitionItem label="E-mail">{user.email}</DefinitionItem>
           <DefinitionItem label="Papel">
-            {USER_ROLE_LABELS[user.role]}
+            {userRoleLabels.get(user.role)}
           </DefinitionItem>
           <DefinitionItem label="Status">
-            {USER_STATUS_LABELS[user.status]}
+            {userStatusLabels.get(user.status)}
           </DefinitionItem>
           <DefinitionItem label="ID interno">
             <code className="rounded bg-muted px-1.5 py-0.5 text-xs">

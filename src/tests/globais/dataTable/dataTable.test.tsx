@@ -85,7 +85,7 @@ describe('DataTable', () => {
   });
 
   describe('isLoading', () => {
-    it('renderiza pageSize linhas de skeleton e desabilita a paginação', () => {
+    it('renderiza um número fixo de linhas de skeleton (independente do pageSize) e desabilita a paginação', () => {
       const data: Row[] = [{ id: '1', email: 'ana@example.com' }];
 
       const { container } = render(
@@ -94,15 +94,17 @@ describe('DataTable', () => {
           data={data}
           pageIndex={1}
           onPageChange={() => undefined}
-          pageSize={3}
+          pageSize={50}
           isLoading
         />
       );
 
       expect(screen.queryByText('ana@example.com')).not.toBeInTheDocument();
+      // Uma coluna → uma skeleton por linha; a contagem fixa não acompanha o
+      // pageSize (50), evitando uma tela altíssima durante o carregamento.
       expect(
         container.querySelectorAll('[data-slot="skeleton"]')
-      ).toHaveLength(3);
+      ).toHaveLength(8);
       expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
       expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
     });
@@ -272,6 +274,93 @@ describe('DataTable', () => {
       await userEvent.click(rowCheckbox);
 
       expect(handleRowClick).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getRowHref', () => {
+    const data: Row[] = [
+      { id: '1', email: 'ana@example.com' },
+      { id: '2', email: 'joao@example.com' },
+    ];
+
+    function renderNavigable() {
+      const handleRowClick = vi.fn();
+      render(
+        <DataTable
+          columns={columns}
+          data={data}
+          pageIndex={0}
+          onPageChange={() => undefined}
+          onRowClick={handleRowClick}
+          getRowHref={(row) => `/users/${row.id}`}
+        />
+      );
+      return handleRowClick;
+    }
+
+    function firstRow() {
+      return screen
+        .getAllByRole('link')
+        .find((element) => element.tagName === 'TR')!;
+    }
+
+    it('expõe cada linha com role="link" quando getRowHref é definido', () => {
+      renderNavigable();
+
+      const linkRows = screen
+        .getAllByRole('link')
+        .filter((element) => element.tagName === 'TR');
+      expect(linkRows).toHaveLength(2);
+    });
+
+    it('abre o destino em nova aba no clique do meio (scroll)', async () => {
+      const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+      const handleRowClick = renderNavigable();
+
+      await userEvent.pointer({
+        keys: '[MouseMiddle]',
+        target: firstRow(),
+      });
+
+      expect(openSpy).toHaveBeenCalledWith(
+        '/users/1',
+        '_blank',
+        'noopener,noreferrer'
+      );
+      expect(handleRowClick).not.toHaveBeenCalled();
+
+      openSpy.mockRestore();
+    });
+
+    it('abre em nova aba com Ctrl+clique sem disparar a navegação da linha', async () => {
+      const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+      const handleRowClick = renderNavigable();
+      const user = userEvent.setup();
+
+      await user.keyboard('{Control>}');
+      await user.click(firstRow());
+      await user.keyboard('{/Control}');
+
+      expect(openSpy).toHaveBeenCalledWith(
+        '/users/1',
+        '_blank',
+        'noopener,noreferrer'
+      );
+      expect(handleRowClick).not.toHaveBeenCalled();
+
+      openSpy.mockRestore();
+    });
+
+    it('clique normal dispara onRowClick e não abre nova aba', async () => {
+      const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+      const handleRowClick = renderNavigable();
+
+      await userEvent.click(screen.getByText('ana@example.com'));
+
+      expect(handleRowClick).toHaveBeenCalledWith(data[0]);
+      expect(openSpy).not.toHaveBeenCalled();
+
+      openSpy.mockRestore();
     });
   });
 });

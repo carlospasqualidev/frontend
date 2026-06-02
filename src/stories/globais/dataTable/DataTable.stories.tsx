@@ -270,6 +270,7 @@ function DataTableDemo() {
         onRowClick={(payment) =>
           toast(`Abrir detalhes de ${payment.email} (R$ ${payment.amount})`)
         }
+        getRowHref={(payment) => `/payments/${payment.id}`}
         {...tableProps}
       />
     </div>
@@ -284,7 +285,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Tabela 100% server-side: filtros, ordenação e paginação são delegados ao backend. Os filtros vão ao servidor ao clicar em **Buscar**, clicar num cabeçalho reordena no servidor, e **Próxima** é desabilitado quando a página vem incompleta. Esta story usa `useDataTableQuery` (estado local) em vez de `useDataTableUrlQuery` para não depender do TanStack Router.',
+          'Tabela 100% server-side: filtros, ordenação e paginação são delegados ao backend. Os filtros vão ao servidor ao clicar em **Buscar**, clicar num cabeçalho reordena no servidor, e **Próxima** é desabilitado quando a página vem incompleta. Cada linha é clicável: o clique normal dispara `onRowClick` (aqui, um toast); com `getRowHref`, o clique do meio (scroll) ou Ctrl/Cmd/Shift+clique abrem o destino em nova aba, como um link nativo. Esta story usa `useDataTableQuery` (estado local) em vez de `useDataTableUrlQuery` para não depender do TanStack Router.',
       },
     },
   },

@@ -15,27 +15,29 @@ export interface ManagedUser {
   lastLoginAt: string | null;
 }
 
-export const USER_ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Administrador',
-  manager: 'Gestor',
-  member: 'Membro',
-  viewer: 'Visualizador',
-};
+export const userRoleLabels = new Map<UserRole, string>([
+  ['admin', 'Administrador'],
+  ['manager', 'Gestor'],
+  ['member', 'Membro'],
+  ['viewer', 'Visualizador'],
+]);
 
-export const USER_STATUS_LABELS: Record<UserStatus, string> = {
-  active: 'Ativo',
-  inactive: 'Inativo',
-  pending: 'Pendente',
-  blocked: 'Bloqueado',
-};
+export const userStatusLabels = new Map<UserStatus, string>([
+  ['active', 'Ativo'],
+  ['inactive', 'Inativo'],
+  ['pending', 'Pendente'],
+  ['blocked', 'Bloqueado'],
+]);
 
-export const USER_ROLE_OPTIONS: { value: UserRole; label: string }[] = (
-  Object.keys(USER_ROLE_LABELS) as UserRole[]
-).map((value) => ({ value, label: USER_ROLE_LABELS[value] }));
+export const USER_ROLE_OPTIONS = Array.from(
+  userRoleLabels,
+  ([value, label]) => ({ value, label })
+);
 
-export const USER_STATUS_OPTIONS: { value: UserStatus; label: string }[] = (
-  Object.keys(USER_STATUS_LABELS) as UserStatus[]
-).map((value) => ({ value, label: USER_STATUS_LABELS[value] }));
+export const USER_STATUS_OPTIONS = Array.from(
+  userStatusLabels,
+  ([value, label]) => ({ value, label })
+);
 
 export type UserActivityType =
   | 'login'

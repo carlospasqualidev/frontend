@@ -71,6 +71,48 @@ describe('ConfirmDialog (global) — modo uncontrolled', () => {
   });
 });
 
+function DoubleConfirmationHarness() {
+  const [showSecondStep, setShowSecondStep] = useState(false);
+  const [confirmationText, setConfirmationText] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
+
+  return (
+    <div>
+      <ConfirmDialog
+        title="Bloquear usuário?"
+        description="A ação é irreversível."
+        confirmLabel="Continuar"
+        destructive
+        trigger={<button type="button">Bloquear usuário</button>}
+        onConfirm={() => setShowSecondStep(true)}
+      />
+
+      {showSecondStep && (
+        <div>
+          <input
+            aria-label="Palavra de confirmação"
+            placeholder="BLOQUEAR"
+            value={confirmationText}
+            onChange={(event) => setConfirmationText(event.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (confirmationText === 'BLOQUEAR') {
+                setConfirmed(true);
+              }
+            }}
+          >
+            Confirmar bloqueio
+          </button>
+        </div>
+      )}
+
+      {confirmed && <p>Usuário bloqueado com sucesso.</p>}
+    </div>
+  );
+}
+
 describe('ConfirmDialog (global) — modo controlled', () => {
   function ControlledHarness({
     onConfirm,
@@ -112,5 +154,29 @@ describe('ConfirmDialog (global) — modo controlled', () => {
     await waitFor(() => {
       expect(screen.queryByText('Excluir registro?')).not.toBeInTheDocument();
     });
+  });
+  it('executa confirmação dupla apenas após validar o texto exato', async () => {
+    render(<DoubleConfirmationHarness />);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Bloquear usuário' })
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(
+      screen.getByRole('textbox', { name: 'Palavra de confirmação' })
+    ).toBeInTheDocument();
+
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Palavra de confirmação' }),
+      'BLOQUEAR'
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Confirmar bloqueio' })
+    );
+
+    expect(
+      screen.getByText('Usuário bloqueado com sucesso.')
+    ).toBeInTheDocument();
   });
 });

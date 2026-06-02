@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 
 import { ConfirmDialog } from '@/components/global/confirmDialog/confirmDialog';
+import { InputField } from '@/components/global/form/inputField';
 import { Button } from '@/components/global/button/button';
 import { Card } from '@/components/global/card/card';
 
@@ -62,6 +63,69 @@ function ControlledDemo() {
           Abrir via timer
         </Button>
       </div>
+    </div>
+  );
+}
+
+function DoubleConfirmationDemo() {
+  const [showSecondStep, setShowSecondStep] = React.useState(false);
+  const [isBlocked, setIsBlocked] = React.useState(false);
+  const [confirmationText, setConfirmationText] = React.useState('');
+
+  const handleFirstConfirm = () => {
+    setShowSecondStep(true);
+  };
+
+  const handleFinalConfirm = async () => {
+    if (confirmationText !== 'BLOQUEAR') {
+      toast.error('Digite BLOQUEAR para confirmar a ação.');
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, CONFIRM_MS));
+    setShowSecondStep(false);
+    setIsBlocked(true);
+    toast.success('Ação confirmada. Usuário bloqueado.');
+  };
+
+  return (
+    <div className="space-y-4">
+      <ConfirmDialog
+        title="Bloquear usuário?"
+        description="A ação é irreversível. No próximo passo, confirme digitando BLOQUEAR."
+        confirmLabel="Continuar"
+        destructive
+        trigger={<Button variant="destructive">Bloquear usuário</Button>}
+        onConfirm={handleFirstConfirm}
+      />
+
+      {showSecondStep && (
+        <Card
+          title="Confirmação final"
+          description="Digite a palavra exata para concluir a ação irreversível."
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Digite a palavra <strong>BLOQUEAR</strong> para concluir a ação.
+            </p>
+            <InputField
+              label="Palavra de confirmação"
+              value={confirmationText}
+              onChange={(event) => setConfirmationText(event.target.value)}
+              placeholder="BLOQUEAR"
+            />
+            <Button variant="destructive" onClick={handleFinalConfirm}>
+              Confirmar bloqueio
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {isBlocked && (
+        <p className="text-success-foreground text-sm">
+          Usuário bloqueado com sucesso.
+        </p>
+      )}
     </div>
   );
 }
@@ -127,5 +191,16 @@ export const Vitrine: Story = {
         />
       </Card>
     </div>
+  ),
+};
+
+export const DoubleConfirmation: Story = {
+  render: () => (
+    <Card
+      title="Dupla confirmação"
+      description="Fluxo recomendado para ações críticas que exigem uma segunda validação explícita."
+    >
+      <DoubleConfirmationDemo />
+    </Card>
   ),
 };

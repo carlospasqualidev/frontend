@@ -40,9 +40,13 @@ export function selectColumn<TData>(): ColumnDef<TData> {
       />
     ),
     cell: ({ row }) => (
-      // Wrapper isola o clique do checkbox do `onRowClick` da DataTable —
-      // marcar/desmarcar uma linha não deve disparar a navegação.
-      <div onClick={(event) => event.stopPropagation()}>
+      // Wrapper isola o clique do checkbox do `onRowClick`/`getRowHref` da
+      // DataTable — marcar/desmarcar uma linha não deve disparar a navegação
+      // (nem abrir o detalhe em nova aba com o clique do meio).
+      <div
+        onClick={(event) => event.stopPropagation()}
+        onAuxClick={(event) => event.stopPropagation()}
+      >
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
@@ -149,9 +153,13 @@ export function actionsColumn<TData>({
         typeof actions === 'function' ? actions(row.original) : actions;
 
       return (
-        // Wrapper isola o clique do menu de ações do `onRowClick` da DataTable —
-        // abrir o menu e selecionar uma ação não devem disparar a navegação.
-        <div onClick={(event) => event.stopPropagation()}>
+        // Wrapper isola o clique do menu de ações do `onRowClick`/`getRowHref`
+        // da DataTable — abrir o menu e selecionar uma ação não devem disparar a
+        // navegação (nem abrir o detalhe em nova aba com o clique do meio).
+        <div
+          onClick={(event) => event.stopPropagation()}
+          onAuxClick={(event) => event.stopPropagation()}
+        >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">

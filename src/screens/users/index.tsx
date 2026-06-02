@@ -23,13 +23,13 @@ import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
 import { queryUsers } from '@/screens/users/mockUsers';
 import {
-  ROLE_BADGE_VARIANT,
-  STATUS_BADGE_VARIANT,
+  roleBadgeVariants,
+  statusBadgeVariants,
 } from '@/screens/users/userBadges';
 import {
-  USER_ROLE_LABELS,
+  userRoleLabels,
   USER_ROLE_OPTIONS,
-  USER_STATUS_LABELS,
+  userStatusLabels,
   USER_STATUS_OPTIONS,
   type ManagedUser,
 } from '@/screens/users/types';
@@ -109,8 +109,8 @@ export function UsersPage() {
       cell: ({ row }) => {
         const role = row.original.role;
         return (
-          <Badge variant={ROLE_BADGE_VARIANT[role]}>
-            {USER_ROLE_LABELS[role]}
+          <Badge variant={roleBadgeVariants.get(role)}>
+            {userRoleLabels.get(role)}
           </Badge>
         );
       },
@@ -121,8 +121,8 @@ export function UsersPage() {
       cell: ({ row }) => {
         const status = row.original.status;
         return (
-          <Badge variant={STATUS_BADGE_VARIANT[status]}>
-            {USER_STATUS_LABELS[status]}
+          <Badge variant={statusBadgeVariants.get(status)}>
+            {userStatusLabels.get(status)}
           </Badge>
         );
       },
@@ -216,6 +216,7 @@ export function UsersPage() {
             params: { userId: user.id },
           })
         }
+        getRowHref={(user) => `/users/${user.id}`}
         {...tableProps}
       />
     </>

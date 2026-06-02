@@ -167,6 +167,51 @@ A versão enxuta mostra **o que** o bloco é (uma seção de resumo com 3 elemen
 - Não logue dados sensíveis (senhas, tokens, dados pessoais) — nem em `console.log` durante desenvolvimento.
 - Não armazene tokens em `localStorage`/`sessionStorage` — a sessão é por cookie HTTP-only.
 
+### Object injection — nunca indexe objeto/array com variável
+
+O ESLint (`security/detect-object-injection`) sinaliza `obj[key]` / `arr[i]` quando a chave é uma **variável** e não um literal — é o aviso **"Variable Assigned to Object Injection Sink"**. O risco real: se a chave vier (direta ou indiretamente) de input do usuário, ela pode resolver para `__proto__` / `constructor` / `prototype` e abrir caminho para _prototype pollution_, ou ler/escrever uma propriedade que você não pretendia expor.
+
+**Regra dura: não escreva código que dispare esse aviso.** Nunca silencie com `// eslint-disable-next-line security/detect-object-injection` — refatore para uma forma segura. Objeto indexado por variável só é aceitável quando a chave é um **literal conhecido em tempo de compilação** (e aí não dispara o aviso).
+
+Como evitar, por caso de uso:
+
+- **Mapa de lookup (label/variante por chave de union)** — em vez de `Record` indexado por variável, use um `Map` (`.get()` não é sink) ou um `switch`:
+
+  ❌ Dispara o aviso:
+
+  ```ts
+  const ROLE_BADGE_VARIANT: Record<UserRole, BadgeVariant> = { admin: 'default', member: 'secondary' };
+  <Badge variant={ROLE_BADGE_VARIANT[role]} />;
+  ```
+
+  ✓ `Map` com `.get()`:
+
+  ```ts
+  const roleBadgeVariant = new Map<UserRole, BadgeVariant>([
+    ['admin', 'default'],
+    ['member', 'secondary'],
+  ]);
+  <Badge variant={roleBadgeVariant.get(role)} />;
+  ```
+
+  ✓ ou `switch` (bom quando há lógica além do lookup):
+
+  ```ts
+  function roleBadgeVariant(role: UserRole): BadgeVariant {
+    switch (role) {
+      case 'admin':
+        return 'default';
+      case 'member':
+        return 'secondary';
+    }
+  }
+  ```
+
+- **Chave vinda de input do usuário** (query string, body, params): nunca indexe direto. Valide com `z.enum([...])` para garantir que a chave é uma das esperadas **antes** de qualquer acesso, e então use `Map`/`switch`.
+- **Iteração por índice numérico**: prefira `for...of`, `.map`, `.find`, `.at(i)` — o callback do `.map((item, i) => ...)` já entrega o `item` sem você indexar o array. Só caia em `arr[i]` quando `i` for literal.
+
+Resumo: lookup por chave → `Map`/`switch`; iteração → métodos de array; chave de fonte externa → Zod antes de tudo. Objeto indexado por variável dinâmica é proibido.
+
 ### LGPD e dados pessoais (PII)
 
 Produto pt-BR opera sob a LGPD. Considere PII e **proibido logar** em qualquer canal (console, Sentry/breadcrumb, analytics, query string da URL, body de erro exibido ao usuário, payload de toast):
@@ -413,6 +458,10 @@ src/
 - Rotas protegidas ficam sob `protectedLayoutRoute` (que envolve `SessionValidation` + `Layout`). Login/signup ficam fora dela.
 - `defaultPreload: 'intent'` já está ativo — não precise reconfigurar.
 - Use `staticData: { breadcrumb: '...' }` para alimentar o breadcrumb global.
+- Use o `Link` global em `src/components/global/link/link.tsx` para navegação no aplicativo. Ele recebe `href` como um `<a>` padrão e:
+  - para caminhos internos same-origin, usa o roteamento cliente do TanStack Router;
+  - para links externos, `target="_blank"`, `mailto:`, `tel:` ou clique do scroll, preserva o comportamento nativo do navegador.
+  - não confunda com `Link` do `@tanstack/react-router` importado diretamente; aliase quando precisar usar os dois no mesmo arquivo.
 - **Toda rota protegida declara `errorComponent`** — sem isso, um erro lançado no render derruba o app inteiro num fallback genérico. Use o [`ErrorFallback`](src/components/global/errorFallback) global, que mostra mensagem amigável em pt-BR + botão "Tentar novamente" disparando `router.invalidate()` (refaz loaders e remonta a rota).
 
 Esqueleto para nova tela + rota:
