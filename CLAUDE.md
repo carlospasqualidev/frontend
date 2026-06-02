@@ -505,6 +505,8 @@ Só introduza um wrapper na raiz quando precisar de um comportamento de layout r
 - Use a instância `api` de [`src/services/api`](src/services/api) — ela já trata `baseURL`, `withCredentials: true` (cookie) e toasts via interceptors. **Não crie axios direto.**
 - Para server state: TanStack Query (`useQuery` / `useMutation`) com o `queryClient` de [`src/lib/queryClient.ts`](src/lib/queryClient.ts). Não use `useEffect` + `fetch`.
 
+**Tip de tipagem para APIs:** Separe as tipagens (types/interfaces e schemas) dos serviços de rede em um arquivo dedicado sob `src/services/api/`, por exemplo `src/services/api/types.ts` ou `src/services/api/schemas.ts`. Mantenha os arquivos de serviço (`src/services/api/*.ts`) focados em lógica de requisição/response e importe os tipos desse arquivo central. Quando possível, defina schemas Zod em `schemas.ts` e derive os tipos com `z.infer<typeof schema>` — isso mantém a fonte de verdade do shape próxima ao parser/validador e evita duplicação de tipos inline nos serviços. Atualize os tipos compartilhados quando o contrato da API mudar e importe-os em hooks, serviços e testes.
+
 #### Convenção de `queryKey`
 
 `queryKey` é a identidade do dado no cache — ela determina o que é deduplicado, o que é invalidado e o que sobrevive a uma navegação. Sem convenção firme, uma tela invalida `['users']`, outra invalida `['user-list']` e nada bate.

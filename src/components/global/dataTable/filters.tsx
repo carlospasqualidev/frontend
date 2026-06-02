@@ -1,10 +1,12 @@
 import * as React from 'react';
+import { Loader2 } from 'lucide-react';
 
 import { DateField } from '@/components/global/form/dateField';
 import { InputField } from '@/components/global/form/inputField';
 import { MultiSelect } from '@/components/global/form/multiSelectPrimitive';
 import { Select } from '@/components/global/form/select';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/global/button/button';
+import { Button as PrimitiveButton } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 
 /** Valor interno do select que representa "sem filtro" (radix não aceita ''). */
@@ -239,6 +241,8 @@ interface DataTableFiltersProps {
   defaultValues?: DataTableFilterValues;
   /** Chamado ao clicar em "Buscar" (ou "Limpar"), já sem valores vazios. */
   onSearch: (values: DataTableFilterValues) => void;
+  /** Quando verdadeiro, desabilita os botões e exibe loading no botão de buscar. */
+  isLoading?: boolean;
 }
 
 /**
@@ -261,6 +265,7 @@ export function DataTableFilters({
   filters,
   defaultValues,
   onSearch,
+  isLoading,
 }: DataTableFiltersProps) {
   const initialValues = React.useMemo(
     () => buildInitialValues(filters, defaultValues),
@@ -297,10 +302,21 @@ export function DataTableFilters({
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={handleClear}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleClear}
+          disabled={isLoading}
+        >
           Limpar
         </Button>
-        <Button type="submit">Buscar</Button>
+        {isLoading ? (
+          <PrimitiveButton type="submit">
+            <Loader2 className="mr-2 animate-spin" /> Buscar
+          </PrimitiveButton>
+        ) : (
+          <Button type="submit">Buscar</Button>
+        )}
       </div>
     </form>
   );

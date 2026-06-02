@@ -161,6 +161,7 @@ export function DataTable<TData, TValue>({
           filters={filters}
           defaultValues={defaultFilterValues}
           onSearch={(values) => onSearch?.(values)}
+          isLoading={isLoading}
         />
       ) : null}
 
