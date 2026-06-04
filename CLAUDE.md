@@ -848,17 +848,19 @@ A cor primária do sistema vive em **uma única variável** no topo de [`src/ind
 
 ```css
 :root {
-  --brand: oklch(0.488 0.243 264.376); /* azul atual */
-  --brand-foreground: oklch(0.97 0.014 254.604);
+  --brand: oklch(0.46 0.235 308.433); /* roxo Vallen (#7D00B8) */
+  --brand-foreground: oklch(1 0 0);
 }
 .dark {
-  --brand: oklch(0.424 0.199 265.638); /* mesma marca, tonada */
+  --brand: oklch(0.639 0.273 312.16); /* mesma marca, tonada para dark */
 }
 ```
 
 `--primary`, `--primary-foreground`, `--sidebar-primary` e `--sidebar-primary-foreground` são apenas aliases (`var(--brand)`) — não duplicar valores. Pra trocar a marca em um novo projeto, mude apenas `--brand` (light + dark).
 
-**Não fazem parte da marca**: `--ring`/`--sidebar-ring` (neutros, convenção shadcn), `--chart-1..5` (paleta separada, 5 tons harmonizados), e os tokens neutros (background, border, muted, etc.).
+**A paleta de gráficos faz parte da marca.** `--chart-1..5` é um ramp de 5 tons harmonizados com `--brand` (mesmo hue, luminosidade escalonada) — não uma paleta independente. Ao trocar a marca, atualize o ramp de gráficos para o novo hue, senão os gráficos destoam do resto da UI. Mantenha a estrutura de luminosidade (do tom mais claro no `--chart-1` ao mais escuro no `--chart-5`) e mude só o hue/croma para acompanhar `--brand`.
+
+**Não fazem parte da marca**: `--ring`/`--sidebar-ring` (neutros, convenção shadcn) e os tokens neutros (background, border, muted, etc.).
 
 **Dark mode em superfícies "card-like"**: use `bg-card` em vez de `bg-background` (o `.dark` já clareia `--card` em relação ao `--background` pra dar elevação) e adicione `dark:shadow-none` — sombras não rendem em fundo escuro. O `Card` global já faz isso automaticamente.
 
