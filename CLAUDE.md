@@ -875,6 +875,24 @@ A cor primária do sistema vive em **uma única variável** no topo de [`src/ind
 
 - Utilitários em [`src/lib/dateTime/`](src/lib/dateTime) cobrem parsing/formatação para inputs e queries (`transformIntoInputDate`, `transformIntoDatabaseDate`, `transformIntoDatabaseQueryDate`, `dateFormatter`). Reaproveite — não importe `date-fns` direto em telas.
 
+### Filtros sempre persistidos na URL
+
+**Toda filtragem, busca, ordenação e paginação vive na query string da URL — sem exceção.** O estado de filtro nunca fica só em `useState` local: a URL é a fonte de verdade. O objetivo é que qualquer estado de uma listagem seja **compartilhável e restaurável** — colar a URL em outra aba, recarregar a página ou enviar o link a um colega reproduz exatamente a mesma visão (mesma busca, mesma página, mesmos filtros, mesma ordenação).
+
+Por quê:
+
+- **Compartilhável**: `/users?search=maria&status=active&page=2` abre na visão exata para quem receber o link. Não dá para compartilhar `useState`.
+- **Restaurável**: recarregar (F5) ou voltar/avançar no histórico do navegador preserva a busca em vez de resetar para o estado inicial.
+- **Deep-linkable**: outra tela pode linkar direto para uma visão filtrada (ex.: um card de dashboard que abre a lista já filtrada).
+
+Regras:
+
+- **Tabelas e listas server-side**: use [`useDataTableQuery`](src/components/global/dataTable/useDataTableQuery.ts) / [`useDataTableUrlQuery`](src/components/global/dataTable/useDataTableUrlQuery.ts) — já fazem isso. Não reimplemente estado de filtro com `useState`.
+- **Filtros fora de `DataTable`** (tabs, toggles, faixas de data, selects de filtro): leia e escreva via search params do TanStack Router (`useSearch` + `navigate({ search })`), não `useState`. Tipar os search params com schema (`validateSearch`) garante shape e defaults.
+- **`useState` para filtro é antipadrão** — só é aceitável para estado verdadeiramente efêmero e não-compartilhável (ex.: o texto sendo digitado antes do debounce que ainda não virou busca aplicada).
+- **PII nunca vai na URL** (ver seção Segurança/LGPD): filtre por ID opaco ou termo genérico, nunca CPF, e-mail ou telefone na query string.
+- **Defaults limpos**: filtro no valor default não suja a URL (ex.: `status=all` não precisa aparecer) — mantenha a URL curta e o link legível.
+
 ### DataTable
 
 - Padrão de tabela com paginação/filtro server-side em [`src/components/global/dataTable/`](src/components/global/dataTable). Use [`useDataTableQuery`](src/components/global/dataTable/useDataTableQuery.ts) (estado da URL via [`useDataTableUrlQuery`](src/components/global/dataTable/useDataTableUrlQuery.ts)).
