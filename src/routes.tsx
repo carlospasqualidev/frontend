@@ -10,6 +10,7 @@ import { NotFound } from './components/global/layout/notFound';
 import { Layout } from '@/components/global/layout/layout';
 import { SessionValidation } from '@/components/global/layout/sessionValidation';
 import { accountRoute } from '@/screens/account/routes';
+import { dateTimeLabRoute } from '@/screens/dateTimeLab/routes';
 import { homeRoute } from '@/screens/home/routes';
 import { loginRoute, signupRoute } from '@/screens/session/routes';
 import {
@@ -53,6 +54,7 @@ export const router = createRouter({
   routeTree: rootRoute.addChildren([
     loginRoute,
     signupRoute,
+    dateTimeLabRoute,
     protectedLayoutRoute.addChildren([
       homeRoute,
       accountRoute,

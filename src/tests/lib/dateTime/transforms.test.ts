@@ -40,12 +40,15 @@ describe('transformIntoInputDate', () => {
 
 describe('transformIntoDatabaseDate', () => {
   it('retorna null para data vazia', () => {
-    expect(transformIntoDatabaseDate({ date: null })).toBeNull();
+    expect(transformIntoDatabaseDate({ date: null, hasTimeStamp: false })).toBeNull();
   });
 
-  it('preserva instante exato quando o input já tem hora (T...)', () => {
+  it('preserva instante exato quando hasTimeStamp=true', () => {
     expect(
-      transformIntoDatabaseDate({ date: '2026-03-31T14:30:00.000Z' })
+      transformIntoDatabaseDate({
+        date: '2026-03-31T14:30:00.000Z',
+        hasTimeStamp: true,
+      })
     ).toBe('2026-03-31T14:30:00.000Z');
   });
 
@@ -53,6 +56,7 @@ describe('transformIntoDatabaseDate', () => {
     expect(
       transformIntoDatabaseDate({
         date: '2026-03-31',
+        hasTimeStamp: false,
         databaseDateHasTimeStamp: false,
       })
     ).toBe('2026-03-31T00:00:00.000Z');
@@ -61,16 +65,21 @@ describe('transformIntoDatabaseDate', () => {
 
 describe('transformIntoDatabaseQueryDate', () => {
   it('retorna string vazia para data vazia', () => {
-    expect(transformIntoDatabaseQueryDate({ date: null, type: 'start' })).toBe(
-      ''
-    );
+    expect(
+      transformIntoDatabaseQueryDate({
+        date: null,
+        type: 'start',
+        hasTimeStamp: false,
+      })
+    ).toBe('');
   });
 
-  it('para input só-data e banco só-data: ignora o type (sempre 00:00 UTC)', () => {
+  it('para input só-data e banco só-data: bordas em UTC (start 00:00, end 23:59)', () => {
     expect(
       transformIntoDatabaseQueryDate({
         date: '2026-03-31',
         type: 'start',
+        hasTimeStamp: false,
         databaseDateHasTimeStamp: false,
       })
     ).toBe('2026-03-31T00:00:00.000Z');
@@ -79,8 +88,19 @@ describe('transformIntoDatabaseQueryDate', () => {
       transformIntoDatabaseQueryDate({
         date: '2026-03-31',
         type: 'end',
+        hasTimeStamp: false,
         databaseDateHasTimeStamp: false,
       })
     ).toBe('2026-03-31T23:59:59.999Z');
+  });
+
+  it('preserva instante exato e ignora o type quando hasTimeStamp=true', () => {
+    expect(
+      transformIntoDatabaseQueryDate({
+        date: '2026-03-31T14:30:00.000Z',
+        type: 'end',
+        hasTimeStamp: true,
+      })
+    ).toBe('2026-03-31T14:30:00.000Z');
   });
 });

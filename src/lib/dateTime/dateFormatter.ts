@@ -1,39 +1,52 @@
-import type { IDateFormatterValue } from './types';
+import type { IDateFormatterValue } from "./types";
 
 /**
- * Formata datas para exibição considerando diferenças de timezone entre frontend e backend.
+ * Formata datas para EXIBIÇÃO, escolhendo o tratamento de fuso conforme a
+ * natureza do valor persistido (ver "Manipulação de Datas" no CLAUDE.md).
  *
- * Regras:
- * - Se `hasTimeStamp = true`: exibe data + hora no fuso local do usuário
- * - Se `hasTimeStamp = false`: força UTC para evitar deslocamento de dia
- *   (caso comum: backend envia `00:00` e o navegador converte para o dia anterior)
+ * Esta é a única função de exibição da pasta. Ela cobre, via flags, os três
+ * casos que o CLAUDE.md descreve separadamente:
+ * - `hasTimeStamp: false`                  → equivale a `dateFormatter`           (dia de calendário, sem fuso)
+ * - `hasTimeStamp: true, showHours: false` → equivale a `localDateFormatter`      (instante, só data, fuso local)
+ * - `hasTimeStamp: true, showHours: true`  → equivale a `localDateTimeFormatter`  (instante, data + hora, fuso local)
+ *
+ * Como escolher a flag (a regra é a natureza do dado, não "quero ver a hora"):
+ * - **Dia de calendário** — valor salvo SEM hora útil (`transformIntoDatabaseDate({ hasTimeStamp: false })`
+ *   ou conceitualmente um dia: nascimento, competência, vencimento, recebimento). Use `hasTimeStamp: false`:
+ *   a data é forçada para UTC, evitando que o dia "ande" para frente/trás na virada da meia-noite.
+ * - **Instante** — timestamp real (`createdAt`/`updatedAt` do banco ou enviado com
+ *   `transformIntoDatabaseDate({ hasTimeStamp: true })`). Use `hasTimeStamp: true`: a data é exibida
+ *   respeitando o fuso local do usuário.
+ *
+ * ⚠️ Anti-pattern: usar `hasTimeStamp: true` num valor salvo como dia de calendário (meia-noite UTC).
+ * Aplicar o fuso local nesse caso pode exibir o dia anterior/seguinte.
  *
  * @param params.date Data a ser formatada
- * @param params.hasTimeStamp Indica se a data possui hora relevante
- * @param params.showHours Quando `hasTimeStamp` for `true`, define se as horas devem ser exibidas
+ * @param params.hasTimeStamp `false` para dia de calendário (sem fuso); `true` para instante (fuso local)
+ * @param params.showHours Quando `hasTimeStamp` for `true`, define se a hora deve ser exibida
  *
  * @returns Data formatada ou '-' se não informada
  *
  * @example
- * // Data sem hora relevante (backend envia 00:00)
+ * // Dia de calendário (salvo com hasTimeStamp:false, à meia-noite UTC)
  * dateFormatter({
  *   date: '2026-03-31T00:00:00Z',
  *   hasTimeStamp: false,
  * });
- * // → "31/03/2026 00:00"
- * // (evita virar 30/03 por causa do fuso)
+ * // → "31/03/2026"
+ * // (força UTC para não virar 30/03 por causa do fuso)
  *
  * @example
- * // Data com hora relevante
+ * // Instante, exibindo data + hora no fuso local
  * dateFormatter({
  *   date: '2026-03-31T14:35:20Z',
  *   hasTimeStamp: true,
  *   showHours: true,
  * });
  * // → "31/03/2026 11:35" (exemplo em UTC-3)
-
+ *
  * @example
- * // Data com hora relevante, mas sem exibir a hora
+ * // Instante, mas exibindo só a data (ainda no fuso local)
  * dateFormatter({
  *   date: '2026-03-31T14:35:20Z',
  *   hasTimeStamp: true,
@@ -42,12 +55,12 @@ import type { IDateFormatterValue } from './types';
  * // → "31/03/2026"
  *
  * @example
- * // Data simples sem timezone explícito
+ * // Dia de calendário sem timezone explícito (YYYY-MM-DD)
  * dateFormatter({
  *   date: '2026-03-31',
  *   hasTimeStamp: false,
  * });
- * // → "31/03/2026 00:00"
+ * // → "31/03/2026"
  *
  * @example
  * // Sem data
@@ -57,12 +70,8 @@ import type { IDateFormatterValue } from './types';
  * });
  * // → "-"
  */
-export function dateFormatter({
-  date,
-  hasTimeStamp,
-  showHours,
-}: IDateFormatterValue) {
-  if (!date) return '-';
+export function dateFormatter({ date, hasTimeStamp, showHours }: IDateFormatterValue) {
+  if (!date) return "-";
 
   const d = new Date(date);
 
@@ -70,25 +79,25 @@ export function dateFormatter({
   if (hasTimeStamp) {
     if (!showHours) {
       return d.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
     }
 
     return d.toLocaleString(undefined, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
   return d.toLocaleDateString(undefined, {
-    timeZone: 'UTC',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    timeZone: "UTC",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
 }
