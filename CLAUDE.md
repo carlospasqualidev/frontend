@@ -555,7 +555,17 @@ Só introduza um wrapper na raiz quando precisar de um comportamento de layout r
 - Use a instância `api` de [`src/services/api`](src/services/api) — ela já trata `baseURL`, `withCredentials: true` (cookie) e toasts via interceptors. **Não crie axios direto.**
 - Para server state: TanStack Query (`useQuery` / `useMutation`) com o `queryClient` de [`src/lib/queryClient.ts`](src/lib/queryClient.ts). Não use `useEffect` + `fetch`.
 
-**Tip de tipagem para APIs:** Separe as tipagens (types/interfaces e schemas) dos serviços de rede em um arquivo dedicado sob `src/services/api/`, por exemplo `src/services/api/types.ts` ou `src/services/api/schemas.ts`. Mantenha os arquivos de serviço (`src/services/api/*.ts`) focados em lógica de requisição/response e importe os tipos desse arquivo central. Quando possível, defina schemas Zod em `schemas.ts` e derive os tipos com `z.infer<typeof schema>` — isso mantém a fonte de verdade do shape próxima ao parser/validador e evita duplicação de tipos inline nos serviços. Atualize os tipos compartilhados quando o contrato da API mudar e importe-os em hooks, serviços e testes.
+#### Onde vivem as chamadas de API — `services/<módulo>/`
+
+**Toda função que fala com o backend vive em `src/services/<módulo>/` — nunca co-localizada na tela (`screens/...`) nem dentro de `services/api/`.** Cada módulo tem sua pasta (ex.: `services/users/`, `services/session/`), que agrupa os **tipos/schemas** e as **chamadas** (`api.get/post/put/delete`) daquele domínio. A tela (`screens/...`) importa essas funções e as consome via TanStack Query — **não** chama `api.*` direto, nem define `fetch*`/`create*` inline.
+
+- **`services/api/`** é só o **cliente** `api`: a instância axios (`api.ts`), os interceptors (`errorHandlers.ts`), tipos do cliente e helpers genéricos de transporte (ex.: `upload.ts`). **Não** coloque chamadas de domínio aqui.
+- **`services/<módulo>/`**: as chamadas daquele domínio + seus tipos. Modelo de referência: o `services/session/` já existente (`sessionService.ts`, `authMapper.ts`, `types.ts`). Quando o módulo cresce, separe por responsabilidade — ex.: `services/users/` → `userListApi.ts` (listagem + params), `userDetailApi.ts` (detalhe), `userFormApi.ts` (criar/editar/ações + dados auxiliares). Cada arquivo mantém o schema Zod **junto** do fetch que o usa, derivando o tipo com `z.infer<typeof schema>` (fonte de verdade do shape ao lado do parser).
+- Atualize o schema/tipo quando o contrato da API mudar; importe-os em hooks, telas e testes a partir do arquivo do módulo.
+
+❌ `screens/users/userListApi.ts` (chamada de API dentro de `screens/`)
+❌ `services/api/users/userListApi.ts` (chamada de domínio dentro de `services/api/`)
+✓ `services/users/userListApi.ts` (chamada no módulo, importada pela tela)
 
 #### Convenção de `queryKey`
 
