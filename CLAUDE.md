@@ -517,6 +517,36 @@ O `lazyRouteComponent(() => import('./userDetails'), 'UserDetailsPage')` continu
 
 O mesmo padrão vale para a lista (`index.tsx` da feature) quando ela ganha extensão: extraia colunas, filtros e células custom para arquivos próprios em vez de inflar o componente da página.
 
+#### Uma pasta por sub-tela da feature
+
+Quando a feature tem telas distintas (listagem, detalhe — e às vezes criar/editar dedicados), **cada sub-tela ganha sua própria pasta** com o `index.tsx` daquela tela + **os componentes que só existem nela**. Regra dura:
+
+- **Componente/utilitário exclusivo de uma sub-tela → dentro da pasta daquela sub-tela.** Um modal/skeleton/célula que só aparece nos detalhes mora em `details/`; o que só aparece na listagem, em `list/`.
+- **Compartilhado entre sub-telas → numa pasta `utils/` da feature — nunca solto na raiz.** Os arquivos comuns (campos de formulário reaproveitados por criar **e** editar, `queryKeys.ts`, constantes, helpers) ficam em `screens/<feature>/utils/`. A raiz da feature guarda só o que é do próprio roteamento (`routes.ts` e o layout da feature).
+- Nunca deixe um componente exclusivo de uma tela "solto" na raiz da feature — se só uma tela usa, ele pertence à pasta dela; se mais de uma usa, vai para `utils/`.
+
+Exemplo real (feature Usuários):
+
+```
+screens/users/
+├── routes.ts, usersLayout.tsx        # feature (roteamento)
+├── utils/                            # comuns/compartilhados (nunca soltos na raiz)
+│   ├── userFormFields.tsx            # reaproveitado por criar + editar
+│   ├── userImageField.tsx
+│   ├── jobRoles.ts
+│   └── queryKeys.ts
+├── list/
+│   ├── index.tsx              # UsersPage (listagem)
+│   ├── createUserModal.tsx    # ação exclusiva da listagem
+│   └── userListSkeleton.tsx
+└── details/
+    ├── index.tsx              # UserDetailsPage
+    ├── editUserModal.tsx      # ação exclusiva do detalhe
+    └── userDetailSkeleton.tsx
+```
+
+No `routes.ts`, cada rota aponta para a pasta da sua sub-tela: `lazyRouteComponent(() => import('./list'), 'UsersPage')` e `lazyRouteComponent(() => import('./details'), 'UserDetailsPage')`. (Chamadas de API continuam fora de `screens/`, em `services/<módulo>/` — ver seção HTTP.)
+
 **Não embrulhe a tela inteira num wrapper de spacing/padding.** O [`Layout`](src/components/global/layout/layout.tsx) global já aplica `space-y-4` ao container que recebe `children`, então os filhos diretos do componente da tela (`<PageHeader />`, `<section>`, `<Tabs>`, grids) **já ficam espaçados automaticamente**. Adicionar `<div className="space-y-6">…</div>` (ou outro `space-y-*` / `p-*`) na raiz da tela é redundante, descalibra o ritmo visual entre telas e empilha uma `<div>` à toa.
 
 ❌ Wrapper redundante:
