@@ -11,17 +11,36 @@ const filterValueSchema = z.union([
   z.object({ from: z.string(), to: z.string() }),
 ]);
 
+const sortSchema = z.array(z.object({ id: z.string(), desc: z.boolean() }));
+
 export const dataTableSearchSchema = z.object({
   page: z.number().optional(),
-  sort: z.array(z.object({ id: z.string(), desc: z.boolean() })).optional(),
+  sort: sortSchema.optional(),
   filters: z.record(z.string(), filterValueSchema).optional(),
 });
 
 export type DataTableSearch = z.infer<typeof dataTableSearchSchema>;
 
 /**
+ * Nomes dos search params para uma tabela. Sem `keyPrefix`, usa as chaves padrão
+ * (`page`/`sort`/`filters`). Com `keyPrefix`, prefixa-as (`byUserPage`,
+ * `byUserSort`, `byUserFilters`) para que mais de uma tabela na mesma rota
+ * coexistam na URL sem disputar as mesmas chaves.
+ */
+export function dataTableSearchKeys(keyPrefix?: string) {
+  return {
+    page: keyPrefix ? `${keyPrefix}Page` : 'page',
+    sort: keyPrefix ? `${keyPrefix}Sort` : 'sort',
+    filters: keyPrefix ? `${keyPrefix}Filters` : 'filters',
+  };
+}
+
+/**
  * Valida os search params da rota. Em caso de URL inválida, ignora (volta ao
  * estado padrão) em vez de quebrar a navegação.
+ *
+ * Passe `keyPrefix` quando a rota tiver mais de uma tabela e cada uma precisar
+ * persistir seu estado em chaves próprias (ex.: as abas de Denúncias).
  *
  * ```ts
  * createRoute({ validateSearch: validateDataTableSearch, ... });
@@ -29,6 +48,25 @@ export type DataTableSearch = z.infer<typeof dataTableSearchSchema>;
  */
 export function validateDataTableSearch(
   search: Record<string, unknown>
-): DataTableSearch {
-  return dataTableSearchSchema.catch({}).parse(search);
+): DataTableSearch;
+export function validateDataTableSearch(
+  search: Record<string, unknown>,
+  keyPrefix: string
+): Record<string, unknown>;
+export function validateDataTableSearch(
+  search: Record<string, unknown>,
+  keyPrefix?: string
+): DataTableSearch | Record<string, unknown> {
+  if (!keyPrefix) {
+    return dataTableSearchSchema.catch({}).parse(search);
+  }
+
+  const keys = dataTableSearchKeys(keyPrefix);
+  const prefixedSchema = z.object({
+    [keys.page]: z.number().optional(),
+    [keys.sort]: sortSchema.optional(),
+    [keys.filters]: z.record(z.string(), filterValueSchema).optional(),
+  });
+
+  return prefixedSchema.catch({}).parse(search);
 }

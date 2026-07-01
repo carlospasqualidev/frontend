@@ -17,6 +17,7 @@ import {
   resolveFieldErrors,
   hasFieldErrors,
 } from '@/lib/forms/errors';
+import { cn } from '@/lib/utils';
 import {
   Field as BaseField,
   FieldDescription,
@@ -84,6 +85,7 @@ function MultiSelectBase({
         id={id}
         options={options}
         aria-invalid={resolvedAriaInvalid}
+        className={cn('w-full', props.className)}
       />
 
       {description && <FieldDescription>{description}</FieldDescription>}

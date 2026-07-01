@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type SortingState } from '@tanstack/react-table';
 
-import { type DataTableSearch } from './dataTableSearch';
+import { dataTableSearchKeys } from './dataTableSearch';
 import { type DataTableFilterValues } from './filters';
 import {
   buildDataTableResult,
@@ -17,6 +17,13 @@ interface UseDataTableUrlQueryOptions {
   defaultSorting?: SortingState;
   /** Filtros iniciais; gravados na URL no mount se ela estiver vazia. */
   defaultFilters?: DataTableFilterValues;
+  /**
+   * Prefixo das chaves na URL. Sem ele, usa `page`/`sort`/`filters`. Use quando
+   * a rota tem mais de uma tabela (ex.: abas) e cada uma precisa do seu próprio
+   * estado na URL sem colidir com as demais. A rota deve validar essas chaves
+   * com `validateDataTableSearch(search, keyPrefix)`.
+   */
+  keyPrefix?: string;
 }
 
 /**
@@ -34,9 +41,19 @@ export function useDataTableUrlQuery({
   pageSize = 50,
   defaultSorting,
   defaultFilters,
+  keyPrefix,
 }: UseDataTableUrlQueryOptions = {}): UseDataTableQueryResult {
-  const search = useSearch({ strict: false }) as DataTableSearch;
+  const search = useSearch({ strict: false }) as Record<string, unknown>;
   const navigate = useNavigate();
+  const keys = dataTableSearchKeys(keyPrefix);
+
+  // Lê via `Map` para não indexar o objeto por variável (object injection).
+  const params = new Map(Object.entries(search));
+  const rawPage = params.get(keys.page);
+  const rawSort = params.get(keys.sort) as SortingState | undefined;
+  const rawFilters = params.get(keys.filters) as
+    | DataTableFilterValues
+    | undefined;
 
   // Grava os defaults na URL apenas no primeiro render, e somente para os
   // params ausentes. Depois disso, `seeded` impede que os defaults voltem
@@ -46,9 +63,9 @@ export function useDataTableUrlQuery({
     if (seeded) return;
 
     const seedSort =
-      search.sort === undefined && defaultSorting && defaultSorting.length > 0;
+      rawSort === undefined && defaultSorting && defaultSorting.length > 0;
     const seedFilters =
-      search.filters === undefined &&
+      rawFilters === undefined &&
       defaultFilters &&
       Object.keys(defaultFilters).length > 0;
 
@@ -58,8 +75,8 @@ export function useDataTableUrlQuery({
         replace: true,
         search: (previous: Record<string, unknown>) => ({
           ...previous,
-          ...(seedSort ? { sort: defaultSorting } : {}),
-          ...(seedFilters ? { filters: defaultFilters } : {}),
+          ...(seedSort ? { [keys.sort]: defaultSorting } : {}),
+          ...(seedFilters ? { [keys.filters]: defaultFilters } : {}),
         }),
       });
     }
@@ -72,16 +89,16 @@ export function useDataTableUrlQuery({
   }, []);
 
   // Antes do seed (primeiro render), aplica defaults; depois, URL é a verdade.
-  const page = typeof search.page === 'number' ? search.page : 0;
-  const sort = search.sort ?? (seeded ? [] : (defaultSorting ?? []));
-  const filters = search.filters ?? (seeded ? {} : (defaultFilters ?? {}));
+  const page = typeof rawPage === 'number' ? rawPage : 0;
+  const sort = rawSort ?? (seeded ? [] : (defaultSorting ?? []));
+  const filters = rawFilters ?? (seeded ? {} : (defaultFilters ?? {}));
 
   const patch = (next: DataTableQueryPatch) => {
     // Usa apenas o que está REALMENTE na URL como base — sem fallback para
     // defaults — para que valores removidos pelo usuário permaneçam removidos.
-    const urlPage = typeof search.page === 'number' ? search.page : 0;
-    const urlSort = search.sort ?? [];
-    const urlFilters = search.filters ?? {};
+    const urlPage = typeof rawPage === 'number' ? rawPage : 0;
+    const urlSort = rawSort ?? [];
+    const urlFilters = rawFilters ?? {};
     const merged = {
       page: next.page !== undefined ? next.page : urlPage,
       sort: next.sort !== undefined ? next.sort : urlSort,
@@ -91,18 +108,22 @@ export function useDataTableUrlQuery({
     void navigate({
       to: '.',
       search: (previous: Record<string, unknown>) => {
-        const rest = { ...previous };
-        delete rest.page;
-        delete rest.sort;
-        delete rest.filters;
+        // Remove as chaves desta tabela antes de regravá-las (sem `delete` por
+        // variável), preservando os demais params da rota (ex.: `tab`).
+        const rest = Object.fromEntries(
+          Object.entries(previous).filter(
+            ([key]) =>
+              key !== keys.page && key !== keys.sort && key !== keys.filters
+          )
+        );
 
         // Omite valores padrão/vazios para manter a URL limpa.
         return {
           ...rest,
-          ...(merged.page ? { page: merged.page } : {}),
-          ...(merged.sort.length ? { sort: merged.sort } : {}),
+          ...(merged.page ? { [keys.page]: merged.page } : {}),
+          ...(merged.sort.length ? { [keys.sort]: merged.sort } : {}),
           ...(Object.keys(merged.filters).length
-            ? { filters: merged.filters }
+            ? { [keys.filters]: merged.filters }
             : {}),
         };
       },

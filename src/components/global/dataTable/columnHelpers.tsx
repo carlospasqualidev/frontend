@@ -82,6 +82,10 @@ export function SortableHeader<TData, TValue>({
   return (
     <Button
       variant="ghost"
+      // Cancela o padding-left próprio do botão (px-2.5) para o rótulo alinhar
+      // com o conteúdo da célula (TableHead/TableCell usam px-3). Sem isso, o
+      // cabeçalho ordenável fica ~10px à direita do dado da coluna.
+      className="-ml-2.5"
       onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
     >
       {children}

@@ -35,7 +35,7 @@ const SKELETON_WIDTHS = ['w-20', 'w-32', 'w-24', 'w-28', 'w-16'];
  * deixa a tela alta demais e ruidosa. Um punhado de linhas já comunica "tabela
  * carregando" sem custo visual.
  */
-const SKELETON_ROW_COUNT = 8;
+export const SKELETON_ROW_COUNT = 8;
 
 declare module '@tanstack/react-table' {
   // Permite que cada coluna passe classes Tailwind para o `<th>`/`<td>` —
@@ -251,9 +251,7 @@ export function DataTable<TData, TValue>({
                             // link nativo; o clique normal segue a navegação SPA.
                             if (
                               href &&
-                              (event.metaKey ||
-                                event.ctrlKey ||
-                                event.shiftKey)
+                              (event.metaKey || event.ctrlKey || event.shiftKey)
                             ) {
                               openInNewTab();
                               return;
