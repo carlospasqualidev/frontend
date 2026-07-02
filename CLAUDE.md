@@ -511,7 +511,10 @@ screens/users/userDetails/
 └── sessionsTab.tsx        # exporta SessionsTab
 ```
 
-Cada arquivo exporta apenas o seu componente público. Helpers privados (constantes de ícones, sub-componentes usados em uma única seção, type guards locais) ficam **dentro do arquivo onde são usados**, não num `utils.ts` compartilhado por reflexo. Utilitários compartilhados entre lista e detalhe (ex.: `getInitials`, mapas de variante de `Badge`) vivem ao lado do `routes.ts` da feature (`screens/<feature>/getInitials.ts`, `screens/<feature>/userBadges.ts`).
+Cada arquivo exporta apenas o seu componente público. A fronteira entre inline e `utils/`:
+
+- **Helper privado de uso único** (constantes de ícones, sub-componente usado numa única seção, type guard local) fica **dentro do arquivo onde é usado** — não crie módulo compartilhado por reflexo.
+- **Dado/tipo/utilitário importado por mais de um arquivo** (ex.: `getInitials`, mapas de variante de `Badge`, mock de dados) vai para `screens/<feature>/utils/` — **nunca solto na raiz da feature**. Ver a regra completa em "Uma pasta por sub-tela da feature" abaixo.
 
 O `lazyRouteComponent(() => import('./userDetails'), 'UserDetailsPage')` continua funcionando sem mudança — o resolver acha `userDetails/index.tsx` automaticamente.
 
@@ -546,6 +549,27 @@ screens/users/
 ```
 
 No `routes.ts`, cada rota aponta para a pasta da sua sub-tela: `lazyRouteComponent(() => import('./list'), 'UsersPage')` e `lazyRouteComponent(() => import('./details'), 'UserDetailsPage')`. (Chamadas de API continuam fora de `screens/`, em `services/<módulo>/` — ver seção HTTP.)
+
+**`utils/` vale também para feature de tela única — não é privilégio de feature com sub-telas.** Mesmo quando a feature tem só uma rota (dashboard, uma tela de settings), **nenhum dado, mock, constante, tipo ou helper fica solto na raiz**: eles vão para `screens/<feature>/utils/`. A raiz guarda o `routes.ts`, o `index.tsx` da tela e os **componentes de seção** que compõem essa única tela (eles são a própria tela, não "helpers"). O que decide `utils/` não é "ser compartilhado entre sub-telas", é **não ser componente da tela** — pura fonte de dados/regra/tipo sempre desce para `utils/`.
+
+Exemplo real (feature Início — tela única):
+
+```
+screens/home/
+├── routes.ts                   # roteamento
+├── index.tsx                   # DashboardPage (shell da tela única)
+├── statsGrid.tsx               # seções que compõem a tela — ficam na raiz
+├── activityChart.tsx
+├── recentActivity.tsx
+├── quickActions.tsx
+├── pendingTasks.tsx
+├── homeGreeting.tsx
+└── utils/
+    └── homeMockData.ts         # dado/mock — nunca solto na raiz
+```
+
+❌ `screens/home/homeMockData.ts` (dado solto na raiz da feature)
+✓ `screens/home/utils/homeMockData.ts` (dado em `utils/`, mesmo sem sub-telas)
 
 **Não embrulhe a tela inteira num wrapper de spacing/padding.** O [`Layout`](src/components/global/layout/layout.tsx) global já aplica `space-y-4` ao container que recebe `children`, então os filhos diretos do componente da tela (`<PageHeader />`, `<section>`, `<Tabs>`, grids) **já ficam espaçados automaticamente**. Adicionar `<div className="space-y-6">…</div>` (ou outro `space-y-*` / `p-*`) na raiz da tela é redundante, descalibra o ritmo visual entre telas e empilha uma `<div>` à toa.
 

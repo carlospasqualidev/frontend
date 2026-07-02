@@ -25,7 +25,7 @@ export const usersListRoute = createRoute({
   getParentRoute: () => usersLayoutRoute,
   path: '/',
   validateSearch: validateDataTableSearch,
-  component: lazyRouteComponent(() => import('.'), 'UsersPage'),
+  component: lazyRouteComponent(() => import('./list'), 'UsersPage'),
 });
 
 interface UserDetailsSearch {
@@ -47,8 +47,5 @@ export const userDetailsRoute = createRoute({
     breadcrumb: 'Detalhes do usuário',
   },
   validateSearch: validateUserDetailsSearch,
-  component: lazyRouteComponent(
-    () => import('./userDetails'),
-    'UserDetailsPage'
-  ),
+  component: lazyRouteComponent(() => import('./details'), 'UserDetailsPage'),
 });

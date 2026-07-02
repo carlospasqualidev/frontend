@@ -3,8 +3,8 @@ import { toast } from 'sonner';
 import { Card } from '@/components/global/card/card';
 import { Switch } from '@/components/ui/switch';
 import { Typography } from '@/components/ui/typography';
-import { getUserPermissions } from '@/screens/users/mockUsers';
-import { type ManagedUser } from '@/screens/users/types';
+import { getUserPermissions } from '@/screens/users/utils/mockUsers';
+import { type ManagedUser } from '@/screens/users/utils/types';
 
 interface PermissionsTabProps {
   user: ManagedUser;

@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
-import UsersListSkeleton from '@/screens/users/userListSkeleton';
+import UsersListSkeleton from '@/screens/users/list/userListSkeleton';
 
 describe('UsersListSkeleton', () => {
   it('renders the expected number of skeleton rows', () => {

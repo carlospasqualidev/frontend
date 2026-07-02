@@ -179,7 +179,7 @@ function KpiGridDemo() {
 }
 
 // ============================================================================
-// Timeline — padrão usado em screens/users/userDetails/activityTab.tsx
+// Timeline — padrão usado em screens/users/details/activityTab.tsx
 // e screens/home/recentActivity.tsx
 // ============================================================================
 
@@ -374,7 +374,7 @@ function ItemListWithActionsDemo() {
 
 // ============================================================================
 // Lista de toggles — padrão usado em
-// screens/users/userDetails/permissionsTab.tsx e
+// screens/users/details/permissionsTab.tsx e
 // screens/account/notificationsTab.tsx
 // ============================================================================
 
@@ -452,7 +452,7 @@ function ToggleListDemo() {
 
 // ============================================================================
 // Definition list — padrão usado em
-// screens/users/userDetails/overviewTab.tsx
+// screens/users/details/overviewTab.tsx
 // ============================================================================
 
 interface DefinitionItemProps {
@@ -506,7 +506,7 @@ function DefinitionListDemo() {
 
 // ============================================================================
 // Tabs com estado persistido (URL ou state local) — padrão usado em
-// screens/account/index.tsx e screens/users/userDetails/index.tsx
+// screens/account/index.tsx e screens/users/details/index.tsx
 // ============================================================================
 
 function TabsWithUrlStateDemo() {

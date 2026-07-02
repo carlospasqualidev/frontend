@@ -1,7 +1,7 @@
 import { Card } from '@/components/global/card/card';
 import { Typography } from '@/components/ui/typography';
 import { cn } from '@/lib/utils';
-import { WEEKLY_ACTIVITY } from '@/screens/home/homeMockData';
+import { WEEKLY_ACTIVITY } from '@/screens/home/utils/homeMockData';
 
 interface ActivityChartProps {
   className?: string;

@@ -232,7 +232,7 @@ export const Vitrine: Story = {
     docs: {
       description: {
         story:
-          'Padrão usado em `screens/account` e `screens/users/userDetails`. Os search params alheios à aba (filtros, paginação) ficam preservados ao trocar de aba.',
+          'Padrão usado em `screens/account` e `screens/users/details`. Os search params alheios à aba (filtros, paginação) ficam preservados ao trocar de aba.',
       },
     },
   },

@@ -12,11 +12,11 @@ import { Button } from '@/components/global/button/button';
 import { Empty } from '@/components/global/empty/empty';
 import { PageActions } from '@/components/global/layout/pageActions';
 import { UrlTabs } from '@/components/global/tabs/urlTabs';
-import { findUserById } from '@/screens/users/mockUsers';
-import { ActivityTab } from '@/screens/users/userDetails/activityTab';
-import { OverviewTab } from '@/screens/users/userDetails/overviewTab';
-import { PermissionsTab } from '@/screens/users/userDetails/permissionsTab';
-import { SessionsTab } from '@/screens/users/userDetails/sessionsTab';
+import { findUserById } from '@/screens/users/utils/mockUsers';
+import { ActivityTab } from '@/screens/users/details/activityTab';
+import { OverviewTab } from '@/screens/users/details/overviewTab';
+import { PermissionsTab } from '@/screens/users/details/permissionsTab';
+import { SessionsTab } from '@/screens/users/details/sessionsTab';
 
 export function UserDetailsPage() {
   const { userId } = useParams({ strict: false });

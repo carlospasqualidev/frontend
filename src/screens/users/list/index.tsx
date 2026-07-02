@@ -21,18 +21,18 @@ import { PageActions } from '@/components/global/layout/pageActions';
 import { Badge } from '@/components/ui/badge';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
-import { queryUsers } from '@/screens/users/mockUsers';
+import { queryUsers } from '@/screens/users/utils/mockUsers';
 import {
   roleBadgeVariants,
   statusBadgeVariants,
-} from '@/screens/users/userBadges';
+} from '@/screens/users/list/userBadges';
 import {
   userRoleLabels,
   USER_ROLE_OPTIONS,
   userStatusLabels,
   USER_STATUS_OPTIONS,
   type ManagedUser,
-} from '@/screens/users/types';
+} from '@/screens/users/utils/types';
 
 const filters = [
   textFilter({

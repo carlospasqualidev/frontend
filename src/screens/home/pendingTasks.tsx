@@ -14,7 +14,7 @@ import {
   PENDING_TASKS,
   type PendingTask,
   type PendingTaskKind,
-} from '@/screens/home/homeMockData';
+} from '@/screens/home/utils/homeMockData';
 
 const TASK_ICON: Record<PendingTaskKind, LucideIcon> = {
   invite: Mail,

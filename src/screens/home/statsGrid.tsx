@@ -10,7 +10,7 @@ import {
 
 import { Typography } from '@/components/ui/typography';
 import { cn } from '@/lib/utils';
-import { HOME_STATS, type HomeStat } from '@/screens/home/homeMockData';
+import { HOME_STATS, type HomeStat } from '@/screens/home/utils/homeMockData';
 
 const STAT_ICON: Record<HomeStat['id'], React.ComponentType> = {
   totalUsers: Users,
@@ -29,7 +29,9 @@ function deltaColor(stat: HomeStat): string {
   if (stat.trend === 'neutral') return 'text-muted-foreground';
   const isPositive = stat.trend === 'up';
   const isGood = stat.invertSentiment ? !isPositive : isPositive;
-  return isGood ? 'text-emerald-600 dark:text-emerald-500' : 'text-rose-600 dark:text-rose-500';
+  return isGood
+    ? 'text-emerald-600 dark:text-emerald-500'
+    : 'text-rose-600 dark:text-rose-500';
 }
 
 interface StatCardProps {

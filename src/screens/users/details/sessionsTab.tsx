@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
-import { getUserSessions } from '@/screens/users/mockUsers';
-import { type ManagedUser } from '@/screens/users/types';
+import { getUserSessions } from '@/screens/users/utils/mockUsers';
+import { type ManagedUser } from '@/screens/users/utils/types';
 
 interface SessionsTabProps {
   user: ManagedUser;

@@ -12,11 +12,11 @@ import { Card } from '@/components/global/card/card';
 import { Empty } from '@/components/global/empty/empty';
 import { Typography } from '@/components/ui/typography';
 import { dateFormatter } from '@/lib/dateTime/dateFormatter';
-import { getUserActivity } from '@/screens/users/mockUsers';
+import { getUserActivity } from '@/screens/users/utils/mockUsers';
 import {
   type ManagedUser,
   type UserActivityType,
-} from '@/screens/users/types';
+} from '@/screens/users/utils/types';
 
 interface ActivityTabProps {
   user: ManagedUser;

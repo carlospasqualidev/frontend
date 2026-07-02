@@ -1,4 +1,4 @@
-import { UsersListSkeleton } from '@/screens/users/userListSkeleton';
+import { UsersListSkeleton } from '@/screens/users/list/userListSkeleton';
 
 export default {
   title: 'Globais/Users/UsersListSkeleton',

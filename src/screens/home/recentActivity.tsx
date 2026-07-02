@@ -12,7 +12,7 @@ import { Typography } from '@/components/ui/typography';
 import {
   RECENT_ACTIVITY,
   type RecentActivityType,
-} from '@/screens/home/homeMockData';
+} from '@/screens/home/utils/homeMockData';
 
 const ACTIVITY_ICON: Record<RecentActivityType, LucideIcon> = {
   'user-added': UserPlus,
@@ -22,7 +22,8 @@ const ACTIVITY_ICON: Record<RecentActivityType, LucideIcon> = {
   'security-alert': ShieldAlert,
 };
 
-const SECURITY_TONE = 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300';
+const SECURITY_TONE =
+  'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300';
 const DEFAULT_TONE = 'bg-muted text-muted-foreground';
 
 interface RecentActivityProps {

@@ -5,7 +5,7 @@ import {
   userRoleLabels,
   userStatusLabels,
   type ManagedUser,
-} from '@/screens/users/types';
+} from '@/screens/users/utils/types';
 
 interface OverviewTabProps {
   user: ManagedUser;

@@ -9,7 +9,7 @@ import {
   type UserActivityEvent,
   type UserPermission,
   type UserSession,
-} from '@/screens/users/types';
+} from '@/screens/users/utils/types';
 
 /**
  * Base mockada simulando uma listagem real de usuários do sistema.

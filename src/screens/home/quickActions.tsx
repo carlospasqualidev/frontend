@@ -4,7 +4,10 @@ import { toast } from 'sonner';
 
 import { Card } from '@/components/global/card/card';
 import { Typography } from '@/components/ui/typography';
-import { QUICK_ACTIONS, type QuickAction } from '@/screens/home/homeMockData';
+import {
+  QUICK_ACTIONS,
+  type QuickAction,
+} from '@/screens/home/utils/homeMockData';
 
 interface QuickActionsProps {
   className?: string;
@@ -33,7 +36,7 @@ export function QuickActions({ className }: QuickActionsProps) {
             <button
               type="button"
               onClick={() => open(action)}
-              className="group flex w-full items-start gap-3 rounded-2xl border border-border/70 bg-background p-4 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group flex w-full items-start gap-3 rounded-2xl border border-border/70 bg-background p-4 text-left transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               <div className="min-w-0 flex-1 space-y-1">
                 <Typography as="span" variant="small" className="block">
