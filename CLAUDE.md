@@ -8,7 +8,7 @@ Guia para o Claude trabalhar neste frontend. Este arquivo é a fonte de verdade 
 
 ## Stack
 
-React 19 + Vite 7 + TypeScript • TanStack Router (code-based) + TanStack Query • Zustand • React Hook Form + Zod • Tailwind v4 + shadcn/ui (Radix) • Axios • Sonner • Vitest + Testing Library • ESLint + Prettier + Husky + lint-staged.
+React 19 + Vite 7 + TypeScript • TanStack Router (code-based) + TanStack Query • Zustand • React Hook Form + Zod • Tailwind v4 + shadcn/ui (Radix) • Axios • Sonner • Vitest + Testing Library (unidade/integração) • Playwright (E2E) • ESLint + Prettier + Husky + lint-staged.
 
 Sessão por cookie HTTP-only (consumida pelo template de backend em `../ultimate-server`).
 
@@ -244,6 +244,13 @@ Regras práticas:
 
 ## Testes
 
+Duas camadas, papéis distintos e complementares:
+
+- **Vitest + Testing Library** (`src/tests/`, ambiente `jsdom`) — unidade/integração: lógica pura, hooks, regras de negócio, contrato de abstrações globais. Rápido, roda em `npm test` e no `pre-push`.
+- **Playwright** (`e2e/`, navegador real) — E2E de comportamento observável pelo usuário: fluxos de tela, navegação entre rotas, submit de formulário ponta a ponta. Ver a seção **Testes E2E (Playwright)** abaixo — ela é **obrigatória** para toda tela/componente/mudança de funcionamento nova.
+
+### Vitest + Testing Library (unidade/integração)
+
 - Vitest + Testing Library, ambiente `jsdom`.
 - Todos os testes vivem em [`src/tests/`](src/tests), organizados em pastas — uma pasta por componente/módulo, com o arquivo `<name>.test.ts(x)` dentro. Espelha o agrupamento usado nas stories.
 - Setup global em [`src/tests/setup.ts`](src/tests/setup.ts) (referenciado em [`vitest.config.ts`](vitest.config.ts)).
@@ -306,6 +313,57 @@ Use `waitFor` apenas para asserções que não são "elemento apareceu" (ex.: `e
 - **Wrapper de teste centralizado**: queries do TanStack Query, router e theme provider devem vir de um helper em `src/tests/` para não repetir setup em cada teste.
 - **Factories de dados** (`makeUser({ name: 'Maria' })`) co-localizadas no teste ou em `src/tests/factories/` — evita literais gigantes inline.
 - **Limpe estado entre testes**: `afterEach(() => queryClient.clear())` quando o teste compartilha cliente.
+
+### Testes E2E (Playwright) — obrigatórios para trabalho novo
+
+**Regra dura:** **toda tela nova, componente novo ou mudança de funcionamento que possa exigir novos testes deve vir acompanhada de teste(s) Playwright no mesmo PR.** Isso vale para:
+
+- **Tela nova** (`screens/<feature>/...`): pelo menos um spec cobrindo o caminho principal do usuário (renderiza → interage → resultado esperado) e o caminho de falha relevante (validação, estado de erro, empty state).
+- **Componente novo com comportamento** (abre/fecha, submete, navega, dispara ação): um spec exercitando o comportamento observável — não o estilo. Componente puramente visual/estático não precisa de E2E (mas ainda pode ter story + teste de unidade).
+- **Mudança de funcionamento** (novo fluxo, alteração de regra de navegação, novo passo em formulário, nova ação): atualize o spec existente ou crie um novo cobrindo o novo comportamento. Se a mudança quebra um spec, conserte o spec junto — não o desabilite.
+
+**Escrever o teste não basta — rode-o antes de dar a tarefa por concluída.** Toda tarefa que se encaixe nos casos acima só é considerada **entregue** depois que o(s) spec(s) Playwright relacionado(s) foram **executados e passaram** (`npm run test:e2e`, ou filtrando o arquivo: `npm run test:e2e -- e2e/<feature>.spec.ts`). Não encerre a tarefa relatando "adicionei o teste" sem o resultado da execução:
+
+- **Rode ao final da tarefa**, como passo de verificação da entrega — não só quando o usuário pedir. É a garantia de que a mudança funciona no navegador real, não apenas de que o código compila.
+- **Se algum spec falhar, a tarefa não está pronta**: conserte o código (ou o spec, se a expectativa mudou legitimamente) e rode de novo até passar. Não entregue com teste vermelho nem desabilite o spec para "passar".
+- **Relate o resultado real da execução** (quantos passaram/falharam), como faz com `npm test`/typecheck — sem afirmar que passou o que não foi rodado.
+- Também rode os testes de unidade (`npm test`) quando a mudança tocar lógica/hooks/abstração coberta por eles. As duas suítes juntas fecham a verificação da entrega.
+
+O teste de unidade (Vitest) continua valendo para lógica pura, hooks e contrato de abstrações globais. O E2E **não substitui** o teste de unidade — cobre a camada que só existe no navegador real (roteamento do TanStack Router, ciclo completo do formulário, transições entre telas). Quando em dúvida sobre qual camada usar: lógica isolada → Vitest; "o usuário faz X e vê Y" → Playwright.
+
+#### Onde vivem e como se organizam
+
+Specs E2E vivem em [`e2e/`](e2e) na raiz do projeto (fora de `src/`, separados dos testes de unidade em `src/tests/`), com extensão `.spec.ts` — o Playwright descobre por `*.spec.ts`, o Vitest por `*.test.ts(x)`, então não há colisão. Uma pasta/arquivo por feature ou fluxo, espelhando `screens/`:
+
+```
+e2e/
+├── login.spec.ts              # fluxo de sessão (referência viva — comece por ele)
+├── users/
+│   ├── userList.spec.ts        # listagem: busca, filtro, paginação
+│   └── userDetails.spec.ts     # detalhe: abas, ações
+└── ...
+```
+
+Config em [`playwright.config.ts`](playwright.config.ts): `baseURL` = `http://localhost:5173` (sobrescreva com `E2E_BASE_URL`), `webServer` sobe `npm run dev` automaticamente e **reaproveita** um dev server já rodando. Projeto único `chromium` no dev; trace na primeira retentativa e screenshot só em falha.
+
+#### Como escrever E2E (as mesmas 2 regras de a11y dos testes de unidade valem)
+
+- **Seletor por role + nome acessível, nunca por classe CSS ou estrutura de DOM.** `page.getByRole('button', { name: 'Entrar' })`, `page.getByLabel('E-mail')`, `page.getByRole('link', { name: 'Criar conta' })`. Se o teste acha o elemento por role, a acessibilidade passou junto. `getByTestId` só quando não há role natural.
+  - Prioridade (igual ao Testing Library): `getByRole` → `getByLabel` → `getByPlaceholder` → `getByText` → `getByTestId`.
+- **`expect(locator)` com auto-wait** (`toBeVisible`, `toHaveText`, `toHaveURL`) — o Playwright já espera o elemento; **não** use `page.waitForTimeout` com sleep fixo para "esperar carregar".
+- **Texto de asserção em pt-BR acentuado**, igual à UI (`'Informe um e-mail válido.'`). Mesma regra de acentuação/UTF-8 do resto do projeto.
+- **Isole cada teste**: `beforeEach` navega para a tela; não dependa de ordem entre `test(...)`. Sem `test.only` commitado (`forbidOnly` quebra o CI).
+- **Mocke o backend na fronteira de rede** com `page.route(...)` quando o fluxo depende de API e você não quer subir o `ultimate-server` — intercepte a chamada e devolva o shape esperado (o mesmo do schema Zod do serviço). Não teste contra dados reais/PII.
+
+#### Scripts
+
+| Script                    | O que faz                                      |
+| ------------------------- | ---------------------------------------------- |
+| `npm run test:e2e`        | Roda os specs E2E (sobe o dev server sozinho)  |
+| `npm run test:e2e:ui`     | Modo UI interativo (debug visual, time-travel) |
+| `npm run test:e2e:report` | Abre o último relatório HTML                   |
+
+O E2E **não** entra no `npm run check` nem no `pre-push` (é mais lento e precisa de navegador) — rode-o localmente ao mexer em tela/fluxo, e deixe-o para o pipeline de CI. Instalação do navegador (uma vez por máquina): `npx playwright install chromium`.
 
 ---
 
@@ -441,6 +499,9 @@ src/
 ├── index.css            # tokens de design (cor da marca, dark mode, paleta)
 ├── routes.tsx           # árvore de rotas raiz
 └── main.tsx             # entrypoint (providers globais)
+
+e2e/                     # testes E2E Playwright (*.spec.ts) — fora de src/
+playwright.config.ts     # config do Playwright (baseURL, webServer, projetos)
 ```
 
 ---
@@ -994,18 +1055,21 @@ src/stories/
 
 ## Scripts
 
-| Script               | O que faz                          |
-| -------------------- | ---------------------------------- |
-| `npm run dev`        | Servidor de desenvolvimento (Vite) |
-| `npm run build`      | Typecheck + build de produção      |
-| `npm run preview`    | Pré-visualiza o build              |
-| `npm run lint`       | ESLint                             |
-| `npm run format`     | Prettier (escrita)                 |
-| `npm run typecheck`  | `tsc -b`                           |
-| `npm test`           | Vitest run                         |
-| `npm run test:watch` | Vitest watch                       |
-| `npm run check`      | Lint + typecheck + test            |
-| `npm run clean`      | Remove `dist/` e caches            |
+| Script                    | O que faz                          |
+| ------------------------- | ---------------------------------- |
+| `npm run dev`             | Servidor de desenvolvimento (Vite) |
+| `npm run build`           | Typecheck + build de produção      |
+| `npm run preview`         | Pré-visualiza o build              |
+| `npm run lint`            | ESLint                             |
+| `npm run format`          | Prettier (escrita)                 |
+| `npm run typecheck`       | `tsc -b`                           |
+| `npm test`                | Vitest run (unidade/integração)    |
+| `npm run test:watch`      | Vitest watch                       |
+| `npm run test:e2e`        | Playwright E2E (sobe o dev server) |
+| `npm run test:e2e:ui`     | Playwright em modo UI interativo   |
+| `npm run test:e2e:report` | Abre o relatório HTML do E2E       |
+| `npm run check`           | Lint + typecheck + test            |
+| `npm run clean`           | Remove `dist/` e caches            |
 
 ---
 
