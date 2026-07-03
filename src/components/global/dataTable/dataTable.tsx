@@ -17,6 +17,7 @@ import {
 
 import { Empty } from '@/components/global/empty/empty';
 import { SkeletonText } from '@/components/global/skeleton/skeleton';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -44,11 +45,26 @@ declare module '@tanstack/react-table' {
   // do container (`overflow-x-auto`), não ocultar informação em mobile.
   // Os generics replicam a assinatura original do `ColumnMeta` no tanstack;
   // a augmentation deste projeto só usa `className`.
+  //
+  // Truncamento: por padrão cada célula do corpo é truncada com reticências
+  // (`truncate` sobre uma largura máxima) — texto longo, com ou sem espaços,
+  // não estoura nem invade a coluna vizinha. Para dar mais largura a uma
+  // coluna, passe `max-w-*` aqui (o tailwind-merge substitui o default); para
+  // permitir quebra em múltiplas linhas, passe `whitespace-normal`; para largura
+  // livre, `max-w-none`.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string;
   }
 }
+
+/**
+ * Largura máxima padrão de uma célula do corpo. Acima disso o conteúdo é
+ * truncado com reticências em vez de empurrar a coluna (o que estoura o layout
+ * e faz o texto invadir a coluna vizinha). Colunas que precisam de mais espaço
+ * sobrescrevem via `meta.className` (ex.: `max-w-[600px]`, `max-w-none`).
+ */
+const CELL_MAX_WIDTH = 'max-w-[400px]';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -306,7 +322,14 @@ export function DataTable<TData, TValue>({
                         | { className?: string }
                         | undefined;
                       return (
-                        <TableCell key={cell.id} className={meta?.className}>
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            CELL_MAX_WIDTH,
+                            'truncate',
+                            meta?.className
+                          )}
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()

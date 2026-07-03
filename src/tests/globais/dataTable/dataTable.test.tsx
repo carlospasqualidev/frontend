@@ -132,6 +132,49 @@ describe('DataTable', () => {
     });
   });
 
+  describe('truncamento de células', () => {
+    const longText =
+      'Acesso ao Backoffice com CRUD completo de usuários, clientes, indicadores e cargos.';
+
+    it('trunca o conteúdo da célula por padrão (largura máxima + reticências)', () => {
+      render(
+        <DataTable
+          columns={columns}
+          data={[{ id: '1', email: longText }]}
+          pageIndex={0}
+          onPageChange={() => undefined}
+        />
+      );
+
+      const cell = screen.getByText(longText).closest('td');
+      expect(cell).toHaveClass('truncate');
+      expect(cell?.className).toContain('max-w-[400px]');
+    });
+
+    it('deixa a coluna sobrescrever a largura máxima via meta.className', () => {
+      const wideColumns: ColumnDef<Row>[] = [
+        {
+          accessorKey: 'email',
+          header: 'E-mail',
+          meta: { className: 'max-w-none' },
+        },
+      ];
+
+      render(
+        <DataTable
+          columns={wideColumns}
+          data={[{ id: '1', email: longText }]}
+          pageIndex={0}
+          onPageChange={() => undefined}
+        />
+      );
+
+      const cell = screen.getByText(longText).closest('td');
+      expect(cell?.className).toContain('max-w-none');
+      expect(cell?.className).not.toContain('max-w-[400px]');
+    });
+  });
+
   it('desabilita "Anterior" na primeira página', () => {
     render(
       <DataTable

@@ -354,3 +354,79 @@ export const Loading: Story = {
     },
   },
 };
+
+type Role = {
+  id: string;
+  name: string;
+  description: string;
+  permissions: number;
+  users: number;
+};
+
+const roleColumns: ColumnDef<Role>[] = [
+  { accessorKey: 'name', header: 'Nome' },
+  { accessorKey: 'description', header: 'Descrição' },
+  { accessorKey: 'permissions', header: 'Permissões' },
+  { accessorKey: 'users', header: 'Usuários' },
+];
+
+const ROLES: Role[] = [
+  {
+    id: '1',
+    name: 'Administrador',
+    description: 'Acesso total a todos os módulos e permissões do sistema.',
+    permissions: 81,
+    users: 1,
+  },
+  {
+    id: '2',
+    name: 'Backoffice — Completo',
+    description:
+      'Acesso ao Backoffice com CRUD completo de usuários, clientes, indicadores e cargos.',
+    permissions: 18,
+    users: 4,
+  },
+  {
+    id: '3',
+    name: 'Expedição — Completo',
+    description:
+      'Acesso à Expedição com CRUD completo de pedidos, lotes, faturamento, vendedores, unidades de faturamento e tipos de embalagem.',
+    permissions: 29,
+    users: 53,
+  },
+  {
+    id: '4',
+    name: 'Laboratório — Completo',
+    description:
+      'Acesso ao Laboratório com CRUD completo de matrizes, equações, perfis de teste, especificações e amostras.',
+    permissions: 23,
+    users: 53,
+  },
+];
+
+function RolesDemo() {
+  const [pageIndex, setPageIndex] = React.useState(0);
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card p-3 shadow-sm sm:rounded-3xl sm:p-5 dark:shadow-none">
+      <DataTable
+        columns={roleColumns}
+        data={ROLES}
+        pageIndex={pageIndex}
+        onPageChange={setPageIndex}
+        pageSize={ROLES.length}
+      />
+    </div>
+  );
+}
+
+export const LongText: Story = {
+  render: () => <RolesDemo />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Descrições longas (com ou sem espaços) são truncadas com reticências por padrão, respeitando a largura máxima da célula — o texto não estoura nem invade a coluna vizinha. Uma coluna que precise de mais espaço sobrescreve via `meta.className` (`max-w-[600px]`, `max-w-none`).',
+      },
+    },
+  },
+};
