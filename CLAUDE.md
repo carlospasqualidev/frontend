@@ -604,7 +604,17 @@ Só introduza um wrapper na raiz quando precisar de um comportamento de layout r
 
 **Toda ação primária/contextual de uma tela (Novo, Editar, Excluir, Salvar, Cancelar…) vai no topo, via [`PageActions`](src/components/global/layout/pageActions.tsx)** — o slot exportável que renderiza (por portal) no header global do [`Layout`](src/components/global/layout/layout.tsx), ao lado do breadcrumb. **Não** crie uma barra de ações própria no corpo da tela, nem espalhe botões de ação soltos no meio do conteúdo.
 
-- Botão-ícone/label sempre com `aria-label` em pt-BR; esconda o texto em telas estreitas (`<span className="hidden sm:inline">`) mantendo o `aria-label`.
+- **Todo botão do `PageActions` colapsa para ícone no mobile — sem exceção.** O header divide o espaço com o breadcrumb; botão só-texto empurra e quebra o breadcrumb em telas estreitas. Portanto **cada** ação (inclusive `Cancelar`, `Salvar`, `Criar`/`Salvar alterações`, não só `Excluir`/`Editar`) segue o mesmo padrão: **ícone + `aria-label` em pt-BR + texto em `<span className="hidden sm:inline">`**. No mobile fica só o ícone; no desktop, ícone + texto. Nunca deixe um botão de ação só com texto (empurra o breadcrumb) nem só com ícone sem `aria-label` (quebra a acessibilidade). Ícones canônicos: Cancelar → `X`, salvar/confirmar → `Check`, criar → `Plus`/ícone do módulo, editar → `Pencil`, excluir → `Trash2`.
+
+  ```tsx
+  <Button aria-label="Salvar alterações" type="submit" form={FORM_ID}>
+    <Check />
+    <span className="hidden sm:inline">Salvar alterações</span>
+  </Button>
+  ```
+
+  O `aria-label` também mantém o nome acessível estável para os testes (`getByRole('button', { name: 'Salvar alterações' })`) mesmo com o texto oculto no mobile.
+
 - Ações destrutivas/críticas usam `ConfirmDialog` (ver seção de Abstrações globais).
 - A ordem visual segue: ações secundárias/destrutivas à esquerda, ação primária à direita (ex.: `Cancelar` … `Salvar`; `Excluir` … `Editar`).
 
@@ -874,6 +884,8 @@ Use estes antes de cair direto no `components/ui/`:
 | `Button`        | [`button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` — exibe spinner antes do label e desabilita o botão automaticamente. Mantém todas as variantes/props do primitivo.                      |
 | `ConfirmDialog` | [`confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. **Uncontrolled** (`trigger` prop, estado interno) ou **controlled** (`open`/`setOpen`). Loading interno automático e auto-close.      |
 | `PageHeader`    | [`pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)             | Cabeçalho padrão de tela: `title`, `description`, `actions` opcional. Usado em `home/`.                                                                                               |
+
+**`Modal` — scroll do corpo (Dialog no desktop / Drawer no mobile):** o corpo do `Modal` precisa rolar quando o conteúdo passa da altura da tela. No **mobile (Drawer/vaul)** o corpo é um **container de scroll NATIVO** (`<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">`), **nunca** o `ScrollArea` do Radix — o vaul só reconhece overflow nativo para diferenciar "rolar conteúdo" de "arrastar o drawer" no toque; com `ScrollArea` o gesto não rola no celular. `flex-1 min-h-0` limita a altura ao espaço restante do drawer (habilita o scroll interno). O drawer inferior (`ui/drawer.tsx`) usa `mt-6` + `max-h-[92dvh]` (não `mt-24`/`max-h-[80vh]`) para não deixar uma faixa de fechamento morta grande acima dele. No desktop (Dialog), scroll do corpo é normal (roda do mouse).
 
 **Padrão para criar uma nova abstração global:**
 

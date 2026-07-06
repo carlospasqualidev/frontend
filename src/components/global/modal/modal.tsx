@@ -36,7 +36,16 @@ export function Modal({ title, description, children, open, setOpen }: IModal) {
 
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-4">{children}</div>
+          {/*
+            Scroll NATIVO (não `ScrollArea` do Radix): no Drawer (vaul) o gesto
+            de toque só rola quando o container é um overflow nativo — o vaul
+            usa isso para diferenciar "rolar conteúdo" de "arrastar o drawer".
+            `flex-1 min-h-0` limita a altura ao espaço restante do drawer,
+            habilitando o scroll interno.
+          */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+            {children}
+          </div>
         </DrawerContent>
       </Drawer>
     );
