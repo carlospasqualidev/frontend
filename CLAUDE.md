@@ -8,7 +8,7 @@ Guia para o Claude trabalhar neste frontend. Este arquivo é a fonte de verdade 
 
 ## Stack
 
-React 19 + Vite 7 + TypeScript • TanStack Router (code-based) + TanStack Query • Zustand • React Hook Form + Zod • Tailwind v4 + shadcn/ui (Radix) • Axios • Sonner • Vitest + Testing Library (unidade/integração) • Playwright (E2E) • ESLint + Prettier + Husky + lint-staged.
+React 19 + Vite 7 + TypeScript • TanStack Router (code-based) + TanStack Query • Zustand • React Hook Form + Zod • Tailwind v4 + shadcn/ui (Radix) • Axios • Sonner • Vitest + Testing Library • ESLint + Prettier + Husky + lint-staged.
 
 Sessão por cookie HTTP-only (consumida pelo template de backend em `../ultimate-server`).
 
@@ -244,12 +244,7 @@ Regras práticas:
 
 ## Testes
 
-Duas camadas, papéis distintos e complementares:
-
-- **Vitest + Testing Library** (`src/tests/`, ambiente `jsdom`) — unidade/integração: lógica pura, hooks, regras de negócio, contrato de abstrações globais. Rápido, roda em `npm test` e no `pre-push`.
-- **Playwright** (`e2e/`, navegador real) — E2E de comportamento observável pelo usuário: fluxos de tela, navegação entre rotas, submit de formulário ponta a ponta. Ver a seção **Testes E2E (Playwright)** abaixo — ela é **obrigatória** para toda tela/componente/mudança de funcionamento nova.
-
-### Vitest + Testing Library (unidade/integração)
+Duas camadas: **unit/componente** com Vitest (abaixo) e **fluxo no app real** com Playwright — ver a subseção **E2E (Playwright)** no fim desta seção.
 
 - Vitest + Testing Library, ambiente `jsdom`.
 - Todos os testes vivem em [`src/tests/`](src/tests), organizados em pastas — uma pasta por componente/módulo, com o arquivo `<name>.test.ts(x)` dentro. Espelha o agrupamento usado nas stories.
@@ -314,56 +309,23 @@ Use `waitFor` apenas para asserções que não são "elemento apareceu" (ex.: `e
 - **Factories de dados** (`makeUser({ name: 'Maria' })`) co-localizadas no teste ou em `src/tests/factories/` — evita literais gigantes inline.
 - **Limpe estado entre testes**: `afterEach(() => queryClient.clear())` quando o teste compartilha cliente.
 
-### Testes E2E (Playwright) — obrigatórios para trabalho novo
+### E2E (Playwright) — obrigatório por feature, RODADO ao fim de toda tarefa
 
-**Regra dura:** **toda tela nova, componente novo ou mudança de funcionamento que possa exigir novos testes deve vir acompanhada de teste(s) Playwright no mesmo PR.** Isso vale para:
+**Regra:** toda feature entregue vem com um teste Playwright que exercita o fluxo no app real **e é executado antes de considerar a entrega concluída**. Vale para **tela nova, modificação de tela/fluxo e novo CRUD/criação**. Se a mudança altera um fluxo já coberto, **atualize o spec existente** em vez de criar outro.
 
-- **Tela nova** (`screens/<feature>/...`): pelo menos um spec cobrindo o caminho principal do usuário (renderiza → interage → resultado esperado) e o caminho de falha relevante (validação, estado de erro, empty state).
-- **Componente novo com comportamento** (abre/fecha, submete, navega, dispara ação): um spec exercitando o comportamento observável — não o estilo. Componente puramente visual/estático não precisa de E2E (mas ainda pode ter story + teste de unidade).
-- **Mudança de funcionamento** (novo fluxo, alteração de regra de navegação, novo passo em formulário, nova ação): atualize o spec existente ou crie um novo cobrindo o novo comportamento. Se a mudança quebra um spec, conserte o spec junto — não o desabilite.
+**Passo de encerramento (automático e obrigatório):** ao terminar QUALQUER tarefa que se encaixe (mexeu em tela/fluxo/CRUD do app), **rode o Playwright você mesmo** como último passo — não entregue "no papel". Suba a stack se necessário (DB `db-local`, server, client) e rode `cd client && npm run test:e2e`. A tarefa só está **efetivada** com o e2e relevante **verde**; se falhar, corrija e rode de novo até passar. Reporte o resultado (ex.: "e2e X/X verde"). Só pule a execução se o ambiente comprovadamente não puder subir a stack na sessão — e aí sinalize explicitamente que o spec foi escrito/atualizado mas **falta rodar**.
 
-**Escrever o teste não basta — rode-o antes de dar a tarefa por concluída.** Toda tarefa que se encaixe nos casos acima só é considerada **entregue** depois que o(s) spec(s) Playwright relacionado(s) foram **executados e passaram** (`npm run test:e2e`, ou filtrando o arquivo: `npm run test:e2e -- e2e/<feature>.spec.ts`). Não encerre a tarefa relatando "adicionei o teste" sem o resultado da execução:
-
-- **Rode ao final da tarefa**, como passo de verificação da entrega — não só quando o usuário pedir. É a garantia de que a mudança funciona no navegador real, não apenas de que o código compila.
-- **Se algum spec falhar, a tarefa não está pronta**: conserte o código (ou o spec, se a expectativa mudou legitimamente) e rode de novo até passar. Não entregue com teste vermelho nem desabilite o spec para "passar".
-- **Relate o resultado real da execução** (quantos passaram/falharam), como faz com `npm test`/typecheck — sem afirmar que passou o que não foi rodado.
-- Também rode os testes de unidade (`npm test`) quando a mudança tocar lógica/hooks/abstração coberta por eles. As duas suítes juntas fecham a verificação da entrega.
-
-O teste de unidade (Vitest) continua valendo para lógica pura, hooks e contrato de abstrações globais. O E2E **não substitui** o teste de unidade — cobre a camada que só existe no navegador real (roteamento do TanStack Router, ciclo completo do formulário, transições entre telas). Quando em dúvida sobre qual camada usar: lógica isolada → Vitest; "o usuário faz X e vê Y" → Playwright.
-
-#### Onde vivem e como se organizam
-
-Specs E2E vivem em [`e2e/`](e2e) na raiz do projeto (fora de `src/`, separados dos testes de unidade em `src/tests/`), com extensão `.spec.ts` — o Playwright descobre por `*.spec.ts`, o Vitest por `*.test.ts(x)`, então não há colisão. Uma pasta/arquivo por feature ou fluxo, espelhando `screens/`:
-
-```
-e2e/
-├── login.spec.ts              # fluxo de sessão (referência viva — comece por ele)
-├── users/
-│   ├── userList.spec.ts        # listagem: busca, filtro, paginação
-│   └── userDetails.spec.ts     # detalhe: abas, ações
-└── ...
-```
-
-Config em [`playwright.config.ts`](playwright.config.ts): `baseURL` = `http://localhost:5173` (sobrescreva com `E2E_BASE_URL`), `webServer` sobe `npm run dev` automaticamente e **reaproveita** um dev server já rodando. Projeto único `chromium` no dev; trace na primeira retentativa e screenshot só em falha.
-
-#### Como escrever E2E (as mesmas 2 regras de a11y dos testes de unidade valem)
-
-- **Seletor por role + nome acessível, nunca por classe CSS ou estrutura de DOM.** `page.getByRole('button', { name: 'Entrar' })`, `page.getByLabel('E-mail')`, `page.getByRole('link', { name: 'Criar conta' })`. Se o teste acha o elemento por role, a acessibilidade passou junto. `getByTestId` só quando não há role natural.
-  - Prioridade (igual ao Testing Library): `getByRole` → `getByLabel` → `getByPlaceholder` → `getByText` → `getByTestId`.
-- **`expect(locator)` com auto-wait** (`toBeVisible`, `toHaveText`, `toHaveURL`) — o Playwright já espera o elemento; **não** use `page.waitForTimeout` com sleep fixo para "esperar carregar".
-- **Texto de asserção em pt-BR acentuado**, igual à UI (`'Informe um e-mail válido.'`). Mesma regra de acentuação/UTF-8 do resto do projeto.
-- **Isole cada teste**: `beforeEach` navega para a tela; não dependa de ordem entre `test(...)`. Sem `test.only` commitado (`forbidOnly` quebra o CI).
-- **Mocke o backend na fronteira de rede** com `page.route(...)` quando o fluxo depende de API e você não quer subir o `ultimate-server` — intercepte a chamada e devolva o shape esperado (o mesmo do schema Zod do serviço). Não teste contra dados reais/PII.
-
-#### Scripts
-
-| Script                    | O que faz                                      |
-| ------------------------- | ---------------------------------------------- |
-| `npm run test:e2e`        | Roda os specs E2E (sobe o dev server sozinho)  |
-| `npm run test:e2e:ui`     | Modo UI interativo (debug visual, time-travel) |
-| `npm run test:e2e:report` | Abre o último relatório HTML                   |
-
-O E2E **não** entra no `npm run check` nem no `pre-push` (é mais lento e precisa de navegador) — rode-o localmente ao mexer em tela/fluxo, e deixe-o para o pipeline de CI. Instalação do navegador (uma vez por máquina): `npx playwright install chromium`.
+- **Camadas (não confundir):** correção isolada de componente global (`components/global/`) continua coberta por **Vitest + story** (contrato do componente) — não escreva e2e para um primitivo isolado; ele é exercitado transitivamente pelo e2e da tela que o usa. O Playwright cobre o que o **usuário faz na aplicação rodando** (navegação, formulários, ações, filtros).
+- **Onde:** specs em `client/e2e/<feature>.spec.ts`. Config em [`playwright.config.ts`](playwright.config.ts) (baseURL `http://localhost:5173`, chromium, `workers: 1`, sem `webServer`). O Vitest ignora `e2e/**` ([`vitest.config.ts`](vitest.config.ts)) — `npm test` (unit) e `npm run test:e2e` (Playwright) são separados.
+- **Stack local para rodar:** DB (container docker `db-local`, porta 5432), server (`cd server && npm run dev` → 8082), client (`cd client && npm run dev` → 5173). Depois: `cd client && npm run test:e2e`.
+- **Login:** usuário do seed `admin@adasoftwarehouse.com` / `123123123` (acesso total) via helper `login(page)`. Ver [`e2e/users.spec.ts`](e2e/users.spec.ts) como referência.
+- **Seletores (aprendizados deste projeto):**
+  - Prefira `getByRole`/`getByLabel`. Os campos de formulário têm `id` → `getByLabel('Rótulo')` funciona, inclusive nos `Select`/`MultiSelect` globais.
+  - **Escope o contexto** para evitar ambiguidade: o e-mail do usuário logado aparece no menu do sidebar **e** na linha da tabela — busque linhas dentro do `tbody` (`page.locator('tbody tr', { hasText })`).
+  - **Filtros server-side:** teste navegando com o estado na URL (`/users?filters=${encodeURIComponent(JSON.stringify(...))}`) e asserte o resultado — cobre filtro→fetch→render sem depender de operar cada campo.
+  - `ConfirmDialog` → `getByRole('alertdialog').getByRole('button', { name })`. Menu de ações (⋯) → `getByRole('button', { name: 'Abrir menu' })` + `getByRole('menuitem', …)`. Espere os dados com `page.waitForResponse(…)`.
+- **Padrão CRUD:** teste self-contained — criar → (usar) → excluir no próprio teste (banco local). Limpe o que criar quando possível.
+- **DoD:** a entrega **não está concluída** sem o e2e relevante **executado e verde** (ver "Passo de encerramento" acima). Escrever o spec não basta — tem que rodar.
 
 ---
 
@@ -499,9 +461,6 @@ src/
 ├── index.css            # tokens de design (cor da marca, dark mode, paleta)
 ├── routes.tsx           # árvore de rotas raiz
 └── main.tsx             # entrypoint (providers globais)
-
-e2e/                     # testes E2E Playwright (*.spec.ts) — fora de src/
-playwright.config.ts     # config do Playwright (baseURL, webServer, projetos)
 ```
 
 ---
@@ -572,10 +531,7 @@ screens/users/userDetails/
 └── sessionsTab.tsx        # exporta SessionsTab
 ```
 
-Cada arquivo exporta apenas o seu componente público. A fronteira entre inline e `utils/`:
-
-- **Helper privado de uso único** (constantes de ícones, sub-componente usado numa única seção, type guard local) fica **dentro do arquivo onde é usado** — não crie módulo compartilhado por reflexo.
-- **Dado/tipo/utilitário importado por mais de um arquivo** (ex.: `getInitials`, mapas de variante de `Badge`, mock de dados) vai para `screens/<feature>/utils/` — **nunca solto na raiz da feature**. Ver a regra completa em "Uma pasta por sub-tela da feature" abaixo.
+Cada arquivo exporta apenas o seu componente público. Helpers privados (constantes de ícones, sub-componentes usados em uma única seção, type guards locais) ficam **dentro do arquivo onde são usados**, não num `utils.ts` compartilhado por reflexo. Utilitários compartilhados entre lista e detalhe (ex.: `getInitials`, mapas de variante de `Badge`) vivem ao lado do `routes.ts` da feature (`screens/<feature>/getInitials.ts`, `screens/<feature>/userBadges.ts`).
 
 O `lazyRouteComponent(() => import('./userDetails'), 'UserDetailsPage')` continua funcionando sem mudança — o resolver acha `userDetails/index.tsx` automaticamente.
 
@@ -611,27 +567,6 @@ screens/users/
 
 No `routes.ts`, cada rota aponta para a pasta da sua sub-tela: `lazyRouteComponent(() => import('./list'), 'UsersPage')` e `lazyRouteComponent(() => import('./details'), 'UserDetailsPage')`. (Chamadas de API continuam fora de `screens/`, em `services/<módulo>/` — ver seção HTTP.)
 
-**`utils/` vale também para feature de tela única — não é privilégio de feature com sub-telas.** Mesmo quando a feature tem só uma rota (dashboard, uma tela de settings), **nenhum dado, mock, constante, tipo ou helper fica solto na raiz**: eles vão para `screens/<feature>/utils/`. A raiz guarda o `routes.ts`, o `index.tsx` da tela e os **componentes de seção** que compõem essa única tela (eles são a própria tela, não "helpers"). O que decide `utils/` não é "ser compartilhado entre sub-telas", é **não ser componente da tela** — pura fonte de dados/regra/tipo sempre desce para `utils/`.
-
-Exemplo real (feature Início — tela única):
-
-```
-screens/home/
-├── routes.ts                   # roteamento
-├── index.tsx                   # DashboardPage (shell da tela única)
-├── statsGrid.tsx               # seções que compõem a tela — ficam na raiz
-├── activityChart.tsx
-├── recentActivity.tsx
-├── quickActions.tsx
-├── pendingTasks.tsx
-├── homeGreeting.tsx
-└── utils/
-    └── homeMockData.ts         # dado/mock — nunca solto na raiz
-```
-
-❌ `screens/home/homeMockData.ts` (dado solto na raiz da feature)
-✓ `screens/home/utils/homeMockData.ts` (dado em `utils/`, mesmo sem sub-telas)
-
 **Não embrulhe a tela inteira num wrapper de spacing/padding.** O [`Layout`](src/components/global/layout/layout.tsx) global já aplica `space-y-4` ao container que recebe `children`, então os filhos diretos do componente da tela (`<PageHeader />`, `<section>`, `<Tabs>`, grids) **já ficam espaçados automaticamente**. Adicionar `<div className="space-y-6">…</div>` (ou outro `space-y-*` / `p-*`) na raiz da tela é redundante, descalibra o ritmo visual entre telas e empilha uma `<div>` à toa.
 
 ❌ Wrapper redundante:
@@ -664,6 +599,29 @@ export function DashboardPage() {
 ```
 
 Só introduza um wrapper na raiz quando precisar de um comportamento de layout real que o Layout não cobre — ex.: a tela quer ocupar 100% da altura disponível (`flex h-full min-h-0 flex-col`, como na lista de usuários). Nesse caso, o wrapper paga pelo seu lugar; spacing puro não.
+
+### Ações da tela ficam no topo (`PageActions`)
+
+**Toda ação primária/contextual de uma tela (Novo, Editar, Excluir, Salvar, Cancelar…) vai no topo, via [`PageActions`](src/components/global/layout/pageActions.tsx)** — o slot exportável que renderiza (por portal) no header global do [`Layout`](src/components/global/layout/layout.tsx), ao lado do breadcrumb. **Não** crie uma barra de ações própria no corpo da tela, nem espalhe botões de ação soltos no meio do conteúdo.
+
+- Botão-ícone/label sempre com `aria-label` em pt-BR; esconda o texto em telas estreitas (`<span className="hidden sm:inline">`) mantendo o `aria-label`.
+- Ações destrutivas/críticas usam `ConfirmDialog` (ver seção de Abstrações globais).
+- A ordem visual segue: ações secundárias/destrutivas à esquerda, ação primária à direita (ex.: `Cancelar` … `Salvar`; `Excluir` … `Editar`).
+
+### Detalhe = Edição (uma tela só, com alternância Editar/Cancelar)
+
+**Quando uma entidade tem edição, a tela de detalhe É a tela de edição — não crie uma tela separada só de visualização.** A tela abre em **modo leitura** e, no topo (`PageActions`):
+
+- **Leitura:** `Excluir` (se permitido) + **`Editar`**. Clicar em `Editar` libera a edição na mesma página.
+- **Edição:** o `Excluir` dá lugar a **`Cancelar`** e o `Editar` a **`Salvar`**. `Cancelar` reverte o formulário (`reset`) e volta à leitura; `Salvar` persiste e volta à leitura (sem trocar de rota). A criação (`/create`) é sempre editável, com `Cancelar` (volta à lista) + `Criar`.
+
+Gate por permissão: `Editar` só aparece com a permissão de update; `Excluir` só com a de delete. A rota de detalhe e a de criação reusam **o mesmo componente de formulário** (não duplique).
+
+Implementação (aprendizados que evitam bugs sutis — seguir à risca):
+
+- **Leitura por tipo de campo — NÃO use `<fieldset disabled>`.** O `fieldset` impede **copiar** o texto e não trava o dropdown do `Select` (Radix) nem widgets externos (ex.: campo de telefone). Em vez disso: campos de **texto** (`InputField`, `TextArea` e derivados como campos mascarados) recebem **`readOnly`** (ficam selecionáveis/copiáveis, mas não editáveis); os controles **sem seleção de texto** (`Select`, `Switch` e afins) recebem **`disabled`** (não abrem/não trocam). Os fields globais passam `disabled`/`readOnly` para o controle renderizado, **não** para o `useController` — então isso **não** zera o valor no RHF (o mito do "disabled zera o valor" vem de passar `disabled` ao `register`/`useController`, o que não fazemos). Uma seção recebe um único flag `readOnly` e também o usa para **esconder** botões de adicionar/remover em leitura. O `ui/input` e `ui/textarea` têm um leve realce de leitura (`read-only:bg-muted/40`).
+- **Monte o formulário só com os dados prontos** (casca que faz as queries + gate de loading → componente interno com `useZodForm({ defaultValues })`). Setar valor depois via `values`/`reset` do RHF **não sincroniza** com `Select` do Radix (o valor fica vazio). Use `key` estável no interno (ex.: `key={id ?? 'create'}`).
+- **`key` distinta em cada botão de ação** do `PageActions`. Sem isso, o React reusa o mesmo nó `<button>` entre `Editar` (leitura) e `Salvar` (`type="submit"`, edição) na mesma posição — ao clicar em `Editar`, o nó vira submit e o clique dispara o envio do formulário.
 
 ### HTTP
 
@@ -1055,21 +1013,18 @@ src/stories/
 
 ## Scripts
 
-| Script                    | O que faz                          |
-| ------------------------- | ---------------------------------- |
-| `npm run dev`             | Servidor de desenvolvimento (Vite) |
-| `npm run build`           | Typecheck + build de produção      |
-| `npm run preview`         | Pré-visualiza o build              |
-| `npm run lint`            | ESLint                             |
-| `npm run format`          | Prettier (escrita)                 |
-| `npm run typecheck`       | `tsc -b`                           |
-| `npm test`                | Vitest run (unidade/integração)    |
-| `npm run test:watch`      | Vitest watch                       |
-| `npm run test:e2e`        | Playwright E2E (sobe o dev server) |
-| `npm run test:e2e:ui`     | Playwright em modo UI interativo   |
-| `npm run test:e2e:report` | Abre o relatório HTML do E2E       |
-| `npm run check`           | Lint + typecheck + test            |
-| `npm run clean`           | Remove `dist/` e caches            |
+| Script               | O que faz                          |
+| -------------------- | ---------------------------------- |
+| `npm run dev`        | Servidor de desenvolvimento (Vite) |
+| `npm run build`      | Typecheck + build de produção      |
+| `npm run preview`    | Pré-visualiza o build              |
+| `npm run lint`       | ESLint                             |
+| `npm run format`     | Prettier (escrita)                 |
+| `npm run typecheck`  | `tsc -b`                           |
+| `npm test`           | Vitest run                         |
+| `npm run test:watch` | Vitest watch                       |
+| `npm run check`      | Lint + typecheck + test            |
+| `npm run clean`      | Remove `dist/` e caches            |
 
 ---
 
