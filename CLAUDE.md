@@ -633,6 +633,23 @@ Implementação (aprendizados que evitam bugs sutis — seguir à risca):
 - **Monte o formulário só com os dados prontos** (casca que faz as queries + gate de loading → componente interno com `useZodForm({ defaultValues })`). Setar valor depois via `values`/`reset` do RHF **não sincroniza** com `Select` do Radix (o valor fica vazio). Use `key` estável no interno (ex.: `key={id ?? 'create'}`).
 - **`key` distinta em cada botão de ação** do `PageActions`. Sem isso, o React reusa o mesmo nó `<button>` entre `Editar` (leitura) e `Salvar` (`type="submit"`, edição) na mesma posição — ao clicar em `Editar`, o nó vira submit e o clique dispara o envio do formulário.
 
+### Ações de item: coleção-filha (inline) × lista de topo (menu "⋯")
+
+Há **dois** padrões de ação sobre itens, e eles **não se misturam**. Antes de criar uma tela com itens editáveis, decida em qual caso você está e siga o padrão correspondente — não invente um terceiro (ex.: modal com "Salvar" próprio para um filho).
+
+**1. Coleção-filha dentro de um detalhe/formulário** (endereços e contatos do Cliente; localizações do Armazém; itens/anexos de um cadastro). A coleção pertence a uma entidade-pai que tem tela de detalhe no padrão **Detalhe = Edição**. Regras **obrigatórias**:
+
+- **Sem CRUD próprio, sem "Salvar" separado.** Nada de modal por item com botão de salvar próprio, nem de chamada à API por linha no `onClick`. Criar/editar/remover filhos é **inline** e é **gated pelo mesmo `Editar` do topo** e **persistido pelo mesmo `Salvar` do topo** do pai — junto com o resto do formulário.
+- Em **leitura**, os filhos aparecem estáticos (tabela/lista read-only), sem botões de adicionar/remover.
+- Em **edição** (após o `Editar` do topo), cada filho vira **linha editável** (`useFieldArray`); há um botão **"Adicionar X"** (append) e um ícone de **remover** (`X`/`Trash2`, `type="button"`) por linha. Nenhum desses botões submete o form.
+- No `Salvar` do topo: se o backend tem um endpoint que grava o pai **com** os filhos (ex.: Cliente — o servidor recria os filhos), mande tudo num payload só. Se os filhos têm **endpoints próprios** (ex.: Armazém → `/locations`), **faça o diff** (criar/editar/excluir) contra o estado original e dispare as chamadas **na mesma ação de salvar**, depois invalide e volte à leitura. Ressincronize o form com os dados do servidor após salvar (senão uma linha nova sem `id` é recriada no próximo salvar).
+- Gate de permissão por ação do filho continua valendo (ex.: `Adicionar` só com a permissão de criar do filho), mas a **porta de entrada** da edição é sempre o `Editar` do topo.
+- Referências vivas: **Clientes** (`screens/customers/form/` — `contactsTable.tsx`, `addressFields.tsx`) e **Armazéns** (`screens/warehouses/details/` — `locationsFieldArray.tsx` + diff em `schema.ts`).
+
+**2. Lista de topo (entidades de 1ª classe numa `DataTable`)** — Usuários, Clientes, Perfis, Indicadores, Armazéns (a **listagem**). Ações por linha ficam no **menu "⋯"** via `actionsColumn` (`components/global/dataTable/columnHelpers`), com `Editar`/`Excluir` (destrutivo em vermelho, `separatorBefore`); o **clique na linha** abre o detalhe (`onRowClick` + `getRowHref`). **Não** use ícones soltos na célula nem um layout de ações diferente por tela — o "⋯" é o padrão único de ações de linha em lista.
+
+Resumo: **item de lista de topo → menu "⋯" + navegar para o detalhe; filho de um detalhe → inline, sem save próprio, tudo pelo `Editar`/`Salvar` do topo do pai.**
+
 ### HTTP
 
 - Use a instância `api` de [`src/services/api`](src/services/api) — ela já trata `baseURL`, `withCredentials: true` (cookie) e toasts via interceptors. **Não crie axios direto.**
