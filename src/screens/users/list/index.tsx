@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Copy, Pencil, Trash2, UserPlus, UserX } from 'lucide-react';
+import { Copy, Trash2, UserPlus, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -163,15 +163,8 @@ export function UsersPage() {
             toast.success('E-mail copiado para a área de transferência.');
           },
         },
-        {
-          label: 'Editar',
-          icon: <Pencil />,
-          onSelect: () =>
-            navigate({
-              to: '/users/$userId',
-              params: { userId: user.id },
-            }),
-        },
+        // Sem "Editar" no menu: editar é sempre pelo clique na linha (abre o
+        // detalhe). O "⋯" fica só com ações que não sejam abrir/editar.
         {
           label: user.status === 'active' ? 'Desativar' : 'Reativar',
           icon: <UserX />,

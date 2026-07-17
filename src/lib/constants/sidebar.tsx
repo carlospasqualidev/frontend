@@ -1,4 +1,4 @@
-import { Home, Users } from 'lucide-react';
+import { Home, ScrollText, Settings, Users } from 'lucide-react';
 
 import { env } from '@/lib/env';
 
@@ -29,6 +29,16 @@ export const sidebarData = {
       title: 'Usuários',
       url: '/users',
       icon: <Users />,
+    },
+    {
+      title: 'Auditoria',
+      url: '/audit-logs',
+      icon: <ScrollText />,
+    },
+    {
+      title: 'Configurações',
+      url: '/settings',
+      icon: <Settings />,
     },
   ],
 };

@@ -50,6 +50,28 @@ Resumo: **consistência interna > inspiração externa > improvisar do zero.**
 
 ---
 
+## Documentação acompanha a mudança — parte do DoD
+
+**SEMPRE** que você mexer em algo que impacte o **funcionamento** ou a
+**usabilidade** do sistema (fluxo novo, mudança de comportamento, campo novo,
+regra, correção visível ao usuário), **atualize a documentação correspondente no
+mesmo PR**. Documentação divergente do código é pior que documentação
+inexistente.
+
+- **Doc de usuário (quando o projeto tiver uma superfície de docs):** escreva em
+  **linguagem de negócio** — o que a tela faz, como usar, o que pode/não pode,
+  **erros possíveis**. Nunca jargão de código, número de card/demanda ou caminho
+  de arquivo. Espelhe a estrutura das páginas existentes (seções numeradas,
+  tabela de "Erros possíveis"). Se houver nota de versão/changelog voltado ao
+  usuário, registre lá a mudança visível (com módulo e impacto).
+- **Convenção que vai se repetir → registre neste `CLAUDE.md`.** Ao introduzir um
+  padrão novo (organização de pasta, slot global, regra de UX), documente-o aqui
+  para a próxima sessão (humana ou Claude) já chegar alinhada.
+- Só é dispensável quando a mudança **não afeta o uso** (refactor interno, teste,
+  tooling).
+
+---
+
 ## Linguagem de código
 
 - Todo código-fonte em **inglês**.
@@ -313,18 +335,21 @@ Use `waitFor` apenas para asserções que não são "elemento apareceu" (ex.: `e
 
 **Regra:** toda feature entregue vem com um teste Playwright que exercita o fluxo no app real **e é executado antes de considerar a entrega concluída**. Vale para **tela nova, modificação de tela/fluxo e novo CRUD/criação**. Se a mudança altera um fluxo já coberto, **atualize o spec existente** em vez de criar outro.
 
-**Passo de encerramento (automático e obrigatório):** ao terminar QUALQUER tarefa que se encaixe (mexeu em tela/fluxo/CRUD do app), **rode o Playwright você mesmo** como último passo — não entregue "no papel". Suba a stack se necessário (DB `db-local`, server, client) e rode `cd client && npm run test:e2e`. A tarefa só está **efetivada** com o e2e relevante **verde**; se falhar, corrija e rode de novo até passar. Reporte o resultado (ex.: "e2e X/X verde"). Só pule a execução se o ambiente comprovadamente não puder subir a stack na sessão — e aí sinalize explicitamente que o spec foi escrito/atualizado mas **falta rodar**.
+**Passo de encerramento (automático e obrigatório):** ao terminar QUALQUER tarefa que se encaixe (mexeu em tela/fluxo/CRUD do app), **rode o Playwright você mesmo** como último passo — não entregue "no papel". Basta `npm run test:e2e` na raiz do frontend: o `webServer` do [`playwright.config.ts`](playwright.config.ts) **sobe o Vite sozinho** (e reaproveita um `npm run dev` já rodando). **Não há stack para subir** — este template roda em **modo fake de sessão** (ver [`sessionService`](src/services/session/sessionService.ts)) e as telas usam dados **mock**, então nenhum backend/DB é necessário. A tarefa só está **efetivada** com o e2e relevante **verde**; se falhar, corrija e rode de novo até passar. Reporte o resultado (ex.: "e2e X/X verde"). Só pule a execução se o ambiente comprovadamente não puder subir o Vite na sessão — e aí sinalize explicitamente que o spec foi escrito/atualizado mas **falta rodar**.
 
 - **Camadas (não confundir):** correção isolada de componente global (`components/global/`) continua coberta por **Vitest + story** (contrato do componente) — não escreva e2e para um primitivo isolado; ele é exercitado transitivamente pelo e2e da tela que o usa. O Playwright cobre o que o **usuário faz na aplicação rodando** (navegação, formulários, ações, filtros).
-- **Onde:** specs em `client/e2e/<feature>.spec.ts`. Config em [`playwright.config.ts`](playwright.config.ts) (baseURL `http://localhost:5173`, chromium, `workers: 1`, sem `webServer`). O Vitest ignora `e2e/**` ([`vitest.config.ts`](vitest.config.ts)) — `npm test` (unit) e `npm run test:e2e` (Playwright) são separados.
-- **Stack local para rodar:** DB (container docker `db-local`, porta 5432), server (`cd server && npm run dev` → 8082), client (`cd client && npm run dev` → 5173). Depois: `cd client && npm run test:e2e`.
-- **Login:** usuário do seed `admin@adasoftwarehouse.com` / `123123123` (acesso total) via helper `login(page)`. Ver [`e2e/users.spec.ts`](e2e/users.spec.ts) como referência.
+- **Onde:** specs em `e2e/<feature>.spec.ts` (na raiz do frontend). Config em [`playwright.config.ts`](playwright.config.ts): baseURL `http://localhost:5173`, chromium, `webServer` que **sobe o Vite automaticamente** (`reuseExistingServer` no dev), `workers: 1` só no CI. O Vitest ignora `e2e/**` ([`vitest.config.ts`](vitest.config.ts)) — `npm test` (unit) e `npm run test:e2e` (Playwright) são separados.
+- **Como rodar:** só `npm run test:e2e` na raiz. Nenhum DB/server para subir (modo fake de sessão + dados mock). Se o Vite já estiver rodando (`npm run dev`), o Playwright o reaproveita.
+- **Login:** modo fake — **qualquer e-mail válido + senha não-vazia** autentica (grava um cookie de sessão fictício). Use o helper `login(page)` de [`e2e/helpers/session.ts`](e2e/helpers/session.ts) — ponto único de autenticação dos specs; quando o backend real entrar, só ele muda. Referências: [`e2e/auditLogs.spec.ts`](e2e/auditLogs.spec.ts) e [`e2e/settings.spec.ts`](e2e/settings.spec.ts) (telas protegidas via `login` + `goto`); [`e2e/login.spec.ts`](e2e/login.spec.ts) (tela pública de login).
 - **Seletores (aprendizados deste projeto):**
   - Prefira `getByRole`/`getByLabel`. Os campos de formulário têm `id` → `getByLabel('Rótulo')` funciona, inclusive nos `Select`/`MultiSelect` globais.
   - **Escope o contexto** para evitar ambiguidade: o e-mail do usuário logado aparece no menu do sidebar **e** na linha da tabela — busque linhas dentro do `tbody` (`page.locator('tbody tr', { hasText })`).
   - **Filtros server-side:** teste navegando com o estado na URL (`/users?filters=${encodeURIComponent(JSON.stringify(...))}`) e asserte o resultado — cobre filtro→fetch→render sem depender de operar cada campo.
-  - `ConfirmDialog` → `getByRole('alertdialog').getByRole('button', { name })`. Menu de ações (⋯) → `getByRole('button', { name: 'Abrir menu' })` + `getByRole('menuitem', …)`. Espere os dados com `page.waitForResponse(…)`.
-- **Padrão CRUD:** teste self-contained — criar → (usar) → excluir no próprio teste (banco local). Limpe o que criar quando possível.
+  - **Filtro/listagem: teste o COMPORTAMENTO, não a renderização.** Um spec que só confere "as colunas aparecem" ou "o campo de filtro renderiza" é **falso positivo** — passa com o filtro quebrado (ex.: busca por match exato onde deveria ser `contains`, ou id enviado que não bate no backend). A corretude do filtro (o que casa **aparece**, o que não casa **some**) exige **dado**: cubra-a num teste de integração do backend (semeando o registro e assertando o conjunto de resultados, positivo E negativo) e, no e2e, exercite pelo menos um round-trip de filtro **com dado** (aplica o filtro → asserta que a linha esperada aparece / a não-esperada some). Nunca trate "o filtro está na tela" como cobertura do filtro.
+  - `ConfirmDialog` → `getByRole('alertdialog').getByRole('button', { name })`. Menu de ações (⋯) → `getByRole('button', { name: 'Abrir menu' })` + `getByRole('menuitem', …)`. `Modal` → `getByRole('dialog', { name: 'Título' })`.
+  - **Espere pelo conteúdo, não pela rede.** Com dados mock não há request para `page.waitForResponse(…)`; use asserções de visibilidade que já esperam (`await expect(locator).toBeVisible()`, `findBy…`) até a linha/campo aparecer. Num backend real, aí sim `waitForResponse` é útil.
+  - **Filtros da `DataTable`** têm `id` estável (`filter-<chave>`, e `-from`/`-to` no `dateRange`) → o label associa e `getByLabel('Rótulo')` funciona em todos os tipos, inclusive `multiSelect` (o `id` vai no gatilho `role="combobox"`). Abra o `multiSelect` com `getByLabel('Rótulo').click()` e marque a opção via `getByRole('checkbox', { name: 'Opção' })`.
+- **Padrão CRUD:** teste self-contained — criar → (usar) → excluir no próprio teste. Use dados **únicos** (ex.: sufixo com timestamp) já que o run pode gerar vários registros e um valor fixo colide/gera falso negativo entre execuções. No modo mock atual, cada teste roda num contexto de browser novo (memória do mock zerada entre testes) — não conte com estado persistido entre specs; num backend real, limpe o que criar.
 - **DoD:** a entrega **não está concluída** sem o e2e relevante **executado e verde** (ver "Passo de encerramento" acima). Escrever o spec não basta — tem que rodar.
 
 ---
@@ -349,6 +374,11 @@ Todo texto exposto ao usuário em **português brasileiro (pt-BR)**.
 - Evite jargão técnico para usuários operacionais.
   - Correto: `Falha ao salvar o registro. Tente novamente.`
   - Evite: `Unexpected persistence layer failure.`
+- **Nunca exponha referência interna ao usuário**: número de card/demanda, hash/código de merge, nome de branch, jargão de implementação. Não entra em label, placeholder, mensagem, toast nem em texto vindo do backend renderizado na tela. Se aparecer numa descrição/label (inclusive dado de seed), é bug — corrija na origem.
+
+### Regra de negócio e dado derivado vêm do backend
+
+**Regra de negócio não vive no frontend.** Cálculos, validações de estado, rótulos pt-BR e mensagens derivadas de regra vêm **prontos do backend**; a tela só renderiza. Se você se pegar reimplementando uma regra no client (recomputar totais, decidir um estado, traduzir um enum, montar uma mensagem derivada), pare: o backend deveria estar entregando pronto. Isso mantém uma única fonte de verdade e evita que duas telas divirjam ao reimplementar a mesma regra.
 
 ### Acentuação e codificação (evitar mojibake)
 
@@ -604,7 +634,7 @@ Só introduza um wrapper na raiz quando precisar de um comportamento de layout r
 
 **Toda ação primária/contextual de uma tela (Novo, Editar, Excluir, Salvar, Cancelar…) vai no topo, via [`PageActions`](src/components/global/layout/pageActions.tsx)** — o slot exportável que renderiza (por portal) no header global do [`Layout`](src/components/global/layout/layout.tsx), ao lado do breadcrumb. **Não** crie uma barra de ações própria no corpo da tela, nem espalhe botões de ação soltos no meio do conteúdo.
 
-- **Todo botão do `PageActions` colapsa para ícone no mobile — sem exceção.** O header divide o espaço com o breadcrumb; botão só-texto empurra e quebra o breadcrumb em telas estreitas. Portanto **cada** ação (inclusive `Cancelar`, `Salvar`, `Criar`/`Salvar alterações`, não só `Excluir`/`Editar`) segue o mesmo padrão: **ícone + `aria-label` em pt-BR + texto em `<span className="hidden sm:inline">`**. No mobile fica só o ícone; no desktop, ícone + texto. Nunca deixe um botão de ação só com texto (empurra o breadcrumb) nem só com ícone sem `aria-label` (quebra a acessibilidade). Ícones canônicos: Cancelar → `X`, salvar/confirmar → `Check`, criar → `Plus`/ícone do módulo, editar → `Pencil`, excluir → `Trash2`.
+- **Todo botão do `PageActions` colapsa para ícone no mobile — sem exceção.** O header divide o espaço com o breadcrumb; botão só-texto empurra e quebra o breadcrumb em telas estreitas. Portanto **cada** ação (inclusive `Cancelar`, `Descartar`, `Criar`/`Salvar alterações`, não só `Excluir`) segue o mesmo padrão: **ícone + `aria-label` em pt-BR + texto em `<span className="hidden sm:inline">`**. No mobile fica só o ícone; no desktop, ícone + texto. Nunca deixe um botão de ação só com texto (empurra o breadcrumb) nem só com ícone sem `aria-label` (quebra a acessibilidade). Ícones canônicos: Cancelar/Descartar → `X`, salvar/confirmar → `Check`, criar → `Plus`/ícone do módulo, excluir → `Trash2`.
 
   ```tsx
   <Button aria-label="Salvar alterações" type="submit" form={FORM_ID}>
@@ -616,22 +646,44 @@ Só introduza um wrapper na raiz quando precisar de um comportamento de layout r
   O `aria-label` também mantém o nome acessível estável para os testes (`getByRole('button', { name: 'Salvar alterações' })`) mesmo com o texto oculto no mobile.
 
 - Ações destrutivas/críticas usam `ConfirmDialog` (ver seção de Abstrações globais).
-- A ordem visual segue: ações secundárias/destrutivas à esquerda, ação primária à direita (ex.: `Cancelar` … `Salvar`; `Excluir` … `Editar`).
+- A ordem visual segue: ações secundárias/destrutivas à esquerda, ação primária à direita (ex.: `Excluir` sozinho; ou `Descartar` … `Salvar alterações` quando há mudança).
 
-### Detalhe = Edição (uma tela só, com alternância Editar/Cancelar)
+**Ação de uma seção (não da tela) vai no slot `action` do `Card`** — alinhada à direita do cabeçalho, não solta acima/dentro do corpo. Ação da _tela_ inteira continua no `PageActions`; ação de uma _seção_ (ex.: "Adicionar item" numa coleção-filha) fica no `action` do `Card` que a envolve.
 
-**Quando uma entidade tem edição, a tela de detalhe É a tela de edição — não crie uma tela separada só de visualização.** A tela abre em **modo leitura** e, no topo (`PageActions`):
+```tsx
+<Card
+  title="Membros"
+  description="Pessoas com acesso a este projeto."
+  action={
+    <Button variant="outline" size="sm">
+      <Plus />
+      Adicionar membro
+    </Button>
+  }
+>
+  {/* … lista … */}
+</Card>
+```
 
-- **Leitura:** `Excluir` (se permitido) + **`Editar`**. Clicar em `Editar` libera a edição na mesma página.
-- **Edição:** o `Excluir` dá lugar a **`Cancelar`** e o `Editar` a **`Salvar`**. `Cancelar` reverte o formulário (`reset`) e volta à leitura; `Salvar` persiste e volta à leitura (sem trocar de rota). A criação (`/create`) é sempre editável, com `Cancelar` (volta à lista) + `Criar`.
+### Detalhe = Edição (edição sempre liberada; salvar aparece quando há mudança)
 
-Gate por permissão: `Editar` só aparece com a permissão de update; `Excluir` só com a de delete. A rota de detalhe e a de criação reusam **o mesmo componente de formulário** (não duplique).
+**Quando uma entidade tem edição, a tela de detalhe É a tela de edição — não crie uma tela separada só de visualização.** Regra de produto: **a ação tem que ser o mais simples possível** — a tela **abre já editável**, sem passo intermediário de "Editar". Os campos ficam editáveis desde o primeiro render; **o `Salvar alterações` só aparece quando há mudança** (o formulário fica _dirty_). No topo (`PageActions`):
+
+- **Sem mudanças (form pristine):** só **`Excluir`** (se permitido). Nada de `Editar`, nada de `Salvar`.
+- **Com mudanças (form dirty):** o `Excluir` **some** e aparecem **`Descartar`** + **`Salvar alterações`**. `Descartar` reverte o formulário (`reset()` — volta ao último estado salvo/carregado); `Salvar alterações` persiste **sem trocar de rota** e, ao concluir, o form volta a pristine (aí o `Salvar`/`Descartar` some e o `Excluir` reaparece).
+- **Sem permissão de update** (ou entidade protegida/de sistema): a tela cai em **modo leitura** — os campos ficam `readOnly`/`disabled` e não há fluxo de salvar; só o `Excluir` (se houver permissão de delete). Ou seja, `readOnly` é derivado **da permissão**, não de um toggle de UI.
+- **Criação (`/create`)** é sempre editável: **`Cancelar`** (volta à lista) sempre visível + **`Criar`** que aparece quando há mudança (form dirty).
+
+Gate por permissão: o fluxo de salvar/descartar só existe com a permissão de update; `Excluir` só com a de delete. A rota de detalhe e a de criação reusam **o mesmo componente de formulário** (não duplique).
 
 Implementação (aprendizados que evitam bugs sutis — seguir à risca):
 
-- **Leitura por tipo de campo — NÃO use `<fieldset disabled>`.** O `fieldset` impede **copiar** o texto e não trava o dropdown do `Select` (Radix) nem widgets externos (ex.: campo de telefone). Em vez disso: campos de **texto** (`InputField`, `TextArea` e derivados como campos mascarados) recebem **`readOnly`** (ficam selecionáveis/copiáveis, mas não editáveis); os controles **sem seleção de texto** (`Select`, `Switch` e afins) recebem **`disabled`** (não abrem/não trocam). Os fields globais passam `disabled`/`readOnly` para o controle renderizado, **não** para o `useController` — então isso **não** zera o valor no RHF (o mito do "disabled zera o valor" vem de passar `disabled` ao `register`/`useController`, o que não fazemos). Uma seção recebe um único flag `readOnly` e também o usa para **esconder** botões de adicionar/remover em leitura. O `ui/input` e `ui/textarea` têm um leve realce de leitura (`read-only:bg-muted/40`).
+- **Estado _dirty_ vem do RHF (`formState.isDirty`), não de `useState`.** Não crie um `editing`/`setEditing`. `readOnly` = `isDetail && !podeEditar` (a permissão), e o par `Descartar`/`Salvar alterações` renderiza sob `!readOnly && isDirty`.
+- **Ao salvar, volte o form a pristine.** No `onSuccess` de update, faça `reset(getValues())` para adotar os valores atuais como novo baseline (`isDirty` → `false`). Se os filhos têm IDs do servidor que só chegam no refetch (coleção-filha com endpoints próprios), ressincronize o form com os dados refetchados **quando já estiver pristine** (guarde com um `ref` de `isDirty` para não sobrescrever uma edição em andamento por refetch de fundo).
+- **`defaultValues` precisam bater com o que os controles produzem** — senão o form nasce _dirty_ à toa (ex.: campo `undefined` no default mas `''` no controle). Use mapeadores `entityToFormValues` que normalizam tudo. `setValue` que alimenta campo controlado precisa de `shouldDirty: true` para revelar o `Salvar`.
+- **Leitura por tipo de campo (quando `readOnly` por falta de permissão) — NÃO use `<fieldset disabled>`.** O `fieldset` impede **copiar** o texto e não trava o dropdown do `Select` (Radix) nem widgets externos (ex.: campo de telefone). Em vez disso: campos de **texto** (`InputField`, `TextArea` e derivados como campos mascarados) recebem **`readOnly`** (ficam selecionáveis/copiáveis, mas não editáveis); os controles **sem seleção de texto** (`Select`, `Switch` e afins) recebem **`disabled`** (não abrem/não trocam). Os fields globais passam `disabled`/`readOnly` para o controle renderizado, **não** para o `useController` — então isso **não** zera o valor no RHF. Uma seção recebe um único flag `readOnly` e também o usa para **esconder** botões de adicionar/remover em leitura. O `ui/input` e `ui/textarea` têm um leve realce de leitura (`read-only:bg-muted/40`).
 - **Monte o formulário só com os dados prontos** (casca que faz as queries + gate de loading → componente interno com `useZodForm({ defaultValues })`). Setar valor depois via `values`/`reset` do RHF **não sincroniza** com `Select` do Radix (o valor fica vazio). Use `key` estável no interno (ex.: `key={id ?? 'create'}`).
-- **`key` distinta em cada botão de ação** do `PageActions`. Sem isso, o React reusa o mesmo nó `<button>` entre `Editar` (leitura) e `Salvar` (`type="submit"`, edição) na mesma posição — ao clicar em `Editar`, o nó vira submit e o clique dispara o envio do formulário.
+- **`key` distinta em cada botão de ação** do `PageActions`. Sem isso, o React reusa o mesmo nó `<button>` entre um botão `type="button"` (ex.: `Descartar`) e um `type="submit"` (`Salvar alterações`) na mesma posição — o clique passa a submeter o formulário sem querer.
 
 ### Ações de item: coleção-filha (inline) × lista de topo (menu "⋯")
 
@@ -639,16 +691,20 @@ Há **dois** padrões de ação sobre itens, e eles **não se misturam**. Antes 
 
 **1. Coleção-filha dentro de um detalhe/formulário** (endereços e contatos do Cliente; localizações do Armazém; itens/anexos de um cadastro). A coleção pertence a uma entidade-pai que tem tela de detalhe no padrão **Detalhe = Edição**. Regras **obrigatórias**:
 
-- **Sem CRUD próprio, sem "Salvar" separado.** Nada de modal por item com botão de salvar próprio, nem de chamada à API por linha no `onClick`. Criar/editar/remover filhos é **inline** e é **gated pelo mesmo `Editar` do topo** e **persistido pelo mesmo `Salvar` do topo** do pai — junto com o resto do formulário.
-- Em **leitura**, os filhos aparecem estáticos (tabela/lista read-only), sem botões de adicionar/remover.
-- Em **edição** (após o `Editar` do topo), cada filho vira **linha editável** (`useFieldArray`); há um botão **"Adicionar X"** (append) e um ícone de **remover** (`X`/`Trash2`, `type="button"`) por linha. Nenhum desses botões submete o form.
-- No `Salvar` do topo: se o backend tem um endpoint que grava o pai **com** os filhos (ex.: Cliente — o servidor recria os filhos), mande tudo num payload só. Se os filhos têm **endpoints próprios** (ex.: Armazém → `/locations`), **faça o diff** (criar/editar/excluir) contra o estado original e dispare as chamadas **na mesma ação de salvar**, depois invalide e volte à leitura. Ressincronize o form com os dados do servidor após salvar (senão uma linha nova sem `id` é recriada no próximo salvar).
-- Gate de permissão por ação do filho continua valendo (ex.: `Adicionar` só com a permissão de criar do filho), mas a **porta de entrada** da edição é sempre o `Editar` do topo.
+- **Sem CRUD próprio, sem "Salvar" separado.** Nada de modal por item com botão de salvar próprio, nem de chamada à API por linha no `onClick`. Criar/editar/remover filhos é **inline** e é **persistido pelo mesmo `Salvar alterações` do topo** do pai — junto com o resto do formulário.
+- Como a tela abre já editável (ver "Detalhe = Edição"), os filhos já vêm como **linha editável** (`useFieldArray`): há um botão **"Adicionar X"** (append) e um ícone de **remover** (`X`/`Trash2`, `type="button"`) por linha. Nenhum desses botões submete o form; mexer neles deixa o pai _dirty_ e faz o `Salvar alterações` aparecer. (Só ficam estáticos/read-only quando o pai inteiro está em modo leitura por **falta de permissão** de update.)
+- **Prefira uma tabela compacta (uma linha por item) a um card grande por item.** Cada linha é uma linha de formulário; o cabeçalho da coluna é o rótulo visual, então os campos in-cell usam **`srOnlyLabel`** (rótulo acessível ao leitor de tela, oculto visualmente — evita repetir o rótulo em cada célula). Campos secundários/raros (ex.: conversão de unidade, opções avançadas) ficam atrás de um **popover por linha** (disclosure progressivo), não poluindo a linha. Tabela larga rola horizontalmente (`overflow-x-auto` no container — ver "Design responsivo"), nunca esconda coluna no mobile.
+- No `Salvar alterações` do topo: se o backend tem um endpoint que grava o pai **com** os filhos (ex.: Cliente — o servidor recria os filhos), mande tudo num payload só. Se os filhos têm **endpoints próprios** (ex.: Armazém → `/locations`), **faça o diff** (criar/editar/excluir) contra o estado original e dispare as chamadas **na mesma ação de salvar**, depois invalide. Ressincronize o form com os dados do servidor após salvar (senão uma linha nova sem `id` é recriada no próximo salvar).
+- Gate de permissão por ação do filho continua valendo (ex.: `Adicionar` só com a permissão de criar do filho).
 - Referências vivas: **Clientes** (`screens/customers/form/` — `contactsTable.tsx`, `addressFields.tsx`) e **Armazéns** (`screens/warehouses/details/` — `locationsFieldArray.tsx` + diff em `schema.ts`).
 
-**2. Lista de topo (entidades de 1ª classe numa `DataTable`)** — Usuários, Clientes, Perfis, Indicadores, Armazéns (a **listagem**). Ações por linha ficam no **menu "⋯"** via `actionsColumn` (`components/global/dataTable/columnHelpers`), com `Editar`/`Excluir` (destrutivo em vermelho, `separatorBefore`); o **clique na linha** abre o detalhe (`onRowClick` + `getRowHref`). **Não** use ícones soltos na célula nem um layout de ações diferente por tela — o "⋯" é o padrão único de ações de linha em lista.
+**2. Lista de topo (entidades de 1ª classe numa `DataTable`)** — Usuários, Clientes, Perfis, Indicadores, Armazéns (a **listagem**).
 
-Resumo: **item de lista de topo → menu "⋯" + navegar para o detalhe; filho de um detalhe → inline, sem save próprio, tudo pelo `Editar`/`Salvar` do topo do pai.**
+- **Editar é SEMPRE pelo clique na linha** (`onRowClick` + `getRowHref`), que abre o detalhe/modal de edição. **Nunca** coloque uma ação "Editar" no menu "⋯" — ela seria redundante com o clique na linha e o usuário deve aprender um gesto único para editar.
+- O **menu "⋯"** (`actionsColumn` de `components/global/dataTable/columnHelpers`) existe só para as ações que **não são** "abrir/editar": `Excluir` (destrutivo em vermelho), `Ativar/Inativar`, `Bloquear/Desbloquear`, `Copiar…` etc. Se, tiradas essas, não sobra nenhuma ação para a qual o usuário tenha permissão, **não renderize a coluna** (só inclua `actionsColumn` quando houver ação efetiva).
+- **Não** use ícones de ação soltos na célula nem um layout de ações diferente por tela — clique na linha (editar) + "⋯" (demais ações) é o padrão único.
+
+Resumo: **item de lista de topo → clique na linha edita; "⋯" só para Excluir/toggle de status/ações auxiliares (e some se não sobrar ação permitida). Filho de um detalhe → inline, sem save próprio, tudo pelo `Salvar alterações` do topo do pai.**
 
 ### HTTP
 
@@ -825,7 +881,8 @@ Veja o padrão demonstrado na story `Padrões/OptimisticUpdate` no Storybook (`n
 ### Formulários
 
 - Use `useZodForm` ([`src/lib/forms/useZodForm.ts`](src/lib/forms/useZodForm.ts)) — integra React Hook Form com schema Zod.
-- Componentes de campo prontos em [`src/components/global/form/`](src/components/global/form) (`inputField`, `select`, `dateField`, `dateTimeField`, `checkbox`, `switch`, `textArea`, `multiSelect`).
+- Componentes de campo prontos em [`src/components/global/form/`](src/components/global/form) (`inputField`, `numberField`, `select`, `dateField`, `dateTimeField`, `checkbox`, `switch`, `textArea`, `multiSelect`).
+- **Campo numérico/monetário/decimal SEMPRE via [`NumberField`](src/components/global/form/numberField.tsx) — nunca `<input type="number">`.** Ele aplica máscara pt-BR (milhar "." e decimal ",") **na digitação e na exibição**, guarda um `number` no RHF (não a string), e mostra o zero mascarado como placeholder. Para dinheiro passe `prefix="R$ "`; ajuste as casas com `maxDecimals` (padrão 2; ex.: 5 para taxas/índices). O `type="number"` nativo não formata milhar/decimal pt-BR, aceita `e`/`+`/`-` e tem setas indesejadas — não use para quantidade/valor.
 - Todos seguem o mesmo padrão: aceitam **uncontrolled** (`{...register('campo')}` + `errors`) **ou controlled** (`control` + `name` + opcional `rules`/`defaultValue`). Discriminated union impede misturar os dois modos.
 - Veja [`src/screens/session/login.tsx`](src/screens/session/login.tsx) e a story `Formulário/Formulário completo` no Storybook como referência.
 
@@ -871,6 +928,7 @@ type FormData = z.infer<typeof schema>;
 ### Notificações
 
 - `sonner` (Toaster montado no `Layout`). Os interceptors do `api` já disparam toasts de erro — não duplique no caller.
+- **Cores por tipo** (em [`ui/sonner.tsx`](src/components/ui/sonner.tsx)): `richColors` ligado; sucesso em **verde** (`--success`) e erro em **vermelho** (`--destructive`), derivados dos tokens semânticos. O mix de cor é em **`srgb`** (não `oklch`) — no oklch a interpolação de matiz contra o neutro puxa o verde para o lado errado no dark. Ao mexer nas cores do toast, mantenha `in srgb`.
 
 ### shadcn/ui
 
@@ -892,17 +950,33 @@ Wrappers sobre primitivos do shadcn que padronizam API, defaults visuais (inclui
 
 Use estes antes de cair direto no `components/ui/`:
 
-| Abstração       | Caminho                                                                                    | Quando usar                                                                                                                                                                           |
-| --------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Card`          | [`card/card.tsx`](src/components/global/card/card.tsx)                                     | Container de conteúdo com `title` + `description` + `children`. Já trata `bg-card`, borda, `shadow-sm` (light) e `dark:shadow-none`.                                                  |
-| `Modal`         | [`modal/modal.tsx`](src/components/global/modal/modal.tsx)                                 | Dialog no desktop, drawer no mobile. Props: `title`, `description`, `children`, `open`, `setOpen`.                                                                                    |
-| `Empty`         | [`empty/empty.tsx`](src/components/global/empty/empty.tsx)                                 | Empty state. Props: `title`, `description` (obrigatórios), `icon`, `children` (opcionais).                                                                                            |
-| `Skeleton*`     | [`skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. **Skeleton só no dado, nunca no card inteiro** — rótulos, títulos e estrutura permanecem visíveis durante o load. |
-| `Button`        | [`button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` — exibe spinner antes do label e desabilita o botão automaticamente. Mantém todas as variantes/props do primitivo.                      |
-| `ConfirmDialog` | [`confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. **Uncontrolled** (`trigger` prop, estado interno) ou **controlled** (`open`/`setOpen`). Loading interno automático e auto-close.      |
-| `PageHeader`    | [`pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)             | Cabeçalho padrão de tela: `title`, `description`, `actions` opcional. Usado em `home/`.                                                                                               |
+| Abstração       | Caminho                                                                                    | Quando usar                                                                                                                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Card`          | [`card/card.tsx`](src/components/global/card/card.tsx)                                     | Container de conteúdo com `title` + `description` + `children`. Já trata `bg-card`, borda, `shadow-sm` (light) e `dark:shadow-none`.                                                                                    |
+| `Modal`         | [`modal/modal.tsx`](src/components/global/modal/modal.tsx)                                 | Dialog no desktop, drawer no mobile. Props: `title`, `description`, `children`, `open`, `setOpen`, `size` (`default`/`lg`/`xl` — largura no desktop; no mobile é sempre full-width), `onBack`/`backLabel` (ver abaixo). |
+| `ModalFooter`   | [`modal/modal.tsx`](src/components/global/modal/modal.tsx)                                 | Rodapé de ações de um modal. Envolve o(s) botão(ões) de ação (Salvar/Criar) para que ocupem **100% da largura** do modal (empilhados quando há mais de um). Padrão único de todos os modais de ação.                    |
+| `Empty`         | [`empty/empty.tsx`](src/components/global/empty/empty.tsx)                                 | Empty state. Props: `title`, `description` (obrigatórios), `icon`, `children` (opcionais).                                                                                                                              |
+| `Skeleton*`     | [`skeleton/skeleton.tsx`](src/components/global/skeleton/skeleton.tsx)                     | `SkeletonText`, `SkeletonValue`, `SkeletonBadge`, `SkeletonAvatar`. **Skeleton só no dado, nunca no card inteiro** — rótulos, títulos e estrutura permanecem visíveis durante o load.                                   |
+| `Button`        | [`button/button.tsx`](src/components/global/button/button.tsx)                             | Estende o Button do shadcn com prop `loading` — exibe spinner antes do label e desabilita o botão automaticamente. Mantém todas as variantes/props do primitivo.                                                        |
+| `ConfirmDialog` | [`confirmDialog/confirmDialog.tsx`](src/components/global/confirmDialog/confirmDialog.tsx) | Confirmação para ações destrutivas/reversíveis. **Uncontrolled** (`trigger` prop, estado interno) ou **controlled** (`open`/`setOpen`). Loading interno automático e auto-close.                                        |
+| `PageHeader`    | [`pageHeader/pageHeader.tsx`](src/components/global/pageHeader/pageHeader.tsx)             | Cabeçalho padrão de tela: `title`, `description`, `actions` opcional. Usado em `home/`.                                                                                                                                 |
+| `InfoTooltip`   | [`infoTooltip/infoTooltip.tsx`](src/components/global/infoTooltip/infoTooltip.tsx)         | Ícone `i` com tooltip acessível (hover/foco) ao lado de um rótulo/campo. Traz o próprio `TooltipProvider`; props `label`/`triggerLabel`/`className`.                                                                    |
+| `FileDropzone`  | [`fileDropzone/fileDropzone.tsx`](src/components/global/fileDropzone/fileDropzone.tsx)     | Área de upload com arrastar-e-soltar, seleção por clique/teclado e prévia (nome + tamanho + remover). Controlado por `file`/`onFileChange`; props `accept`/`hint`/`disabled`/`id`.                                      |
+
+**`Modal` — botões de ação (`ModalFooter`), dirty-gate e botão de voltar (`onBack`):** três regras para todo modal de ação seguir o mesmo padrão.
+
+- **Botões de ação SEMPRE via `ModalFooter`, ocupando 100% da largura.** Envolva o(s) botão(ões) de ação (Salvar/Criar) do modal em `<ModalFooter>` — nunca use `<div className="flex justify-end">` nem deixe o botão solto. O `ModalFooter` estica os botões para a largura total do modal (`flex flex-col`; quando há mais de um, ficam empilhados, cada um 100%).
+- **Salvar/Criar só aparece quando o formulário está _dirty_.** Em qualquer modal de formulário (criar **ou** editar), o botão de submit renderiza sob `{formState.isDirty && ...}` — nada mudou, nenhum botão. Não adicione um "Cancelar" próprio: o `X` do modal (e o clique fora) já cancela. Exceção: ações **de estado** que não dependem de alteração podem ficar sempre visíveis quando aplicáveis.
+- **Botão de voltar (`onBack`) para fluxos com passos.** Quando um modal tem passos (ex.: escolher uma opção → formulário), passe `onBack` (e `backLabel` para o `aria-label`, padrão "Voltar") ao `Modal`: ele renderiza um **botão-ícone de voltar à esquerda do título**, alinhado verticalmente entre título e descrição. Não coloque o "voltar" solto no corpo do modal.
 
 **`Modal` — scroll do corpo (Dialog no desktop / Drawer no mobile):** o corpo do `Modal` precisa rolar quando o conteúdo passa da altura da tela. No **mobile (Drawer/vaul)** o corpo é um **container de scroll NATIVO** (`<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">`), **nunca** o `ScrollArea` do Radix — o vaul só reconhece overflow nativo para diferenciar "rolar conteúdo" de "arrastar o drawer" no toque; com `ScrollArea` o gesto não rola no celular. `flex-1 min-h-0` limita a altura ao espaço restante do drawer (habilita o scroll interno). O drawer inferior (`ui/drawer.tsx`) usa `mt-6` + `max-h-[92dvh]` (não `mt-24`/`max-h-[80vh]`) para não deixar uma faixa de fechamento morta grande acima dele. No desktop (Dialog), scroll do corpo é normal (roda do mouse).
+
+**Lista suspensa (dropdown/popover) dentro de Dialog/Drawer: scroll NATIVO + conteúdo NÃO portalado.** Para a roda do mouse rolar a lista de um popover que vive dentro de um `Modal` (opções de um combobox, menu longo, etc.), **duas** coisas precisam ser verdade — uma só não basta:
+
+1. **Container de overflow nativo** (`max-h-* overflow-y-auto`), nunca o `ScrollArea` do Radix. O `react-remove-scroll` do Dialog/Drawer só reconhece scroll nativo.
+2. **Conteúdo do popover NÃO portalado** (`PopoverContent portal={false}`). O `react-remove-scroll` bloqueia o wheel em tudo que está **fora** da subárvore do Dialog; como o `PopoverContent` portala para o `body` por padrão, a lista fica fora dessa subárvore e o wheel é bloqueado mesmo com overflow nativo. Com `portal={false}` o conteúdo renderiza dentro do Dialog (dentro do allowlist do RemoveScroll) e a roda funciona. O Popover é `position: fixed` (Floating UI), então não portalar **não** causa recorte por `overflow` nem erra o posicionamento.
+
+Sintoma de esquecer o item 2: a lista rola pela barra mas **não pela roda do mouse** dentro do modal. O `PopoverContent` de [`ui/popover.tsx`](src/components/ui/popover.tsx) já expõe o prop `portal` (padrão `true`) exatamente para esse opt-out — passe `portal={false}` quando o popover vive dentro de um `Modal`.
 
 **Padrão para criar uma nova abstração global:**
 
@@ -1004,12 +1078,24 @@ Regras:
 - **`useState` para filtro é antipadrão** — só é aceitável para estado verdadeiramente efêmero e não-compartilhável (ex.: o texto sendo digitado antes do debounce que ainda não virou busca aplicada).
 - **PII nunca vai na URL** (ver seção Segurança/LGPD): filtre por ID opaco ou termo genérico, nunca CPF, e-mail ou telefone na query string.
 - **Defaults limpos**: filtro no valor default não suja a URL (ex.: `status=all` não precisa aparecer) — mantenha a URL curta e o link legível.
+- **Restaura ao voltar pelo breadcrumb.** Ao entrar num detalhe/criar, a URL da lista (com seus filtros) sai da barra; para voltar à listagem com os mesmos filtros, o `Layout` lembra o último search de cada rota via [`rememberSearch`](src/lib/navigation/searchMemory.ts) e o breadcrumb reanexa esse search no link de volta (`getRememberedSearch`). A URL segue como fonte de verdade (reload restaura pela própria URL); a memória só cobre o "voltar" onde a URL de destino não carrega mais os filtros.
 
 ### DataTable
 
 - Padrão de tabela com paginação/filtro server-side em [`src/components/global/dataTable/`](src/components/global/dataTable). Use [`useDataTableQuery`](src/components/global/dataTable/useDataTableQuery.ts) (estado da URL via [`useDataTableUrlQuery`](src/components/global/dataTable/useDataTableUrlQuery.ts)).
 - Empty state automático: quando não há resultados e há filtros ativos, exibe um `Empty` com botão "Limpar filtros" que dispara `onSearch({})`. Sem filtros, mostra "Ainda não há registros para exibir.".
 - Exemplo vivo: story `DataTable/ServerSide` no Storybook.
+
+#### Colunas ordenáveis pelo cabeçalho — padrão obrigatório
+
+**Por padrão, TODA coluna de uma `DataTable` é ordenável pelo cabeçalho.** O clique no cabeçalho alterna asc/desc. A `DataTable` **nunca reordena localmente** (`manualSorting: true`): quem ordena é o **dono dos dados** — o backend (listas paginadas server-side) ou a própria tela (listas pequenas carregadas por inteiro). Regra dura ao criar/tocar uma listagem:
+
+- **Frontend (sempre):** o `header` da coluna usa [`SortableHeader`](src/components/global/dataTable/columnHelpers.tsx) — `header: ({ column }) => <SortableHeader column={column}>Rótulo</SortableHeader>` — com `id`/`accessorKey` que identifique o campo. O `onSortingChange` já vem fiado em `tableProps` (via `useDataTableQuery`/`useDataTableUrlQuery`), então o estado de ordenação chega em `query.sort`.
+- **Lista server-side (paginada):** traduza `query.sort[0]` em `orderBy`/`order` no service e a rota/serviço aplica no banco. O `orderBy` é **sempre validado contra uma allowlist** de campos (nunca interpolar o nome da coluna cru numa query — em SQL raw isso é injeção; com um ORM, restrinja a um union/`switch`). Defina uma **ordenação padrão** explícita no banco (ex.: `createdAt desc`, `name asc`).
+- **Lista client-side (carrega tudo, filtra/ordena na tela):** a tela ordena o array de `rows` conforme `query.sort[0]` (comparador por coluna via `switch`/`Map`, sem indexar objeto por variável). Não precisa de mudança no backend.
+- **Ordem padrão (sem sort ativo):** a ordem inicial vem do **backend** (server-side) ou do **fallback do comparador** (client-side, ex.: `sort?.id ?? 'name'`) — **não** passe `defaultSorting` ao `useDataTable*Query` só para isso. `defaultSorting` **semeia a URL** com `?sort=...` no mount, o que polui o link e quebra asserções de URL "limpa". Reserve `defaultSorting` para quando o padrão do backend **não** for a coluna/ordem que você quer destacar como já-ativa no cabeçalho.
+
+**Exceções legítimas (as ÚNICAS):** colunas de **ação** (`actionsColumn`) e **seleção** (`selectColumn`) — já vêm com `enableSorting: false`; e colunas **compostas/derivadas sem um único campo de banco** que dê para ordenar (ex.: uma coluna que combina dois campos). Fora esses casos, cabeçalho sem `SortableHeader` é regressão — não deixe coluna "muda". Se a coluna mapeia um campo real (inclusive contagens e booleanos de status), ela é ordenável.
 
 ### Storybook (demos de componentes)
 

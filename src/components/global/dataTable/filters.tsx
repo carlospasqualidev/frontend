@@ -163,10 +163,15 @@ function renderFilter(
   values: FilterState,
   setValue: (key: string, value: DataTableFilterValue) => void
 ) {
+  // Id estável por filtro para associar `<FieldLabel htmlFor>` ao controle
+  // (a11y + permite `getByLabel` nos testes).
+  const fieldId = `filter-${filter.key}`;
+
   switch (filter.type) {
     case 'text':
       return (
         <InputField
+          id={fieldId}
           label={filter.label}
           placeholder={filter.placeholder}
           value={getString(values, filter.key)}
@@ -177,6 +182,7 @@ function renderFilter(
       const selected = getString(values, filter.key);
       return (
         <Select
+          id={fieldId}
           label={filter.label}
           placeholder={filter.placeholder ?? filter.allLabel ?? 'Todos'}
           options={[
@@ -193,8 +199,9 @@ function renderFilter(
     case 'multiSelect':
       return (
         <Field>
-          <FieldLabel>{filter.label}</FieldLabel>
+          <FieldLabel htmlFor={fieldId}>{filter.label}</FieldLabel>
           <MultiSelect
+            id={fieldId}
             options={filter.options}
             value={getStringArray(values, filter.key)}
             onValueChange={(next) => setValue(filter.key, next)}
@@ -207,6 +214,7 @@ function renderFilter(
     case 'date':
       return (
         <DateField
+          id={fieldId}
           label={filter.label}
           placeholder={filter.placeholder}
           value={getString(values, filter.key)}
@@ -218,6 +226,7 @@ function renderFilter(
       return (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <DateField
+            id={`${fieldId}-from`}
             label={`${filter.label} (de)`}
             value={range.from}
             onChange={(value) =>
@@ -225,6 +234,7 @@ function renderFilter(
             }
           />
           <DateField
+            id={`${fieldId}-to`}
             label={`${filter.label} (até)`}
             value={range.to}
             onChange={(value) => setValue(filter.key, { ...range, to: value })}

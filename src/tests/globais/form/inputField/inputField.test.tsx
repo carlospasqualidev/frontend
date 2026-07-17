@@ -51,6 +51,15 @@ describe('InputField (global) — modo uncontrolled', () => {
     const input = screen.getByLabelText('E-mail');
     expect(input).toHaveAttribute('aria-invalid', 'true');
   });
+
+  it('com srOnlyLabel, mantém o rótulo acessível mas oculto visualmente', () => {
+    render(<InputField id="name" label="Nome" srOnlyLabel />);
+
+    // O input continua acessível pelo rótulo (leitor de tela o encontra)...
+    expect(screen.getByLabelText('Nome')).toBeInTheDocument();
+    // ...mas o rótulo fica visualmente oculto (classe utilitária sr-only).
+    expect(screen.getByText('Nome')).toHaveClass('sr-only');
+  });
 });
 
 describe('InputField (global) — modo controlled', () => {

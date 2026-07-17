@@ -31,6 +31,9 @@ import {
 type SelectBaseProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
   id?: string;
   label: string;
+  /** Mantém o rótulo acessível (leitor de tela) mas oculto visualmente — para uso
+   *  em células de tabela onde o cabeçalho da coluna já é o rótulo visual. */
+  srOnlyLabel?: boolean;
   description?: string;
   placeholder?: string;
   errors?: FormFieldErrors;
@@ -67,6 +70,7 @@ type SelectProps<
 function SelectBase({
   id,
   label,
+  srOnlyLabel,
   description,
   placeholder,
   errors,
@@ -80,7 +84,11 @@ function SelectBase({
 
   return (
     <BaseField data-invalid={invalid}>
-      {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
+      {label && (
+        <FieldLabel htmlFor={id} className={srOnlyLabel ? 'sr-only' : undefined}>
+          {label}
+        </FieldLabel>
+      )}
 
       <BaseSelect {...props}>
         <SelectTrigger id={id} aria-invalid={resolvedAriaInvalid}>

@@ -1,4 +1,4 @@
-import { Download, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Download, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 
 import { Card } from '@/components/global/card/card';
@@ -174,7 +174,37 @@ export const ComAcoesInline: Story = {
     docs: {
       description: {
         story:
-          'Card como item de lista (item de cobrança, sessão, backup, integração). As ações ficam alinhadas à direita; em mobile elas quebram embaixo via `flex-col sm:flex-row`. Padrão usado em [`account/billingTab`](src/screens/account/billingTab.tsx) e [`account/securityTab`](src/screens/account/securityTab.tsx).',
+          'Card como item de lista (item de cobrança, sessão, backup, integração). As ações ficam alinhadas à direita; em mobile elas quebram embaixo via `flex-col sm:flex-row`.',
+      },
+    },
+  },
+};
+
+export const ComAcaoNoCabecalho: Story = {
+  render: () => (
+    <div className="grid gap-4">
+      <Card
+        title="Membros"
+        description="Pessoas com acesso a este projeto."
+        action={
+          <Button variant="outline" size="sm">
+            <Plus />
+            Adicionar membro
+          </Button>
+        }
+      >
+        <ul className="divide-y rounded-md border text-sm">
+          <li className="p-3">Ana Souza · Administradora</li>
+          <li className="p-3">Bruno Lima · Editor</li>
+        </ul>
+      </Card>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Ação primária de uma seção (ex.: "Adicionar …") no `action` do Card — alinhada à direita do cabeçalho. É o padrão: NÃO coloque o botão de adicionar solto acima/dentro do conteúdo.',
       },
     },
   },

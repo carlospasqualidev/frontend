@@ -10,8 +10,10 @@ import { NotFound } from './components/global/layout/notFound';
 import { Layout } from '@/components/global/layout/layout';
 import { SessionValidation } from '@/components/global/layout/sessionValidation';
 import { accountRoute } from '@/screens/account/routes';
+import { auditLogsRoute } from '@/screens/audit-logs/routes';
 import { homeRoute } from '@/screens/home/routes';
 import { loginRoute, signupRoute } from '@/screens/session/routes';
+import { settingsRoute } from '@/screens/settings/routes';
 import {
   userDetailsRoute,
   usersLayoutRoute,
@@ -56,6 +58,8 @@ export const router = createRouter({
     protectedLayoutRoute.addChildren([
       homeRoute,
       accountRoute,
+      auditLogsRoute,
+      settingsRoute,
       usersLayoutRoute.addChildren([usersListRoute, userDetailsRoute]),
     ]),
   ]),

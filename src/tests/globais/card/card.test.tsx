@@ -15,4 +15,20 @@ describe('Card (global)', () => {
     expect(screen.getByText('Visão consolidada do dia.')).toBeInTheDocument();
     expect(screen.getByText('Conteúdo do card')).toBeInTheDocument();
   });
+
+  it('renderiza a ação do cabeçalho quando `action` é passado', () => {
+    render(
+      <Card
+        title="Membros"
+        description="Pessoas com acesso a este projeto."
+        action={<button type="button">Adicionar membro</button>}
+      >
+        <p>Lista</p>
+      </Card>
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Adicionar membro' })
+    ).toBeInTheDocument();
+  });
 });

@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Modal } from '@/components/global/modal/modal';
+import { Modal, ModalFooter } from '@/components/global/modal/modal';
 
-function Harness({ initialOpen = false }: { initialOpen?: boolean }) {
+function Harness({
+  initialOpen = false,
+  onBack,
+  backLabel,
+}: {
+  initialOpen?: boolean;
+  onBack?: () => void;
+  backLabel?: string;
+}) {
   const [open, setOpen] = useState(initialOpen);
 
   return (
@@ -18,6 +26,8 @@ function Harness({ initialOpen = false }: { initialOpen?: boolean }) {
         setOpen={setOpen}
         title="Editar perfil"
         description="Atualize seus dados."
+        onBack={onBack}
+        backLabel={backLabel}
       >
         <p>Conteúdo do modal</p>
       </Modal>
@@ -62,5 +72,38 @@ describe('Modal (global)', () => {
     render(<Harness initialOpen />);
 
     expect(screen.getByText('Editar perfil')).toBeInTheDocument();
+  });
+
+  it('não mostra o botão de voltar quando onBack não é informado', () => {
+    render(<Harness initialOpen />);
+
+    expect(screen.queryByRole('button', { name: 'Voltar' })).not.toBeInTheDocument();
+  });
+
+  it('mostra o botão de voltar com o rótulo padrão e dispara onBack ao clicar', async () => {
+    const onBack = vi.fn();
+    render(<Harness initialOpen onBack={onBack} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('usa backLabel como nome acessível do botão de voltar', () => {
+    render(<Harness initialOpen onBack={() => undefined} backLabel="Trocar etapa" />);
+
+    expect(screen.getByRole('button', { name: 'Trocar etapa' })).toBeInTheDocument();
+  });
+});
+
+describe('ModalFooter (global)', () => {
+  it('renderiza os botões de ação passados como children', () => {
+    render(
+      <ModalFooter>
+        <button type="button">Salvar</button>
+      </ModalFooter>
+    );
+
+    expect(screen.getByRole('button', { name: 'Salvar' })).toBeInTheDocument();
   });
 });

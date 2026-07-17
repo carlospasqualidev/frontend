@@ -1,6 +1,8 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useLocation } from '@tanstack/react-router';
 
 import { Breadcrumb } from '@/components/global/layout/breadcrumb';
+import { rememberSearch } from '@/lib/navigation/searchMemory';
 import { PageActionsSlot } from '@/components/global/layout/pageActions';
 import { SuspenseFallback } from '@/components/global/layout/suspenseFallback';
 import { AppSidebar } from '@/components/global/sidebar/appSidebar';
@@ -13,6 +15,14 @@ import {
 } from '@/components/ui/sidebar';
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+
+  // Lembra os filtros/ordenação/página de cada rota para restaurá-los ao voltar
+  // (breadcrumb, "Cancelar") mesmo após entrar num detalhe/criar.
+  useEffect(() => {
+    rememberSearch(location.pathname, location.search as Record<string, unknown>);
+  }, [location.pathname, location.search]);
+
   return (
     <SidebarProvider>
       <AppSidebar />

@@ -9,6 +9,7 @@ import {
   BreadcrumbPage,
   Breadcrumb as BaseBreadCrumb,
 } from '@/components/ui/breadcrumb';
+import { getRememberedSearch } from '@/lib/navigation/searchMemory';
 
 function normalizeRoutePath(pathname: string) {
   if (!pathname || pathname === '/') {
@@ -69,7 +70,12 @@ export function Breadcrumb() {
                   <BreadcrumbPage>{item.title}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <Link to={item.pathname}>{item.title}</Link>
+                    <Link
+                      to={item.pathname}
+                      search={getRememberedSearch(item.pathname)}
+                    >
+                      {item.title}
+                    </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

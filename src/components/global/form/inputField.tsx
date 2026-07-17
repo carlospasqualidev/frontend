@@ -22,6 +22,9 @@ import { Input } from '@/components/ui/input';
 
 type InputFieldBaseProps = React.ComponentProps<'input'> & {
   label: string;
+  /** Mantém o rótulo acessível (leitor de tela) mas oculto visualmente — para uso
+   *  em células de tabela onde o cabeçalho da coluna já é o rótulo visual. */
+  srOnlyLabel?: boolean;
   description?: string;
   errors?: FormFieldErrors;
 };
@@ -56,6 +59,7 @@ type InputFieldProps<
 
 function InputFieldBase({
   label,
+  srOnlyLabel,
   description,
   type,
   id,
@@ -69,7 +73,11 @@ function InputFieldBase({
 
   return (
     <BaseField data-invalid={invalid}>
-      {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
+      {label && (
+        <FieldLabel htmlFor={id} className={srOnlyLabel ? 'sr-only' : undefined}>
+          {label}
+        </FieldLabel>
+      )}
 
       <Input
         id={id}

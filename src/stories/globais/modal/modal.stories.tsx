@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/tanstack-react';
 
-import { Modal } from '@/components/global/modal/modal';
+import { Modal, ModalFooter } from '@/components/global/modal/modal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/global/card/card';
 import { Input } from '@/components/ui/input';
@@ -64,7 +64,9 @@ function EditProfileDemo() {
             <Label htmlFor="modal-story-username">Usuário</Label>
             <Input id="modal-story-username" defaultValue="@usuario" />
           </div>
-          <Button onClick={() => setOpen(false)}>Salvar alterações</Button>
+          <ModalFooter>
+            <Button onClick={() => setOpen(false)}>Salvar alterações</Button>
+          </ModalFooter>
         </form>
       </Modal>
     </>
@@ -78,6 +80,65 @@ export const Vitrine: Story = {
       description="Abre como dialog no desktop e drawer no mobile (redimensione a janela para testar)."
     >
       <EditProfileDemo />
+    </Card>
+  ),
+};
+
+function StepsDemo() {
+  const [open, setOpen] = React.useState(false);
+  const [step, setStep] = React.useState<'menu' | 'form'>('menu');
+
+  return (
+    <>
+      <Button
+        onClick={(event) => {
+          event.currentTarget.blur();
+          setStep('menu');
+          setOpen(true);
+        }}
+      >
+        Abrir fluxo com passos
+      </Button>
+
+      <Modal
+        title={step === 'menu' ? 'Escolha uma opção' : 'Preencha os dados'}
+        description={
+          step === 'menu'
+            ? 'O botão de voltar aparece só a partir do 2º passo.'
+            : 'Use a seta ao lado do título para voltar ao passo anterior.'
+        }
+        open={open}
+        setOpen={setOpen}
+        onBack={step === 'form' ? () => setStep('menu') : undefined}
+        backLabel="Voltar à seleção"
+      >
+        {step === 'menu' ? (
+          <Button className="w-full" onClick={() => setStep('form')}>
+            Continuar
+          </Button>
+        ) : (
+          <form className="grid items-start gap-6">
+            <div className="grid gap-3">
+              <Label htmlFor="modal-story-step-name">Nome</Label>
+              <Input id="modal-story-step-name" defaultValue="" />
+            </div>
+            <ModalFooter>
+              <Button onClick={() => setOpen(false)}>Salvar</Button>
+            </ModalFooter>
+          </form>
+        )}
+      </Modal>
+    </>
+  );
+}
+
+export const ComVoltar: Story = {
+  render: () => (
+    <Card
+      title="Botão de voltar (fluxo com passos)"
+      description="Prop `onBack` opcional: mostra um ícone de voltar à esquerda do título, alinhado entre título e descrição."
+    >
+      <StepsDemo />
     </Card>
   ),
 };

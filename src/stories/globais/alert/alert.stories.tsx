@@ -77,13 +77,13 @@ export const Vitrine: Story = {
           <Alert
             variant="info"
             title="Novidade exclusiva"
-            description="A nova versão do design system saiu â€” confira o changelog."
+            description="A nova versão do design system saiu — confira o changelog."
             icon={<Sparkles />}
           />
           <Alert
             variant="success"
             title="Sem ícone"
-            description="Ãštil quando o contexto já deixa claro o tipo da mensagem."
+            description="Útil quando o contexto já deixa claro o tipo da mensagem."
             icon={null}
           />
         </div>

@@ -627,7 +627,7 @@ function PersonForm({
     control,
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useZodForm({
     schema: personSchema,
     defaultValues: initial ?? { name: '', email: '', role: 'viewer' },
@@ -672,9 +672,11 @@ function PersonForm({
         }))}
       />
 
-      <Button type="submit" loading={isSubmitting} className="w-full">
-        {initial ? 'Salvar alterações' : 'Cadastrar'}
-      </Button>
+      {isDirty && (
+        <Button type="submit" loading={isSubmitting} className="w-full">
+          {initial ? 'Salvar alterações' : 'Cadastrar'}
+        </Button>
+      )}
     </form>
   );
 }
@@ -755,20 +757,28 @@ function CrudDemo() {
             </TableHeader>
             <TableBody>
               {people.map((person) => (
-                <TableRow key={person.id}>
+                // Editar é pelo clique na linha (mesmo idioma a11y do DataTable
+                // global): sem botão "Editar" na célula. O "⋯"/ações ficam só
+                // com o que não é abrir/editar — aqui, o Excluir.
+                <TableRow
+                  key={person.id}
+                  onClick={() => openEdit(person)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openEdit(person);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Editar ${person.name}`}
+                  className="cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
                   <TableCell className="font-medium">{person.name}</TableCell>
                   <TableCell>{person.email}</TableCell>
                   <TableCell>{roleLabel[person.role]}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEdit(person)}
-                        aria-label={`Editar ${person.name}`}
-                      >
-                        <Pencil />
-                      </Button>
                       <ConfirmDialog
                         title={`Remover ${person.name}?`}
                         description="Esta ação não pode ser desfeita."
@@ -779,6 +789,8 @@ function CrudDemo() {
                             variant="ghost"
                             size="icon"
                             aria-label={`Remover ${person.name}`}
+                            // Não deixa o clique borbulhar e abrir a edição.
+                            onClick={(event) => event.stopPropagation()}
                           >
                             <Trash2 />
                           </Button>
